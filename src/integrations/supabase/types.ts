@@ -9,13 +9,214 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      chats: {
+        Row: {
+          created_at: string
+          family_id: string
+          id: string
+          members: string[]
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          id?: string
+          members: string[]
+          type: string
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          id?: string
+          members?: string[]
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      families: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          invite_code: string
+          name: string
+          settings: Json | null
+          theme_color: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          invite_code: string
+          name: string
+          settings?: Json | null
+          theme_color?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          invite_code?: string
+          name?: string
+          settings?: Json | null
+          theme_color?: string | null
+        }
+        Relationships: []
+      }
+      media: {
+        Row: {
+          created_at: string
+          date_uploaded: string
+          description: string | null
+          family_id: string
+          id: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_uploaded?: string
+          description?: string | null
+          family_id: string
+          id?: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_uploaded?: string
+          description?: string | null
+          family_id?: string
+          id?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          id: string
+          sender_id: string
+          timestamp: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          id?: string
+          sender_id: string
+          timestamp?: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          id?: string
+          sender_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string
+          family_id: string | null
+          id: string
+          is_admin: boolean | null
+          name: string
+          role: string | null
+          theme: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email: string
+          family_id?: string | null
+          id: string
+          is_admin?: boolean | null
+          name: string
+          role?: string | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string
+          family_id?: string | null
+          id?: string
+          is_admin?: boolean | null
+          name?: string
+          role?: string | null
+          theme?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_unique_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
