@@ -56,12 +56,14 @@ export default function SetupFamily() {
     
     setIsSubmitting(true);
     try {
-      // Create new family
+      // Create new family - generate invite code directly here to avoid RLS issues
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
       const { data: family, error: familyError } = await supabase
         .from('families')
         .insert({
           name: data.name,
-          invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(), // This will trigger our function
+          invite_code: inviteCode,
         })
         .select('id')
         .single();
