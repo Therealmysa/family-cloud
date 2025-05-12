@@ -18,6 +18,12 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AlertCircle, CheckCircle, Copy, Home, Loader2, Trash, UserX, Users } from "lucide-react";
 
+// Define the shape of the family settings object
+interface FamilySettings {
+  publicGallery?: boolean;
+  commentNotifications?: boolean;
+}
+
 const adminFormSchema = z.object({
   familyName: z.string().min(2, "Family name must be at least 2 characters"),
   publicGallery: z.boolean().default(true),
@@ -77,11 +83,14 @@ export default function FamilyAdmin() {
 
       setFamilyData(data);
       
-      // Update form values
+      // Safely extract settings with type checking
+      const settings = data.settings as FamilySettings | null;
+      
+      // Update form values with proper type handling
       form.reset({
         familyName: data.name,
-        publicGallery: data.settings?.publicGallery ?? true,
-        commentNotifications: data.settings?.commentNotifications ?? true,
+        publicGallery: settings?.publicGallery ?? true,
+        commentNotifications: settings?.commentNotifications ?? true,
       });
       
       setIsLoading(false);

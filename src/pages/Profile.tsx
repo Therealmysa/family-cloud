@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -20,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, User, Copy, CheckCircle, AlertCircle, Loader2, Home, Settings } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -364,17 +364,17 @@ const Profile = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <FormLabel>Email Address</FormLabel>
-                      <Input value={user.email} readOnly disabled />
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input id="email" value={user.email} readOnly disabled />
                       <p className="text-sm text-gray-500">
                         This is the email address associated with your account
                       </p>
                     </div>
                     
                     <div className="grid gap-2">
-                      <FormLabel>Password</FormLabel>
+                      <Label htmlFor="password">Password</Label>
                       <div className="flex gap-2">
-                        <Input value="••••••••••••" type="password" readOnly disabled />
+                        <Input id="password" value="••••••••••••" type="password" readOnly disabled />
                         <Button variant="outline">Change Password</Button>
                       </div>
                     </div>
