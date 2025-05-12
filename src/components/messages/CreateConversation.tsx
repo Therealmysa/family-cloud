@@ -46,7 +46,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name, avatar_url")
+        .select("id, name, avatar_url, family_id")
         .eq("family_id", profile.family_id)
         .neq("id", user.id); // Exclude current user
       
@@ -104,8 +104,9 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
           .single();
           
         if (otherMemberData) {
-          const chatWithMember = {
+          const chatWithMember: Chat = {
             ...newChat,
+            type: chatType as 'group' | 'private',
             otherMember: otherMemberData
           };
           
@@ -118,7 +119,11 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
         }
       } else if (newChat) {
         // Group chat
-        onChatCreated(newChat);
+        const typedChat: Chat = {
+          ...newChat,
+          type: chatType as 'group' | 'private'
+        };
+        onChatCreated(typedChat);
         setOpen(false);
         toast({
           title: "Success",
