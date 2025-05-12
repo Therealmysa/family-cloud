@@ -8,8 +8,6 @@ import { Chat } from "@/types/chat";
 import { Profile } from "@/types/profile";
 import { Message } from "@/types/message";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type ChatContainerProps = {
   selectedChat: Chat | null;
@@ -36,7 +34,7 @@ export const ChatContainer = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       <ChatHeader 
         chat={selectedChat} 
         onBackClick={isMobile ? onBackToList : undefined}
