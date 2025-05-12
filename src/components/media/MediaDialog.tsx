@@ -51,7 +51,8 @@ export function MediaDialog({ media, open, onOpenChange, familyId }: MediaDialog
         const { error } = await supabase
           .from('likes')
           .delete()
-          .match({ user_id: user?.id, media_id: mediaId });
+          .eq('user_id', user?.id)
+          .eq('media_id', mediaId);
         
         if (error) throw error;
       } else {

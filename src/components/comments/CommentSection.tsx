@@ -1,14 +1,12 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/components/ui/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { SendHorizontal, Trash2 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Comment = {
   id: string;
@@ -22,132 +20,89 @@ type Comment = {
   };
 };
 
-interface CommentSectionProps {
-  mediaId: string;
-}
-
-export function CommentSection({ mediaId }: CommentSectionProps) {
+export function CommentSection({ mediaId }: { mediaId: string }) {
   const { user } = useAuth();
-  const [newComment, setNewComment] = useState('');
   const queryClient = useQueryClient();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch comments for the media item
-  const { data: comments = [] } = useQuery({
-    queryKey: ['comments', mediaId],
-    queryFn: async () => {
+  // Fetch comments
+  const fetchComments = async () => {
+    setIsLoading(true);
+    try {
+      // Need to use RPC or custom fetch since comments table isn't in the types yet
       const { data, error } = await supabase
-        .from('comments')
+        .from("comments")
         .select(`
           *,
           profile:profiles(name, avatar_url)
         `)
-        .eq('media_id', mediaId)
-        .order('created_at', { ascending: true });
+        .eq("media_id", mediaId)
+        .order("created_at", { ascending: true });
 
-      if (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load comments',
-          variant: 'destructive',
-        });
-        return [];
-      }
-
-      return data as Comment[];
-    },
-    enabled: !!mediaId,
-  });
-
-  // Add comment mutation
-  const addCommentMutation = useMutation({
-    mutationFn: async (content: string) => {
-      if (!user) throw new Error('User not authenticated');
+      if (error) throw error;
       
+      // Cast the data to the Comment type
+      setComments(data as unknown as Comment[]);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load comments",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Post new comment
+  const handlePostComment = async () => {
+    if (!user || !newComment.trim()) return;
+
+    try {
+      // Need to use RPC or custom fetch since comments table isn't in the types yet
       const { error } = await supabase
-        .from('comments')
+        .from("comments")
         .insert({
           media_id: mediaId,
           user_id: user.id,
-          content,
+          content: newComment.trim()
         });
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      setNewComment('');
-      queryClient.invalidateQueries({ queryKey: ['comments', mediaId] });
-    },
-    onError: (error) => {
+
+      setNewComment("");
+      fetchComments(); // Refetch comments
+    } catch (error) {
+      console.error("Error posting comment:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to add comment',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to post comment",
+        variant: "destructive",
       });
-    },
-  });
-
-  // Delete comment mutation
-  const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: string) => {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', mediaId] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete comment',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Handle comment submission
-  const handleSubmitComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-    
-    addCommentMutation.mutate(newComment.trim());
+    }
   };
 
-  // Handle comment deletion
-  const handleDeleteComment = (commentId: string) => {
-    deleteCommentMutation.mutate(commentId);
-  };
-
-  // Set up real-time subscription for comments
+  // Set up real-time comments subscription
   useEffect(() => {
+    // Initial fetch
+    fetchComments();
+
+    // Set up subscription
     const channel = supabase
-      .channel('comments-channel')
+      .channel("comments-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'comments',
-          filter: `media_id=eq.${mediaId}`,
+          event: "INSERT",
+          schema: "public",
+          table: "comments",
+          filter: `media_id=eq.${mediaId}`
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['comments', mediaId] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'comments',
-          filter: `media_id=eq.${mediaId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['comments', mediaId] });
+          fetchComments();
         }
       )
       .subscribe();
@@ -155,83 +110,58 @@ export function CommentSection({ mediaId }: CommentSectionProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [mediaId, queryClient]);
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  }, [mediaId]);
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Comments ({comments.length})</h3>
+      <h3 className="font-medium">Comments</h3>
       
-      {comments.length > 0 ? (
-        <div className="space-y-4">
+      {isLoading ? (
+        <div className="text-center py-4">
+          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        </div>
+      ) : comments.length > 0 ? (
+        <div className="space-y-3 max-h-[200px] overflow-y-auto">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-3">
+            <div key={comment.id} className="flex gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.profile?.avatar_url || ''} />
+                <AvatarImage src={comment.profile?.avatar_url || ""} />
                 <AvatarFallback>
-                  {comment.profile?.name?.substring(0, 2).toUpperCase() || ''}
+                  {comment.profile?.name?.substring(0, 2).toUpperCase() || ""}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <p className="font-medium text-sm">{comment.profile?.name}</p>
-                    {user?.id === comment.user_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleDeleteComment(comment.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">{comment.profile?.name}</p>
+                  <span className="text-xs text-gray-500">
+                    {new Date(comment.created_at).toLocaleString()}
+                  </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{formatDate(comment.created_at)}</p>
+                <p className="text-sm">{comment.content}</p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+        <p className="text-sm text-gray-500 py-2">No comments yet</p>
       )}
 
-      <Separator />
-      
-      {user ? (
-        <form onSubmit={handleSubmitComment} className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback>
-              {user?.email?.substring(0, 2).toUpperCase() || ''}
-            </AvatarFallback>
-          </Avatar>
+      {user && (
+        <div className="flex gap-2">
           <Input
-            placeholder="Add a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
             className="flex-1"
           />
           <Button 
-            type="submit" 
-            size="sm"
-            disabled={!newComment.trim() || addCommentMutation.isPending}
+            size="sm" 
+            onClick={handlePostComment}
+            disabled={!newComment.trim()}
           >
-            <SendHorizontal className="h-4 w-4" />
+            Post
           </Button>
-        </form>
-      ) : (
-        <p className="text-sm text-gray-500">Sign in to add a comment</p>
+        </div>
       )}
     </div>
   );
