@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Profile } from "@/types/profile";
 import { fetchUserProfile } from "@/utils/auth";
+import { useAuthMethods } from "@/hooks/useAuthMethods";
 
 type AuthContextType = {
   user: User | null;
@@ -61,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Import auth methods
   const { signUp, signIn, signOut, resetPassword } = useAuthMethods();
 
   const value = {
