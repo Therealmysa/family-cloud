@@ -18,11 +18,12 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     { name: "Feed", path: "/feed" },
     { name: "Gallery", path: "/gallery" },
     { name: "Messages", path: "/messages" },
+    { name: "Family Admin", path: "/family-admin" },
   ] : [];
 
   return (
-    <div className="md:hidden bg-white dark:bg-gray-900">
-      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+    <div className="md:hidden fixed inset-0 z-50 bg-white dark:bg-gray-900">
+      <div className="px-4 py-6 space-y-4 overflow-y-auto max-h-screen">
         <NavigationItems items={navigationItems} isMobile onClick={onClose} />
         <UserMenu isMobile onItemClick={onClose} />
       </div>
