@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "./Header";
 
@@ -13,6 +13,8 @@ interface MainLayoutProps {
 export default function MainLayout({ children, requireAuth = false, title }: MainLayoutProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMessagesPage = location.pathname === "/messages";
   
   useEffect(() => {
     if (!loading && requireAuth && !user) {
@@ -36,10 +38,15 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
     );
   }
 
+  // Apply padding only for messages page
+  const containerClasses = isMessagesPage 
+    ? "flex-grow container mx-auto px-0 py-0 sm:px-2 sm:py-2" 
+    : "flex-grow container mx-auto px-0 py-0";
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow container mx-auto px-0 py-0 sm:px-2 sm:py-2">
+      <main className={containerClasses}>
         {children}
       </main>
       <footer className="bg-gray-50 dark:bg-gray-900 py-6">
