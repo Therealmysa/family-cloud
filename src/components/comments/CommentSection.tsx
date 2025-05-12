@@ -7,18 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-type Comment = {
-  id: string;
-  media_id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-  profile?: {
-    name: string;
-    avatar_url: string | null;
-  };
-};
+import { Comment } from "@/types/media";
 
 export function CommentSection({ mediaId }: { mediaId: string }) {
   const { user } = useAuth();
@@ -31,20 +20,14 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
   const fetchComments = async () => {
     setIsLoading(true);
     try {
-      // Need to use RPC or custom fetch since comments table isn't in the types yet
+      // Use a RPC call with explicit typing since the comments table isn't in the types yet
       const { data, error } = await supabase
-        .from("comments")
-        .select(`
-          *,
-          profile:profiles(name, avatar_url)
-        `)
-        .eq("media_id", mediaId)
-        .order("created_at", { ascending: true });
+        .rpc('get_comments_with_profiles', { media_id_param: mediaId })
+        .returns<Comment[]>();
 
       if (error) throw error;
       
-      // Cast the data to the Comment type
-      setComments(data as unknown as Comment[]);
+      setComments(data || []);
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast({
@@ -62,9 +45,9 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     if (!user || !newComment.trim()) return;
 
     try {
-      // Need to use RPC or custom fetch since comments table isn't in the types yet
-      const { error } = await supabase
-        .from("comments")
+      // Use the REST API with explicit types
+      const { error } = await supabase.rest
+        .from('comments')
         .insert({
           media_id: mediaId,
           user_id: user.id,

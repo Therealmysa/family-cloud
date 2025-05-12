@@ -22,3 +22,15 @@ export type Like = {
   media_id: string;
   created_at: string;
 };
+
+export type Comment = {
+  id: string;
+  media_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profile?: {
+    name: string;
+    avatar_url: string | null;
+  };
+};

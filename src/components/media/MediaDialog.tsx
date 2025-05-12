@@ -14,22 +14,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
-
-type Media = {
-  id: string;
-  title: string;
-  description: string | null;
-  url: string;
-  user_id: string;
-  created_at: string;
-  date_uploaded: string;
-  profile: {
-    name: string;
-    avatar_url: string | null;
-  } | null;
-  likes_count?: number;
-  is_liked?: boolean;
-};
+import { Media } from '@/types/media';
 
 interface MediaDialogProps {
   media: Media | null;
@@ -48,16 +33,15 @@ export function MediaDialog({ media, open, onOpenChange, familyId }: MediaDialog
     mutationFn: async ({ mediaId, isLiked }: { mediaId: string, isLiked: boolean }) => {
       if (isLiked) {
         // Unlike - delete the like
-        const { error } = await supabase
+        const { error } = await supabase.rest
           .from('likes')
           .delete()
-          .eq('user_id', user?.id)
-          .eq('media_id', mediaId);
+          .match({ user_id: user?.id, media_id: mediaId });
         
         if (error) throw error;
       } else {
         // Like - insert new like
-        const { error } = await supabase
+        const { error } = await supabase.rest
           .from('likes')
           .insert({ user_id: user?.id, media_id: mediaId });
         
