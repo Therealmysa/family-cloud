@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -241,31 +240,31 @@ export default function FamilyAdmin() {
 
   return (
     <MainLayout title="Family Administration" requireAuth={true}>
-      <div className="container max-w-4xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Family Administration</h1>
+      <div className="w-full px-2 sm:px-4 py-6 sm:max-w-4xl sm:mx-auto">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold">Family Administration</h1>
           <Button variant="outline" onClick={() => navigate('/profile')}>
             Back to Profile
           </Button>
         </div>
 
         <div className="grid gap-6">
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden">
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle>Family Information</CardTitle>
               <CardDescription>
                 Configure your family settings and manage members
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="flex items-center gap-3 mb-6">
-                <Avatar className="h-14 w-14">
+                <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
                   <AvatarFallback className="bg-purple-100 text-purple-800">
-                    <Home className="h-6 w-6" />
+                    <Home className="h-5 w-5 sm:h-6 sm:w-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-medium text-xl">{familyData?.name}</h3>
+                  <h3 className="font-medium text-lg sm:text-xl">{familyData?.name}</h3>
                   <p className="text-sm text-gray-500">
                     {familyMembers.length} {familyMembers.length === 1 ? 'member' : 'members'}
                   </p>
@@ -297,8 +296,8 @@ export default function FamilyAdmin() {
                       control={form.control}
                       name="publicGallery"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
+                        <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 sm:p-4">
+                          <div className="space-y-0.5 mb-2 sm:mb-0">
                             <FormLabel className="text-base">Public Photo Gallery</FormLabel>
                             <p className="text-sm text-muted-foreground">
                               Allow all family members to see all photos in the gallery
@@ -318,8 +317,8 @@ export default function FamilyAdmin() {
                       control={form.control}
                       name="commentNotifications"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
+                        <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 sm:p-4">
+                          <div className="space-y-0.5 mb-2 sm:mb-0">
                             <FormLabel className="text-base">Comment Notifications</FormLabel>
                             <p className="text-sm text-muted-foreground">
                               Notify members when someone comments on their posts
@@ -336,10 +335,10 @@ export default function FamilyAdmin() {
                     />
                   </div>
                   
-                  <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+                  <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
                     <Button 
                       type="submit" 
-                      className="flex-1"
+                      className="w-full sm:flex-1"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -355,7 +354,7 @@ export default function FamilyAdmin() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1"
+                      className="w-full sm:flex-1"
                       onClick={() => setShowInviteDialog(true)}
                     >
                       <Users className="mr-2 h-4 w-4" />
@@ -367,21 +366,21 @@ export default function FamilyAdmin() {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden">
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle>Family Members</CardTitle>
               <CardDescription>
                 Manage your family members and their permissions
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="space-y-4">
                 {familyMembers.length === 0 ? (
                   <p className="text-center text-gray-500 py-4">No family members found</p>
                 ) : (
                   <ul className="divide-y">
                     {familyMembers.map((member) => (
-                      <li key={member.id} className="py-3 flex justify-between items-center">
+                      <li key={member.id} className="py-3 flex flex-wrap justify-between items-center gap-2">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
                             <AvatarFallback className="bg-purple-100 text-purple-800">
@@ -397,7 +396,7 @@ export default function FamilyAdmin() {
                         </div>
                         
                         {user?.id !== member.id && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mt-2 sm:mt-0">
                             {!member.is_admin && (
                               <Button 
                                 size="sm" 
@@ -427,24 +426,24 @@ export default function FamilyAdmin() {
             </CardContent>
           </Card>
           
-          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-            <CardHeader>
+          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 overflow-hidden">
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-red-700 dark:text-red-400">Danger Zone</CardTitle>
               <CardDescription className="text-red-600/80 dark:text-red-400/80">
                 Irreversible actions that affect your entire family
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="space-y-4">
-                <div className="p-4 border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-900">
-                  <div className="flex justify-between items-start">
+                <div className="p-3 sm:p-4 border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-gray-900">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <h3 className="font-medium text-red-700 dark:text-red-400">Delete Family</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        This will permanently delete your family and all associated data. All members will be removed from the family.
+                        This will permanently delete your family and all associated data.
                       </p>
                     </div>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" className="self-start sm:self-center">
                       <Trash className="h-4 w-4 mr-1" />
                       Delete Family
                     </Button>
@@ -457,7 +456,7 @@ export default function FamilyAdmin() {
 
         {/* Invite Code Dialog */}
         <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Family Invite Code</DialogTitle>
               <DialogDescription>
@@ -465,8 +464,8 @@ export default function FamilyAdmin() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
-              <h3 className="text-2xl font-mono tracking-wider font-bold mb-3">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 sm:p-6 text-center">
+              <h3 className="text-lg sm:text-2xl font-mono tracking-wider font-bold mb-3">
                 {familyData?.invite_code || "------"}
               </h3>
               <p className="text-sm text-gray-500 mb-4">
