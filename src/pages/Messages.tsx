@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -10,6 +10,7 @@ import { CreateConversation } from "@/components/messages/CreateConversation";
 import { useChats } from "@/hooks/useChats";
 import { useMessages } from "@/hooks/useMessages";
 import { Chat } from "@/types/chat";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Messages = () => {
   const { user } = useAuth();
@@ -27,12 +28,40 @@ const Messages = () => {
     isLoadingMessages, 
     sendMessage 
   } = useMessages(selectedChat, user?.id);
+  
+  const isMobile = useIsMobile();
+  const [showChatList, setShowChatList] = useState(true);
+
+  // Toggle between chat list and chat content on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setShowChatList(!selectedChat);
+    } else {
+      setShowChatList(true);
+    }
+  }, [selectedChat, isMobile]);
 
   // Handle new chat creation
   const handleChatCreated = (newChat: Chat) => {
     console.log("New chat created:", newChat);
     refetchChats();
     setSelectedChat(newChat);
+    if (isMobile) {
+      setShowChatList(false);
+    }
+  };
+  
+  // Handle chat selection
+  const handleChatSelected = (chat: Chat) => {
+    setSelectedChat(chat);
+    if (isMobile) {
+      setShowChatList(false);
+    }
+  };
+  
+  // Handle back to list on mobile
+  const handleBackToList = () => {
+    setShowChatList(true);
   };
 
   // Add debugging for RLS policy check
@@ -72,34 +101,37 @@ const Messages = () => {
 
   return (
     <MainLayout title="Messages" requireAuth={true}>
-      <div className="container max-w-6xl mx-auto flex h-[calc(100vh-16rem)] overflow-hidden">
-        {/* Chats sidebar with create conversation button */}
-        <div className="w-full sm:w-80 border-r bg-white dark:bg-gray-800/50 flex flex-col">
-          <div className="p-4 border-b flex justify-between items-center">
-            <h2 className="text-lg font-medium">Messages</h2>
-            <CreateConversation onChatCreated={handleChatCreated} />
+      <div className="container max-w-6xl mx-auto flex flex-col sm:flex-row h-[calc(100vh-16rem)] overflow-hidden">
+        {/* Chats sidebar - show only when showChatList is true on mobile */}
+        {(!isMobile || showChatList) && (
+          <div className="w-full sm:w-80 border-r bg-white dark:bg-gray-800/50 flex flex-col h-full">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="text-lg font-medium">Messages</h2>
+              <CreateConversation onChatCreated={handleChatCreated} />
+            </div>
+            
+            <ChatSidebar 
+              chats={chats} 
+              isLoading={isLoadingChats} 
+              selectedChat={selectedChat} 
+              onSelectChat={handleChatSelected} 
+            />
           </div>
-          
-          <ChatSidebar 
-            chats={chats} 
-            isLoading={isLoadingChats} 
-            selectedChat={selectedChat} 
-            onSelectChat={(chat) => {
-              setSelectedChat(chat);
-            }} 
-          />
-        </div>
+        )}
 
-        {/* Chat window */}
-        <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">
-          <ChatContainer
-            selectedChat={selectedChat}
-            messages={messages}
-            profiles={profiles}
-            isLoadingMessages={isLoadingMessages}
-            onSendMessage={sendMessage}
-          />
-        </div>
+        {/* Chat window - show only when showChatList is false on mobile */}
+        {(!isMobile || !showChatList) && (
+          <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 h-full">
+            <ChatContainer
+              selectedChat={selectedChat}
+              messages={messages}
+              profiles={profiles}
+              isLoadingMessages={isLoadingMessages}
+              onSendMessage={sendMessage}
+              onBackToList={handleBackToList}
+            />
+          </div>
+        )}
       </div>
     </MainLayout>
   );

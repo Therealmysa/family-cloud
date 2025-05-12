@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
@@ -6,6 +7,9 @@ import { EmptyState } from "./EmptyState";
 import { Chat } from "@/types/chat";
 import { Profile } from "@/types/profile";
 import { Message } from "@/types/message";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type ChatContainerProps = {
   selectedChat: Chat | null;
@@ -13,6 +17,7 @@ type ChatContainerProps = {
   profiles: Record<string, Profile>;
   isLoadingMessages: boolean;
   onSendMessage: (content: string) => void;
+  onBackToList?: () => void;
 };
 
 export const ChatContainer = ({
@@ -21,14 +26,21 @@ export const ChatContainer = ({
   profiles,
   isLoadingMessages,
   onSendMessage,
+  onBackToList,
 }: ChatContainerProps) => {
+  const isMobile = useIsMobile();
+  const [isAtBottom, setIsAtBottom] = useState(true);
+
   if (!selectedChat) {
     return <EmptyState />;
   }
 
   return (
-    <>
-      <ChatHeader chat={selectedChat} />
+    <div className="flex flex-col h-full">
+      <ChatHeader 
+        chat={selectedChat} 
+        onBackClick={isMobile ? onBackToList : undefined}
+      />
       
       {isLoadingMessages ? (
         <div className="flex-1 flex items-center justify-center">
@@ -39,6 +51,6 @@ export const ChatContainer = ({
       )}
       
       <MessageInput onSendMessage={onSendMessage} />
-    </>
+    </div>
   );
 };
