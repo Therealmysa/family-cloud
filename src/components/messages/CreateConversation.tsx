@@ -42,7 +42,13 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       if (user) {
         console.log("Authenticated user in CreateConversation:", user.id);
         console.log("User profile in CreateConversation:", profile);
-        console.log("Session in CreateConversation:", session);
+        if (session) {
+          console.log("Session in CreateConversation - expires:", new Date(session.expires_at * 1000).toISOString());
+          console.log("Session token starts with:", session.access_token.substring(0, 10) + "...");
+        } else {
+          console.error("No session object found in CreateConversation!");
+          setAuthError("Session not available. Please refresh the page and try again.");
+        }
       } else {
         console.error("No authenticated user found in CreateConversation!");
         setAuthError("No authenticated user found. Please sign in again.");
@@ -101,6 +107,18 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
     setIsCreating(true);
     
     try {
+      // Double-check authentication status
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        throw new Error(`Authentication error: ${sessionError.message}`);
+      }
+      
+      if (!sessionData.session) {
+        throw new Error("No valid authentication session found");
+      }
+      
+      console.log("Auth token before chat creation:", sessionData.session.access_token.substring(0, 10) + "...");
+      
       // Make sure to explicitly set the chat type as 'group' or 'private'
       const chatType = selectedMembers.length > 1 ? 'group' : 'private';
       const members = [user.id, ...selectedMembers];
@@ -111,14 +129,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
         family_id: profile.family_id
       });
       
-      // Verify auth token before proceeding
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        throw new Error("No valid authentication session found");
-      }
-      
-      console.log("Auth session before chat creation:", sessionData.session.access_token.substring(0, 10) + "...");
-      
+      // Create the chat with explicit types
       const { data: newChat, error } = await supabase
         .from("chats")
         .insert({
@@ -134,7 +145,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
         throw error;
       }
       
-      console.log("Chat created:", newChat);
+      console.log("Chat created successfully:", newChat);
       
       // For private chats, fetch the other member's profile
       if (chatType === 'private' && newChat) {
@@ -162,9 +173,15 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
             title: "Success",
             description: `Chat with ${otherMemberData.name} created successfully`,
           });
+          
+          // Clear selections after successful creation
+          setSelectedMembers([]);
+          return;
         }
-      } else if (newChat) {
-        // Group chat
+      } 
+      
+      // Group chat or failed to fetch member profile
+      if (newChat) {
         const typedChat: Chat = {
           ...newChat,
           type: chatType as 'group' | 'private'
@@ -175,6 +192,9 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
           title: "Success",
           description: "Group chat created successfully",
         });
+        
+        // Clear selections after successful creation
+        setSelectedMembers([]);
       }
     } catch (error: any) {
       console.error("Error creating chat:", error);
@@ -185,7 +205,6 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       });
     } finally {
       setIsCreating(false);
-      setSelectedMembers([]);
     }
   };
 

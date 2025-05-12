@@ -13,7 +13,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    storage: localStorage
+    storage: localStorage,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   },
   global: {
     headers: {
@@ -28,9 +30,25 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 });
 
 // Debug log to check auth status when client is initialized
-supabase.auth.getSession().then(({ data }) => {
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    console.error('Error checking auth session:', error);
+    return;
+  }
+  
   if (data.session) {
     console.log('User is authenticated with ID:', data.session.user.id);
+    console.log('Session expires at:', new Date(data.session.expires_at * 1000).toISOString());
+    console.log('Auth token starts with:', data.session.access_token.substring(0, 10) + '...');
+    
+    // Verify token with Supabase
+    supabase.auth.getUser().then(({ data: userData, error: userError }) => {
+      if (userError) {
+        console.error('Error verifying token:', userError);
+      } else {
+        console.log('Token verified for user:', userData.user.id);
+      }
+    });
   } else {
     console.log('No active session found');
   }
