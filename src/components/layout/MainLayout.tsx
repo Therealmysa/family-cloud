@@ -38,10 +38,10 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
     );
   }
 
-  // Apply padding only for messages page
+  // Apply padding to all pages except messages page
   const containerClasses = isMessagesPage 
-    ? "flex-grow container mx-auto px-0 py-0 sm:px-2 sm:py-2" 
-    : "flex-grow container mx-auto px-0 py-0";
+    ? "flex-grow container mx-auto px-0 py-0" 
+    : "flex-grow container mx-auto px-4 py-4 sm:px-6 sm:py-6";
 
   return (
     <div className="flex flex-col min-h-screen">
