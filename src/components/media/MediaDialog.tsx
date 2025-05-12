@@ -33,7 +33,7 @@ export function MediaDialog({ media, open, onOpenChange, familyId }: MediaDialog
     mutationFn: async ({ mediaId, isLiked }: { mediaId: string, isLiked: boolean }) => {
       if (isLiked) {
         // Unlike - delete the like
-        const { error } = await supabase.rest
+        const { error } = await supabase
           .from('likes')
           .delete()
           .match({ user_id: user?.id, media_id: mediaId });
@@ -41,7 +41,7 @@ export function MediaDialog({ media, open, onOpenChange, familyId }: MediaDialog
         if (error) throw error;
       } else {
         // Like - insert new like
-        const { error } = await supabase.rest
+        const { error } = await supabase
           .from('likes')
           .insert({ user_id: user?.id, media_id: mediaId });
         

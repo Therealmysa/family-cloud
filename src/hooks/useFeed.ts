@@ -41,13 +41,15 @@ export function useFeed() {
       );
       setHasPostedToday(userPostedToday);
 
-      // Get likes for all media items using RPC function
-      const { data: likes, error: likesError } = await supabase
+      // Get likes for all media items using our RPC function
+      if (data.length === 0) return [];
+
+      const mediaIds = data.map(item => item.id);
+      const { data: likesData, error: likesError } = await supabase
         .rpc('get_likes_for_media', { 
-          media_ids: data.map(item => item.id),
+          media_ids: mediaIds,
           current_user_id: user.id
-        })
-        .returns<{ media_id: string, likes_count: number, is_liked: boolean }[]>();
+        });
 
       if (likesError) {
         console.error("Error fetching likes:", likesError);
@@ -55,7 +57,10 @@ export function useFeed() {
 
       // Process media items to add like information
       const processedData = data.map(item => {
-        const likeInfo = likes?.find(like => like.media_id === item.id);
+        const likeInfo = likesData && Array.isArray(likesData) 
+          ? likesData.find(like => like.media_id === item.id) 
+          : undefined;
+          
         return {
           ...item,
           likes_count: likeInfo?.likes_count || 0,
@@ -73,7 +78,7 @@ export function useFeed() {
     mutationFn: async ({ mediaId, isLiked }: { mediaId: string, isLiked: boolean }) => {
       if (isLiked) {
         // Unlike - delete the like
-        const { error } = await supabase.rest
+        const { error } = await supabase
           .from('likes')
           .delete()
           .match({ user_id: user?.id, media_id: mediaId });
@@ -81,7 +86,7 @@ export function useFeed() {
         if (error) throw error;
       } else {
         // Like - insert new like
-        const { error } = await supabase.rest
+        const { error } = await supabase
           .from('likes')
           .insert({ user_id: user?.id, media_id: mediaId });
         

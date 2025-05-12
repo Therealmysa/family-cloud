@@ -278,6 +278,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_comments_with_profiles: {
+        Args: { media_id_param: string }
+        Returns: {
+          id: string
+          media_id: string
+          user_id: string
+          content: string
+          created_at: string
+          profile: Json
+        }[]
+      }
+      get_likes_for_media: {
+        Args: { media_ids: string[]; current_user_id: string }
+        Returns: {
+          media_id: string
+          likes_count: number
+          is_liked: boolean
+        }[]
+      }
       get_user_family_id: {
         Args: { user_id: string }
         Returns: string

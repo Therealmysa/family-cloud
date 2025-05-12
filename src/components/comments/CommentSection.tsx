@@ -20,14 +20,18 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
   const fetchComments = async () => {
     setIsLoading(true);
     try {
-      // Use a RPC call with explicit typing since the comments table isn't in the types yet
+      // Use the database function we created
       const { data, error } = await supabase
-        .rpc('get_comments_with_profiles', { media_id_param: mediaId })
-        .returns<Comment[]>();
+        .rpc('get_comments_with_profiles', { media_id_param: mediaId });
 
       if (error) throw error;
       
-      setComments(data || []);
+      // Check if data exists and is an array
+      if (data && Array.isArray(data)) {
+        setComments(data as Comment[]);
+      } else {
+        setComments([]);
+      }
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast({
@@ -35,6 +39,7 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
         description: "Failed to load comments",
         variant: "destructive",
       });
+      setComments([]);
     } finally {
       setIsLoading(false);
     }
@@ -45,8 +50,8 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     if (!user || !newComment.trim()) return;
 
     try {
-      // Use the REST API with explicit types
-      const { error } = await supabase.rest
+      // Insert directly into the comments table
+      const { error } = await supabase
         .from('comments')
         .insert({
           media_id: mediaId,
