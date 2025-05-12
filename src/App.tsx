@@ -15,7 +15,15 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 
-const queryClient = new QueryClient();
+// Set up QueryClient with better defaults for real-time apps
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

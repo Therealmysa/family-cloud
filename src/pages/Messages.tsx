@@ -16,6 +16,7 @@ type Chat = {
   type: 'group' | 'private';
   family_id: string;
   members: string[];
+  created_at?: string;
   otherMember?: {
     id: string;
     name: string;
@@ -73,8 +74,14 @@ const Messages = () => {
       // For private chats, get the other member's profile
       const enhancedChats: Chat[] = await Promise.all(
         data.map(async (chat) => {
-          if (chat.type === "private") {
-            const otherMemberId = chat.members.find(id => id !== user.id);
+          // Ensure chat.type is cast to the correct type
+          const typedChat: Chat = {
+            ...chat,
+            type: chat.type as 'group' | 'private'
+          };
+          
+          if (typedChat.type === "private") {
+            const otherMemberId = typedChat.members.find(id => id !== user.id);
             if (otherMemberId) {
               const { data: profileData } = await supabase
                 .from("profiles")
@@ -82,17 +89,19 @@ const Messages = () => {
                 .eq("id", otherMemberId)
                 .single();
 
-              return {
-                ...chat,
-                otherMember: profileData || undefined
-              };
+              if (profileData) {
+                return {
+                  ...typedChat,
+                  otherMember: profileData
+                };
+              }
             }
           }
-          return chat;
+          return typedChat;
         })
       );
 
-      return enhancedChats as Chat[];
+      return enhancedChats;
     },
     enabled: !!user,
   });
@@ -125,7 +134,7 @@ const Messages = () => {
       if (missingIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, name, avatar_url")
+          .select("id, name, avatar_url, family_id")
           .in("id", missingIds);
 
         if (profilesData) {
