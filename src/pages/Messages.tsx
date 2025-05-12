@@ -101,7 +101,7 @@ const Messages = () => {
 
   return (
     <MainLayout title="Messages" requireAuth={true}>
-      <div className="container max-w-6xl mx-auto flex flex-col sm:flex-row h-[calc(100vh-10rem)] sm:h-[calc(100vh-16rem)] overflow-hidden">
+      <div className="flex flex-col sm:flex-row h-[calc(100vh-10rem)] sm:h-[calc(100vh-16rem)] overflow-hidden w-full">
         {/* Chats sidebar - show only when showChatList is true on mobile */}
         {(!isMobile || showChatList) && (
           <div className="w-full sm:w-80 border-r bg-white dark:bg-gray-800/50 flex flex-col h-full">
