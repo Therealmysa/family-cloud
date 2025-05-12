@@ -21,7 +21,7 @@ export const ChatHeader = ({ chat }: ChatHeaderProps) => {
   };
 
   return (
-    <div className="p-4 border-b bg-white dark:bg-gray-800 flex items-center gap-3">
+    <div className="sticky top-0 z-10 p-4 border-b bg-white dark:bg-gray-800 flex items-center gap-3">
       <Avatar>
         <AvatarImage src={getChatAvatar(chat)} />
         <AvatarFallback className="bg-purple-200 text-purple-700">

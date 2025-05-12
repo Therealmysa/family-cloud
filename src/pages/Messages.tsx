@@ -18,6 +18,8 @@ const Messages = () => {
   const { user } = useAuth();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // Fetch chats
   const { data: chats = [], isLoading: isLoadingChats } = useQuery({
@@ -76,11 +78,12 @@ const Messages = () => {
   });
 
   // Fetch messages for selected chat
-  const { data: messages = [], refetch: refetchMessages } = useQuery({
-    queryKey: ["messages", selectedChat?.id],
-    queryFn: async () => {
-      if (!selectedChat) return [];
-
+  const fetchMessages = async () => {
+    if (!selectedChat || !user) return;
+    
+    setIsLoadingMessages(true);
+    
+    try {
       const { data, error } = await supabase
         .from("messages")
         .select("*")
@@ -93,39 +96,61 @@ const Messages = () => {
           description: "Failed to load messages",
           variant: "destructive",
         });
-        return [];
+        setMessages([]);
+        return;
       }
+
+      setMessages(data);
 
       // Cache profiles for messages
-      const senderIds = Array.from(new Set(data.map(msg => msg.sender_id)));
-      const missingIds = senderIds.filter(id => !profiles[id]);
+      await fetchProfiles(data);
+      
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load messages",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
 
-      if (missingIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("id, name, avatar_url, family_id")
-          .in("id", missingIds);
+  // Fetch profiles for messages
+  const fetchProfiles = async (messagesData: Message[]) => {
+    if (!messagesData.length) return;
+    
+    // Get unique sender IDs
+    const senderIds = Array.from(new Set(messagesData.map(msg => msg.sender_id)));
+    const missingIds = senderIds.filter(id => !profiles[id]);
 
-        if (profilesData) {
-          const newProfiles = { ...profiles };
-          profilesData.forEach(profile => {
-            newProfiles[profile.id] = profile;
-          });
-          setProfiles(newProfiles);
-        }
+    if (missingIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url, family_id")
+        .in("id", missingIds);
+
+      if (profilesData) {
+        const newProfiles = { ...profiles };
+        profilesData.forEach(profile => {
+          newProfiles[profile.id] = profile;
+        });
+        setProfiles(newProfiles);
       }
+    }
+  };
 
-      return data as Message[];
-    },
-    enabled: !!selectedChat,
-  });
-
-  // Set up real-time messages subscription
+  // Set up realtime subscription for messages
   useEffect(() => {
     if (!selectedChat) return;
 
+    // Initial fetch
+    fetchMessages();
+
+    // Set up realtime subscription
     const channel = supabase
-      .channel("messages-channel")
+      .channel(`room-${selectedChat.id}`)
       .on(
         "postgres_changes",
         {
@@ -134,8 +159,27 @@ const Messages = () => {
           table: "messages",
           filter: `chat_id=eq.${selectedChat.id}`
         },
-        () => {
-          refetchMessages();
+        async (payload) => {
+          const newMessage = payload.new as Message;
+          
+          // Update messages
+          setMessages(current => [...current, newMessage]);
+          
+          // Fetch profile for new message sender if needed
+          if (!profiles[newMessage.sender_id]) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id, name, avatar_url, family_id")
+              .eq("id", newMessage.sender_id)
+              .single();
+              
+            if (data) {
+              setProfiles(current => ({
+                ...current,
+                [data.id]: data
+              }));
+            }
+          }
         }
       )
       .subscribe();
@@ -143,7 +187,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedChat, refetchMessages]);
+  }, [selectedChat]);
 
   // Send message
   const handleSendMessage = async (content: string) => {
@@ -159,7 +203,11 @@ const Messages = () => {
         });
 
       if (error) throw error;
+      
+      // No need to manually refetch as the realtime subscription will update the UI
+      
     } catch (error: any) {
+      console.error("Error sending message:", error);
       toast({
         title: "Error",
         description: "Failed to send message",
@@ -176,7 +224,10 @@ const Messages = () => {
           chats={chats} 
           isLoading={isLoadingChats} 
           selectedChat={selectedChat} 
-          onSelectChat={setSelectedChat} 
+          onSelectChat={(chat) => {
+            setSelectedChat(chat);
+            setMessages([]);
+          }} 
         />
 
         {/* Chat window */}
@@ -184,7 +235,15 @@ const Messages = () => {
           {selectedChat ? (
             <>
               <ChatHeader chat={selectedChat} />
-              <MessageList messages={messages} profiles={profiles} />
+              
+              {isLoadingMessages ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-8 h-8 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <MessageList messages={messages} profiles={profiles} />
+              )}
+              
               <MessageInput onSendMessage={handleSendMessage} />
             </>
           ) : (
