@@ -35,6 +35,7 @@ const Messages = () => {
         .order("created_at", { ascending: true });
 
       if (error) {
+        console.error("Error fetching chats:", error);
         toast({
           title: "Error",
           description: "Failed to load chats",
@@ -42,6 +43,8 @@ const Messages = () => {
         });
         return [];
       }
+
+      console.log("Fetched chats:", data);
 
       // For private chats, get the other member's profile
       const enhancedChats: Chat[] = await Promise.all(
@@ -101,6 +104,7 @@ const Messages = () => {
         return;
       }
 
+      console.log("Fetched messages:", data);
       setMessages(data);
 
       // Cache profiles for messages
@@ -120,6 +124,7 @@ const Messages = () => {
 
   // Handle new chat creation
   const handleChatCreated = (newChat: Chat) => {
+    console.log("New chat created:", newChat);
     refetchChats();
     setSelectedChat(newChat);
   };
@@ -155,7 +160,9 @@ const Messages = () => {
     // Initial fetch
     fetchMessages();
 
-    // Set up realtime subscription
+    console.log("Setting up realtime subscription for chat:", selectedChat.id);
+    
+    // Set up realtime subscription using the newer channel API
     const channel = supabase
       .channel(`room-${selectedChat.id}`)
       .on(
@@ -167,6 +174,8 @@ const Messages = () => {
           filter: `chat_id=eq.${selectedChat.id}`
         },
         async (payload) => {
+          console.log("New message received:", payload);
+          
           const newMessage = payload.new as Message;
           
           // Update messages
@@ -192,6 +201,7 @@ const Messages = () => {
       .subscribe();
 
     return () => {
+      console.log("Removing channel for chat:", selectedChat.id);
       supabase.removeChannel(channel);
     };
   }, [selectedChat]);
@@ -201,6 +211,12 @@ const Messages = () => {
     if (!user || !selectedChat) return;
 
     try {
+      console.log("Sending message:", {
+        chat_id: selectedChat.id,
+        sender_id: user.id,
+        content
+      });
+      
       const { error } = await supabase
         .from("messages")
         .insert({
@@ -209,7 +225,10 @@ const Messages = () => {
           content,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting message:", error);
+        throw error;
+      }
       
       // No need to manually refetch as the realtime subscription will update the UI
       

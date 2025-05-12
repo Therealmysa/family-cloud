@@ -74,34 +74,50 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
   };
 
   const handleCreateChat = async () => {
-    if (!user || selectedMembers.length === 0) return;
+    if (!user || selectedMembers.length === 0 || !profile?.family_id) return;
     
     setIsCreating(true);
     
     try {
-      const chatType = selectedMembers.length > 1 ? "group" : "private";
+      // Make sure to explicitly set the chat type as 'group' or 'private'
+      const chatType = selectedMembers.length > 1 ? 'group' : 'private';
       const members = [user.id, ...selectedMembers];
+      
+      console.log("Creating chat with:", {
+        type: chatType,
+        members,
+        family_id: profile.family_id
+      });
       
       const { data: newChat, error } = await supabase
         .from("chats")
         .insert({
           type: chatType,
           members: members,
-          family_id: profile?.family_id,
+          family_id: profile.family_id,
         })
         .select("*")
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating chat:", error);
+        throw error;
+      }
+      
+      console.log("Chat created:", newChat);
       
       // For private chats, fetch the other member's profile
-      if (chatType === "private" && newChat) {
+      if (chatType === 'private' && newChat) {
         const otherMemberId = selectedMembers[0];
-        const { data: otherMemberData } = await supabase
+        const { data: otherMemberData, error: memberError } = await supabase
           .from("profiles")
           .select("id, name, avatar_url")
           .eq("id", otherMemberId)
           .single();
+          
+        if (memberError) {
+          console.error("Error fetching member:", memberError);
+        }
           
         if (otherMemberData) {
           const chatWithMember: Chat = {
@@ -134,7 +150,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       console.error("Error creating chat:", error);
       toast({
         title: "Error",
-        description: "Failed to create conversation",
+        description: "Failed to create conversation. Please try again.",
         variant: "destructive",
       });
     } finally {
