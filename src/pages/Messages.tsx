@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -241,6 +240,41 @@ const Messages = () => {
       });
     }
   };
+
+  // Add debugging for RLS policy check
+  useEffect(() => {
+    // Check if RLS policies are in effect
+    const checkRlsPolicies = async () => {
+      if (!user) return;
+      
+      console.log("Checking RLS policies for user:", user.id);
+      
+      try {
+        // Attempt to read chats table metadata
+        const { data, error } = await supabase
+          .from('chats')
+          .select('*')
+          .limit(1);
+          
+        console.log("RLS policy check result:", { data, error });
+        
+        if (error) {
+          console.error("RLS policy check failed:", error);
+          toast({
+            title: "Error",
+            description: "There might be an issue with database permissions. Please contact support.",
+            variant: "destructive",
+          });
+        }
+      } catch (e) {
+        console.error("Error checking RLS policies:", e);
+      }
+    };
+    
+    if (user) {
+      checkRlsPolicies();
+    }
+  }, [user]);
 
   return (
     <MainLayout title="Messages" requireAuth={true}>

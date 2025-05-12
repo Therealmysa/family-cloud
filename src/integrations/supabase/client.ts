@@ -12,11 +12,28 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     persistSession: true,
-    autoRefreshToken: true
+    autoRefreshToken: true,
+    storage: localStorage
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json'
+    }
   },
   realtime: {
     params: {
       eventsPerSecond: 10
     }
   }
+});
+
+// Debug log to check auth status when client is initialized
+supabase.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    console.log('User is authenticated with ID:', data.session.user.id);
+  } else {
+    console.log('No active session found');
+  }
+}).catch(error => {
+  console.error('Error checking auth session:', error);
 });

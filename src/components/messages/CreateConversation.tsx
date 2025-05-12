@@ -9,7 +9,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,20 +24,31 @@ type CreateConversationProps = {
 };
 
 export const CreateConversation = ({ onChatCreated }: CreateConversationProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, session } = useAuth();
   const [open, setOpen] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<Profile[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Fetch family members when dialog opens
   useEffect(() => {
     if (open && profile?.family_id) {
       fetchFamilyMembers();
+      
+      // Debug log for authentication
+      if (user) {
+        console.log("Authenticated user in CreateConversation:", user.id);
+        console.log("User profile in CreateConversation:", profile);
+        console.log("Session in CreateConversation:", session);
+      } else {
+        console.error("No authenticated user found in CreateConversation!");
+        setAuthError("No authenticated user found. Please sign in again.");
+      }
     }
-  }, [open, profile?.family_id]);
+  }, [open, profile?.family_id, user, session]);
 
   const fetchFamilyMembers = async () => {
     if (!user || !profile?.family_id) return;
@@ -44,6 +56,8 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
     setIsLoading(true);
     
     try {
+      console.log("Fetching family members for family ID:", profile.family_id);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("id, name, avatar_url, family_id")
@@ -52,6 +66,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       
       if (error) throw error;
       
+      console.log("Fetched family members:", data);
       setFamilyMembers(data || []);
     } catch (error: any) {
       console.error("Error fetching family members:", error);
@@ -74,7 +89,14 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
   };
 
   const handleCreateChat = async () => {
-    if (!user || selectedMembers.length === 0 || !profile?.family_id) return;
+    if (!user || selectedMembers.length === 0 || !profile?.family_id) {
+      toast({
+        title: "Error",
+        description: "Missing required information to create chat",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsCreating(true);
     
@@ -88,6 +110,14 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
         members,
         family_id: profile.family_id
       });
+      
+      // Verify auth token before proceeding
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("No valid authentication session found");
+      }
+      
+      console.log("Auth session before chat creation:", sessionData.session.access_token.substring(0, 10) + "...");
       
       const { data: newChat, error } = await supabase
         .from("chats")
@@ -150,7 +180,7 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       console.error("Error creating chat:", error);
       toast({
         title: "Error",
-        description: "Failed to create conversation. Please try again.",
+        description: `Failed to create conversation: ${error.message || "Please try again."}`,
         variant: "destructive",
       });
     } finally {
@@ -177,7 +207,16 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>New Conversation</DialogTitle>
+          <DialogDescription>
+            Select family members to start a conversation with.
+          </DialogDescription>
         </DialogHeader>
+        
+        {authError && (
+          <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-md text-red-700 dark:text-red-300 mb-4">
+            {authError}
+          </div>
+        )}
         
         <div className="space-y-4 py-4">
           <div className="relative">
