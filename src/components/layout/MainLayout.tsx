@@ -39,7 +39,7 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-1 sm:px-2 py-2 sm:py-4">
         {children}
       </main>
       <footer className="bg-gray-50 dark:bg-gray-900 py-6">
