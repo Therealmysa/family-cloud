@@ -7,10 +7,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X, Sun, Moon, User, LogOut, Settings } from "lucide-react";
+import { Menu, X, User, LogOut, Settings, Users } from "lucide-react";
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
@@ -84,12 +85,13 @@ export default function Header() {
                   </DropdownMenuItem>
                   {profile?.is_admin && (
                     <DropdownMenuItem asChild>
-                      <Link to="/admin" className="cursor-pointer flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Admin</span>
+                      <Link to="/family-admin" className="cursor-pointer flex items-center">
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Family Admin</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
@@ -152,11 +154,11 @@ export default function Header() {
                 </Link>
                 {profile?.is_admin && (
                   <Link
-                    to="/admin"
+                    to="/family-admin"
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
                     onClick={toggleMobileMenu}
                   >
-                    Admin
+                    Family Admin
                   </Link>
                 )}
                 <button

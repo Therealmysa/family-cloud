@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, User, Copy, CheckCircle, AlertCircle, Loader2, Home } from "lucide-react";
+import { Camera, User, Copy, CheckCircle, AlertCircle, Loader2, Home, Settings } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,12 +27,7 @@ const profileSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
 });
 
-const adminSchema = z.object({
-  familyName: z.string().min(2, "Family name must be at least 2 characters"),
-});
-
 type ProfileFormValues = z.infer<typeof profileSchema>;
-type AdminFormValues = z.infer<typeof adminSchema>;
 
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
@@ -51,13 +46,6 @@ const Profile = () => {
       name: profile?.name || "",
       bio: profile?.bio || "",
       theme: profile?.theme as "light" | "dark" | "system" || "light",
-    },
-  });
-
-  const adminForm = useForm<AdminFormValues>({
-    resolver: zodResolver(adminSchema),
-    defaultValues: {
-      familyName: "",
     },
   });
 
@@ -88,9 +76,6 @@ const Profile = () => {
 
       if (error) throw error;
       setFamilyData(data);
-      adminForm.reset({
-        familyName: data.name,
-      });
     } catch (error) {
       console.error("Error fetching family data:", error);
     }
@@ -116,40 +101,6 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const onAdminSubmit = async (data: AdminFormValues) => {
-    if (!profile?.family_id || !profile.is_admin) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from("families")
-        .update({
-          name: data.familyName,
-        })
-        .eq("id", profile.family_id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Family updated",
-        description: "Your family details have been successfully updated.",
-      });
-      
-      // Refresh family data
-      if (profile.family_id) {
-        fetchFamilyData(profile.family_id);
-      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -234,6 +185,10 @@ const Profile = () => {
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const navigateToFamilyAdmin = () => {
+    navigate("/family-admin");
   };
 
   if (!user || !profile) {
@@ -466,11 +421,21 @@ const Profile = () => {
                   <Separator className="my-6" />
                   
                   <div className="space-y-6">
-                    <div>
-                      <h3 className="font-medium mb-2">Invite Family Members</h3>
-                      <p className="text-sm text-gray-500 mb-3">
-                        Share this code with your family members so they can join your family
-                      </p>
+                    <div className="space-y-4">
+                      {profile.is_admin ? (
+                        <Button
+                          onClick={navigateToFamilyAdmin}
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Manage Family Settings
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center">
+                          Contact your family administrator to update family settings
+                        </p>
+                      )}
+                      
                       <Button
                         variant="outline"
                         onClick={() => setShowInviteDialog(true)}
@@ -479,71 +444,6 @@ const Profile = () => {
                         View Invite Code
                       </Button>
                     </div>
-                    
-                    {profile.is_admin && (
-                      <Form {...adminForm}>
-                        <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
-                          <div>
-                            <h3 className="font-medium mb-4">Family Settings</h3>
-                            
-                            <FormField
-                              control={adminForm.control}
-                              name="familyName"
-                              render={({ field }) => (
-                                <FormItem className="mb-4">
-                                  <FormLabel>Family Name</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Your family name" 
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            {/* Theme and other settings */}
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4 className="font-medium">Public Photo Gallery</h4>
-                                  <p className="text-sm text-gray-500">
-                                    Allow members to see all family photos
-                                  </p>
-                                </div>
-                                <Switch defaultChecked />
-                              </div>
-                              
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h4 className="font-medium">Comment Notifications</h4>
-                                  <p className="text-sm text-gray-500">
-                                    Notify members when someone comments on their post
-                                  </p>
-                                </div>
-                                <Switch defaultChecked />
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <Button 
-                            type="submit" 
-                            className="w-full"
-                            disabled={isSubmitting}
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Saving...
-                              </>
-                            ) : (
-                              "Save Family Settings"
-                            )}
-                          </Button>
-                        </form>
-                      </Form>
-                    )}
                   </div>
                 </CardContent>
               </Card>

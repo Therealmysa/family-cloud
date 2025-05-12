@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SendHorizontal } from "lucide-react";
+import { Loader2, SendHorizontal } from "lucide-react";
 
 type MessageInputProps = {
   onSendMessage: (content: string) => void;
@@ -42,7 +42,11 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           disabled={!newMessage.trim() || isSending}
           className={isSending ? "opacity-70" : ""}
         >
-          <SendHorizontal className="h-4 w-4" />
+          {isSending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <SendHorizontal className="h-4 w-4" />
+          )}
         </Button>
       </form>
     </div>
