@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X, User, LogOut, Settings, Users } from "lucide-react";
+import { Menu, X, User, LogOut, Settings, Users, Home, Grid } from "lucide-react";
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
@@ -31,6 +31,7 @@ export default function Header() {
   const navigationItems = [
     { name: "Home", path: "/" },
     ...(user ? [
+      { name: "Dashboard", path: "/dashboard" },
       { name: "Feed", path: "/feed" },
       { name: "Gallery", path: "/gallery" },
       { name: "Messages", path: "/messages" },
@@ -77,6 +78,12 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer flex items-center">
+                      <Grid className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="cursor-pointer flex items-center">
                       <User className="mr-2 h-4 w-4" />
@@ -145,6 +152,13 @@ export default function Header() {
             
             {user ? (
               <>
+                <Link
+                  to="/dashboard"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
+                  onClick={toggleMobileMenu}
+                >
+                  Dashboard
+                </Link>
                 <Link
                   to="/profile"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"

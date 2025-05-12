@@ -10,10 +10,14 @@ const Index = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to setup family if user is logged in but doesn't have a family yet
+  // Redirect authenticated users to the dashboard
   useEffect(() => {
-    if (user && !profile?.family_id) {
-      navigate("/setup-family");
+    if (user) {
+      if (!profile?.family_id) {
+        navigate("/setup-family");
+      } else {
+        navigate("/dashboard");
+      }
     }
   }, [user, profile, navigate]);
 
@@ -101,15 +105,9 @@ const Index = () => {
             FamilyCloud is designed with your privacy in mind. Your family's memories stay within your family, with no ads or data sharing. It's the secure way to stay connected with loved ones near and far.
           </p>
 
-          {user ? (
-            <Button asChild size="lg">
-              <Link to="/feed">Go to Your Feed</Link>
-            </Button>
-          ) : (
-            <Button asChild size="lg">
-              <Link to="/auth?signup=true">Get Started Now</Link>
-            </Button>
-          )}
+          <Button asChild size="lg">
+            <Link to="/auth?signup=true">Get Started Now</Link>
+          </Button>
         </div>
       </div>
     </MainLayout>

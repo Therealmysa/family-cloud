@@ -15,6 +15,7 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import FamilyAdmin from "./pages/FamilyAdmin";
+import FamilyDashboard from "./pages/FamilyDashboard";
 
 // Set up QueryClient with better defaults for real-time apps
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/setup-family" element={<SetupFamily />} />
+            <Route path="/dashboard" element={<FamilyDashboard />} />
             <Route path="/feed" element={<Feed />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/messages" element={<Messages />} />
