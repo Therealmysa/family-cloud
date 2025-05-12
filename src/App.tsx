@@ -9,6 +9,11 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SetupFamily from "./pages/SetupFamily";
 import NotFound from "./pages/NotFound";
+import Feed from "./pages/Feed";
+import Gallery from "./pages/Gallery";
+import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
+import CreatePost from "./pages/CreatePost";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +28,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/setup-family" element={<SetupFamily />} />
+            <Route path="/feed" element={<Feed />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/create-post" element={<CreatePost />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
