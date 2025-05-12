@@ -13,6 +13,7 @@ import { ChatHeader } from "@/components/messages/ChatHeader";
 import { MessageList } from "@/components/messages/MessageList";
 import { MessageInput } from "@/components/messages/MessageInput";
 import { EmptyState } from "@/components/messages/EmptyState";
+import { CreateConversation } from "@/components/messages/CreateConversation";
 
 const Messages = () => {
   const { user } = useAuth();
@@ -22,7 +23,7 @@ const Messages = () => {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // Fetch chats
-  const { data: chats = [], isLoading: isLoadingChats } = useQuery({
+  const { data: chats = [], isLoading: isLoadingChats, refetch: refetchChats } = useQuery({
     queryKey: ["chats", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -115,6 +116,12 @@ const Messages = () => {
     } finally {
       setIsLoadingMessages(false);
     }
+  };
+
+  // Handle new chat creation
+  const handleChatCreated = (newChat: Chat) => {
+    refetchChats();
+    setSelectedChat(newChat);
   };
 
   // Fetch profiles for messages
@@ -219,16 +226,23 @@ const Messages = () => {
   return (
     <MainLayout title="Messages" requireAuth={true}>
       <div className="container max-w-6xl mx-auto flex h-[calc(100vh-16rem)] overflow-hidden">
-        {/* Chats sidebar */}
-        <ChatSidebar 
-          chats={chats} 
-          isLoading={isLoadingChats} 
-          selectedChat={selectedChat} 
-          onSelectChat={(chat) => {
-            setSelectedChat(chat);
-            setMessages([]);
-          }} 
-        />
+        {/* Chats sidebar with create conversation button */}
+        <div className="w-full sm:w-80 border-r bg-white dark:bg-gray-800/50 flex flex-col">
+          <div className="p-4 border-b flex justify-between items-center">
+            <h2 className="text-lg font-medium">Messages</h2>
+            <CreateConversation onChatCreated={handleChatCreated} />
+          </div>
+          
+          <ChatSidebar 
+            chats={chats} 
+            isLoading={isLoadingChats} 
+            selectedChat={selectedChat} 
+            onSelectChat={(chat) => {
+              setSelectedChat(chat);
+              setMessages([]);
+            }} 
+          />
+        </div>
 
         {/* Chat window */}
         <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">

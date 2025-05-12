@@ -97,6 +97,15 @@ export default function SetupFamily() {
 
       if (chatError) {
         console.error("Error creating family chat:", chatError);
+        toast({
+          title: "Warning",
+          description: "Family created, but group chat creation failed.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          description: "Family group chat has been created.",
+        });
       }
 
       // Redirect to the home page

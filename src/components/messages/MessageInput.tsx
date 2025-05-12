@@ -6,9 +6,10 @@ import { Loader2, SendHorizontal } from "lucide-react";
 
 type MessageInputProps = {
   onSendMessage: (content: string) => void;
+  placeholder?: string;
 };
 
-export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
+export const MessageInput = ({ onSendMessage, placeholder = "Type a message" }: MessageInputProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
@@ -30,7 +31,7 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     <div className="p-3 bg-white dark:bg-gray-800 border-t">
       <form className="flex gap-2" onSubmit={handleSubmit}>
         <Input
-          placeholder="Type a message"
+          placeholder={placeholder}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           className="flex-1"
