@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Heart, MessageCircle, Pencil, Trash, FileDown, X, Play } from 'lucide-react';
+import { Heart, MessageCircle, Pencil, Trash, FileDown, X, Play, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CommentSection } from '../comments/CommentSection';
