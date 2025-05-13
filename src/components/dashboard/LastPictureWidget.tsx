@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,8 @@ export const LastPictureWidget = () => {
             url, 
             created_at,
             date_uploaded,
+            description,
+            user_id,
             profile:profiles(id, name, avatar_url, family_id)
           `)
           .eq("family_id", profile.family_id)
@@ -39,7 +42,9 @@ export const LastPictureWidget = () => {
           .limit(1);
 
         if (data && data.length > 0) {
-          setLastPicture(data[0] as Media);
+          // Ensure we have all the required fields for the Media type
+          const mediaItem = data[0] as unknown as Media;
+          setLastPicture(mediaItem);
         }
       } catch (error) {
         console.error("Error fetching last picture:", error);

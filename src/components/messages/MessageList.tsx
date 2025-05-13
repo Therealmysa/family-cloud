@@ -19,7 +19,13 @@ export const MessageList = ({ messages, profiles, compact = false }: MessageList
 
   // Get sender details for message
   const getSender = (senderId: string) => {
-    return profiles[senderId] || { name: "Unknown", avatar_url: null };
+    return profiles[senderId] || { 
+      name: "Unknown", 
+      avatar_url: null,
+      // We need to add these properties to satisfy the type requirements
+      id: senderId,
+      family_id: null
+    };
   };
 
   // Format timestamp

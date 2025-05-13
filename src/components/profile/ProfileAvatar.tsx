@@ -6,7 +6,7 @@ import { MemberProfile } from "./MemberProfile";
 import { cn } from "@/lib/utils";
 
 interface ProfileAvatarProps {
-  profile: Profile | null | undefined;
+  profile: Partial<Profile> | null | undefined;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   showStatus?: boolean;
@@ -37,7 +37,7 @@ export function ProfileAvatar({
   };
 
   const handleAvatarClick = () => {
-    if (clickable && profile) {
+    if (clickable && profile && profile.id) {
       setIsProfileOpen(true);
     }
   };
@@ -47,23 +47,23 @@ export function ProfileAvatar({
       <Avatar 
         className={cn(
           sizeClasses[size], 
-          clickable && "cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all",
+          clickable && profile?.id && "cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all",
           className
         )}
         onClick={handleAvatarClick}
       >
         <AvatarImage src={profile?.avatar_url || ""} />
         <AvatarFallback className="bg-primary/10 text-primary">
-          {profile ? getInitials(profile.name) : "?"}
+          {profile && profile.name ? getInitials(profile.name) : "?"}
         </AvatarFallback>
         {showStatus && profile?.id && (
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-800"></span>
         )}
       </Avatar>
 
-      {profile && (
+      {profile && profile.id && (
         <MemberProfile 
-          member={profile}
+          member={profile as Profile}
           isOpen={isProfileOpen}
           onClose={() => setIsProfileOpen(false)}
         />

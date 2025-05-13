@@ -8,9 +8,11 @@ export type Media = {
   user_id: string;
   created_at: string;
   date_uploaded: string;
-  profile: {
+  profile?: {
+    id: string;
     name: string;
     avatar_url: string | null;
+    family_id: string | null;
   } | null;
   likes_count?: number;
   is_liked?: boolean;
@@ -30,7 +32,9 @@ export type Comment = {
   content: string;
   created_at: string;
   profile?: {
+    id?: string;
     name: string;
     avatar_url: string | null;
+    family_id?: string | null;
   };
 };

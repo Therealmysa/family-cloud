@@ -115,6 +115,7 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
               <ProfileAvatar 
                 profile={comment.profile} 
                 size="sm"
+                clickable={!!comment.profile?.id}
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
