@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MessageSquare, Image, Calendar, Users } from "lucide-react";
+import { LastMessageWidget } from "@/components/dashboard/LastMessageWidget";
+import { LastPictureWidget } from "@/components/dashboard/LastPictureWidget";
 
 const FamilyDashboard = () => {
   const { user, profile, loading } = useAuth();
@@ -40,83 +42,100 @@ const FamilyDashboard = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-white dark:bg-gray-800">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                <MessageSquare className="h-5 w-5 mr-2" /> Messages
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Chat with family members in private conversations
-              </p>
-              <Button asChild size="sm" className="w-full">
-                <Link to="/messages">Open Messages</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-gray-800">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                <Image className="h-5 w-5 mr-2" /> Gallery
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Browse all family photos and videos in one place
-              </p>
-              <Button asChild size="sm" className="w-full">
-                <Link to="/gallery">View Gallery</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-gray-800">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                <Calendar className="h-5 w-5 mr-2" /> Daily Feed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                See today's moments shared by family members
-              </p>
-              <Button asChild size="sm" className="w-full">
-                <Link to="/feed">Go to Feed</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white dark:bg-gray-800">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                <Users className="h-5 w-5 mr-2" /> Family Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {profile?.is_admin ? (
-                <>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    Manage family members and settings
-                  </p>
-                  <Button asChild size="sm" className="w-full">
-                    <Link to="/family-admin">Family Admin</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    View your profile and settings
-                  </p>
-                  <Button asChild size="sm" className="w-full">
-                    <Link to="/profile">My Profile</Link>
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+        {/* Activity Highlights Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
+            Recent Activity
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LastMessageWidget />
+            <LastPictureWidget />
+          </div>
+        </div>
+        
+        {/* Quick Access Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
+            Quick Access
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-white dark:bg-gray-800">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
+                  <MessageSquare className="h-5 w-5 mr-2" /> Messages
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  Chat with family members in private conversations
+                </p>
+                <Button asChild size="sm" className="w-full">
+                  <Link to="/messages">Open Messages</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-white dark:bg-gray-800">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
+                  <Image className="h-5 w-5 mr-2" /> Gallery
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  Browse all family photos and videos in one place
+                </p>
+                <Button asChild size="sm" className="w-full">
+                  <Link to="/gallery">View Gallery</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-white dark:bg-gray-800">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
+                  <Calendar className="h-5 w-5 mr-2" /> Daily Feed
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  See today's moments shared by family members
+                </p>
+                <Button asChild size="sm" className="w-full">
+                  <Link to="/feed">Go to Feed</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-white dark:bg-gray-800">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
+                  <Users className="h-5 w-5 mr-2" /> Family Members
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile?.is_admin ? (
+                  <>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      Manage family members and settings
+                    </p>
+                    <Button asChild size="sm" className="w-full">
+                      <Link to="/family-admin">Family Admin</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      View your profile and settings
+                    </p>
+                    <Button asChild size="sm" className="w-full">
+                      <Link to="/profile">My Profile</Link>
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
         
         {/* Create Post/Share Moment button */}
