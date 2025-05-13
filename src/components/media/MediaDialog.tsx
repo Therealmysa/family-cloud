@@ -6,6 +6,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Heart, MessageCircle, Pencil, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,6 +49,7 @@ export function MediaDialog({
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'comments'>('comments');
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Check if user can edit or delete
   const canEdit = media?.user_id === user?.id;
@@ -165,10 +176,8 @@ export function MediaDialog({
   // Handle delete confirmation
   const handleDelete = () => {
     if (!media) return;
-    
-    if (window.confirm("Are you sure you want to delete this photo? This action cannot be undone.")) {
-      deleteMutation.mutate(media.id);
-    }
+    deleteMutation.mutate(media.id);
+    setShowDeleteDialog(false);
   };
 
   // Handle edit mode toggle
@@ -185,106 +194,130 @@ export function MediaDialog({
   if (!media) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle>{!isEditing && media.title}</DialogTitle>
-        </DialogHeader>
-        
-        {isEditing ? (
-          <MediaEditForm 
-            media={media} 
-            onCancel={() => setIsEditing(false)}
-            onSuccess={handleEditSuccess}
-          />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-5">
-            {/* Image column */}
-            <div className="md:col-span-3 relative">
-              <img 
-                src={media.url} 
-                alt={media.title} 
-                className="w-full h-auto rounded-md object-cover max-h-[500px]" 
-              />
-            </div>
-            
-            {/* Info and comments column */}
-            <div className="md:col-span-2 space-y-4 max-h-[500px] overflow-y-auto">
-              {/* Post info */}
-              <div className="flex items-center gap-3">
-                <ProfileAvatar profile={media.profile} />
-                <div>
-                  <p className="font-medium">{media.profile?.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(media.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{!isEditing && media.title}</DialogTitle>
+          </DialogHeader>
+          
+          {isEditing ? (
+            <MediaEditForm 
+              media={media} 
+              onCancel={() => setIsEditing(false)}
+              onSuccess={handleEditSuccess}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-5">
+              {/* Image column */}
+              <div className="md:col-span-3 relative">
+                <img 
+                  src={media.url} 
+                  alt={media.title} 
+                  className="w-full h-auto rounded-md object-cover max-h-[500px]" 
+                />
               </div>
               
-              {/* Description */}
-              {media.description && (
-                <p className="text-gray-700 dark:text-gray-300">{media.description}</p>
-              )}
-              
-              {/* Action buttons */}
-              <div className="flex justify-between">
-                <div className="flex gap-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`flex items-center gap-1 ${media.is_liked ? 'text-red-500' : ''}`}
-                    onClick={() => handleLikeToggle(media.id, !!media.is_liked)}
-                    disabled={likeMutation.isPending}
-                  >
-                    <Heart className={`h-4 w-4 ${media.is_liked ? 'fill-current' : ''}`} />
-                    <span>{media.likes_count || 0} {media.likes_count === 1 ? 'Like' : 'Likes'}</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={() => setActiveTab('comments')}
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Comments</span>
-                  </Button>
+              {/* Info and comments column */}
+              <div className="md:col-span-2 space-y-4 max-h-[500px] overflow-y-auto">
+                {/* Post info */}
+                <div className="flex items-center gap-3">
+                  <ProfileAvatar profile={media.profile} />
+                  <div>
+                    <p className="font-medium">{media.profile?.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(media.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-
-                {/* Edit/Delete buttons */}
-                <div className="flex gap-2">
-                  {canEdit && (
+                
+                {/* Description */}
+                {media.description && (
+                  <p className="text-gray-700 dark:text-gray-300">{media.description}</p>
+                )}
+                
+                {/* Action buttons */}
+                <div className="flex justify-between">
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`flex items-center gap-1 ${media.is_liked ? 'text-red-500' : ''}`}
+                      onClick={() => handleLikeToggle(media.id, !!media.is_liked)}
+                      disabled={likeMutation.isPending}
+                    >
+                      <Heart className={`h-4 w-4 ${media.is_liked ? 'fill-current' : ''}`} />
+                      <span>{media.likes_count || 0} {media.likes_count === 1 ? 'Like' : 'Likes'}</span>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="flex items-center gap-1"
-                      onClick={() => setIsEditing(true)}
+                      onClick={() => setActiveTab('comments')}
                     >
-                      <Pencil className="h-4 w-4" />
-                      <span className="hidden sm:inline">Edit</span>
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Comments</span>
                     </Button>
-                  )}
-                  
-                  {canDelete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      onClick={handleDelete}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash className="h-4 w-4" />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
-                  )}
+                  </div>
+
+                  {/* Edit/Delete buttons */}
+                  <div className="flex gap-2">
+                    {canEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                    )}
+                    
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={() => setShowDeleteDialog(true)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash className="h-4 w-4" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                
+                {/* Comments */}
+                <CommentSection mediaId={media.id} />
               </div>
-              
-              {/* Comments */}
-              <CommentSection mediaId={media.id} />
             </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this photo? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
