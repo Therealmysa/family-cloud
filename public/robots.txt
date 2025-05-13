@@ -1,14 +1,41 @@
+
+# FamilyCloud robots.txt
+# Website: https://family-cloud.mysa-tech.fr
+
+# Allow all bots to index the website
+User-agent: *
+Allow: /
+
+# Allow specific paths
+Allow: /index.html
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
+
+# Disallow private sections that should not be indexed
+Disallow: /auth
+Disallow: /messages
+Disallow: /profile
+Disallow: /family-admin
+Disallow: /setup-family
+
+# Specific bot configurations
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
+# Social media bots
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Sitemap location
+Sitemap: https://family-cloud.mysa-tech.fr/sitemap.xml

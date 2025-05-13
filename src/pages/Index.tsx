@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Heart, Lock, Shield, Smile, Users } from "lucide-react";
+import { ChevronRight, Heart, Lock, Shield, Smile, Users, Check, Camera } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -24,6 +25,13 @@ const Index = () => {
 
   return (
     <MainLayout title="Home">
+      <Helmet>
+        <title>FamilyCloud - Private Family Sharing Space | MYSA Tech</title>
+        <meta name="description" content="FamilyCloud provides a secure and private digital space for families to share daily moments, chat privately, and build beautiful galleries of memories." />
+        <meta name="keywords" content="family sharing, private photos, secure messaging, family moments, digital family album" />
+        <link rel="canonical" href="https://family-cloud.mysa-tech.fr" />
+      </Helmet>
+
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-3xl my-8">
@@ -70,10 +78,10 @@ const Index = () => {
         </section>
 
         {/* Features Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20">
+        <section className="w-full py-12 md:py-16 lg:py-20" id="features" aria-labelledby="features-heading">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-purple-700 dark:text-purple-400">
+              <h2 id="features-heading" className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-purple-700 dark:text-purple-400">
                 Everything your family needs
               </h2>
               <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-[700px] mx-auto">
@@ -120,15 +128,113 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Benefits Section - New for SEO */}
+        <section className="w-full py-12 md:py-16 lg:py-20" id="benefits" aria-labelledby="benefits-heading">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-8">
+              <h2 id="benefits-heading" className="text-3xl font-bold tracking-tight sm:text-4xl text-purple-700 dark:text-purple-400">
+                Why Families Choose FamilyCloud
+              </h2>
+              <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-[700px] mx-auto">
+                Join thousands of families who trust FamilyCloud for their private sharing needs
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+                  <Check className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Complete Privacy</h3>
+                  <p className="text-gray-600 dark:text-gray-300">Your family moments stay private - no data sharing, no targeted ads</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+                  <Check className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Easy to Use</h3>
+                  <p className="text-gray-600 dark:text-gray-300">Intuitive interface designed for family members of all ages</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+                  <Check className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Works Everywhere</h3>
+                  <p className="text-gray-600 dark:text-gray-300">Access from any device - mobile, tablet, or computer</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+                  <Check className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Free to Use</h3>
+                  <p className="text-gray-600 dark:text-gray-300">No subscription required - connect with your family at no cost</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works - New for SEO */}
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-gradient-to-br from-purple-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50 rounded-3xl" id="how-it-works" aria-labelledby="how-heading">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-10">
+              <h2 id="how-heading" className="text-3xl font-bold tracking-tight sm:text-4xl text-purple-700 dark:text-purple-400">
+                How FamilyCloud Works
+              </h2>
+              <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-[700px] mx-auto">
+                Start sharing meaningful moments with your family in three simple steps
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-full mb-4 relative">
+                  <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold">1</div>
+                  <Users className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Create Your Family</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Sign up and create your private family space with a unique invitation code
+                </p>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-full mb-4 relative">
+                  <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold">2</div>
+                  <Camera className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Share Moments</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Post daily highlights, photos, and updates for your family to enjoy
+                </p>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-full mb-4 relative">
+                  <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold">3</div>
+                  <Heart className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Stay Connected</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Chat privately, react to posts, and build a digital family memory collection
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Trust Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20 bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-3xl my-8">
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-3xl my-8" id="trust" aria-labelledby="trust-heading">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-flex items-center justify-center p-3 rounded-lg bg-purple-100 dark:bg-gray-800">
                   <Shield className="h-10 w-10 text-purple-700 dark:text-purple-400" />
                 </div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-purple-700 dark:text-purple-400">
+                <h2 id="trust-heading" className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-purple-700 dark:text-purple-400">
                   Safe, Private, and Family-Friendly
                 </h2>
                 <p className="max-w-[700px] text-gray-600 dark:text-gray-300 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
