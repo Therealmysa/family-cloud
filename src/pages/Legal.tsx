@@ -16,8 +16,8 @@ const Legal = () => {
 
         <Tabs defaultValue="legal" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="legal">Legal Notices</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy Policy</TabsTrigger>
+            <TabsTrigger value="legal" className="">Legal Notices</TabsTrigger>
+            <TabsTrigger value="privacy" className="">Privacy Policy</TabsTrigger>
             <TabsTrigger value="terms" className="">Terms of Service</TabsTrigger>
           </TabsList>
           <TabsContent value="legal" className="mt-6">
