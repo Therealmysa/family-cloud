@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Trash, UserX, ShieldOff } from "lucide-react";
+import { UserX, ShieldOff } from "lucide-react";
+import { MemberList } from "@/components/messages/MemberList";
+import { Profile } from "@/types/profile";
 
 interface MemberManagementProps {
-  familyMembers: any[];
+  familyMembers: Profile[];
   currentUserId: string | undefined;
   familyId: string | undefined;
   refreshFamilyMembers: (familyId: string) => void;
@@ -21,6 +22,11 @@ export function MemberManagement({
   refreshFamilyMembers 
 }: MemberManagementProps) {
   const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // For MemberList component compatibility (not used)
+  const selectedMembers: string[] = [];
+  const toggleMemberSelection = (memberId: string) => {};
 
   const removeMember = async (memberId: string) => {
     if (!familyId || currentUserId === memberId) return;
@@ -120,6 +126,10 @@ export function MemberManagement({
     }
   };
 
+  const filteredMembers = familyMembers.filter(member => 
+    member.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 sm:px-6">
@@ -133,63 +143,16 @@ export function MemberManagement({
           {familyMembers.length === 0 ? (
             <p className="text-center text-gray-500 py-4">No family members found</p>
           ) : (
-            <ul className="divide-y">
-              {familyMembers.map((member) => (
-                <li key={member.id} className="py-3 flex flex-wrap justify-between items-center gap-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-purple-100 text-purple-800">
-                        {member.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{member.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {member.is_admin ? "Administrator" : "Member"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {currentUserId !== member.id && (
-                    <div className="flex gap-2 mt-2 sm:mt-0">
-                      {!member.is_admin && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => makeAdmin(member.id)}
-                          className="text-xs"
-                          disabled={processingMemberId === member.id}
-                        >
-                          Make Admin
-                        </Button>
-                      )}
-                      {member.is_admin && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => removeAdmin(member.id)}
-                          className="text-xs"
-                          disabled={processingMemberId === member.id}
-                        >
-                          <ShieldOff className="h-3 w-3 mr-1" />
-                          Remove Admin
-                        </Button>
-                      )}
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => removeMember(member.id)}
-                        className="text-xs"
-                        disabled={processingMemberId === member.id}
-                      >
-                        <UserX className="h-3 w-3 mr-1" />
-                        Remove
-                      </Button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <div className="divide-y">
+              <MemberList
+                filteredMembers={filteredMembers}
+                selectedMembers={selectedMembers}
+                isLoading={false}
+                toggleMemberSelection={toggleMemberSelection}
+                searchQuery={searchQuery}
+                showCheckboxes={false}
+              />
+            </div>
           )}
         </div>
       </CardContent>

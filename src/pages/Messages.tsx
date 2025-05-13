@@ -31,6 +31,43 @@ const Messages = () => {
   const isMobile = useIsMobile();
   const [showChatList, setShowChatList] = useState(true);
 
+  // Check for selected chat from member profile
+  useEffect(() => {
+    const handleChatSelected = (event: CustomEvent) => {
+      const { chatId } = event.detail;
+      if (chatId && chats) {
+        const chat = chats.find(c => c.id === chatId);
+        if (chat) {
+          setSelectedChat(chat);
+          if (isMobile) {
+            setShowChatList(false);
+          }
+        }
+      }
+    };
+
+    // Check if there's a stored chat ID in sessionStorage
+    const storedChatId = sessionStorage.getItem("selectedChatId");
+    if (storedChatId && chats) {
+      const chat = chats.find(c => c.id === storedChatId);
+      if (chat) {
+        setSelectedChat(chat);
+        if (isMobile) {
+          setShowChatList(false);
+        }
+        // Clear after using it
+        sessionStorage.removeItem("selectedChatId");
+      }
+    }
+
+    // Listen for the chatSelected event
+    window.addEventListener("chatSelected", handleChatSelected as EventListener);
+
+    return () => {
+      window.removeEventListener("chatSelected", handleChatSelected as EventListener);
+    };
+  }, [chats, setSelectedChat, isMobile]);
+
   // Toggle between chat list and chat content on mobile
   useEffect(() => {
     if (isMobile) {
