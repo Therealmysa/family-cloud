@@ -20,22 +20,22 @@ const Legal = () => {
         />
       </Helmet>
 
-      <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">Legal Information</h1>
+      <div className="container mx-auto py-12 px-4 sm:px-6 md:max-w-4xl">
+        <h1 className="text-3xl font-bold mb-10 text-center">Legal Information</h1>
 
         <Tabs defaultValue="legal" className="w-full">
-          <TabsList className={`${isMobile ? 'flex flex-col space-y-2 w-full' : 'grid w-full grid-cols-3'}`}>
-            <TabsTrigger value="legal">Legal Notices</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy Policy</TabsTrigger>
-            <TabsTrigger value="terms">Terms of Service</TabsTrigger>
+          <TabsList className={`${isMobile ? 'flex flex-col space-y-2 w-full' : 'grid w-full grid-cols-3 gap-2'}`}>
+            <TabsTrigger value="legal" className="py-3">Legal Notices</TabsTrigger>
+            <TabsTrigger value="privacy" className="py-3">Privacy Policy</TabsTrigger>
+            <TabsTrigger value="terms" className="py-3">Terms of Service</TabsTrigger>
           </TabsList>
-          <TabsContent value="legal" className="mt-6">
+          <TabsContent value="legal" className="mt-8 p-2">
             <LegalMentions />
           </TabsContent>
-          <TabsContent value="privacy" className="mt-6">
+          <TabsContent value="privacy" className="mt-8 p-2">
             <PrivacyPolicy />
           </TabsContent>
-          <TabsContent value="terms" className="mt-6">
+          <TabsContent value="terms" className="mt-8 p-2">
             <TermsOfService />
           </TabsContent>
         </Tabs>
