@@ -1,4 +1,3 @@
-
 import MainLayout from "@/components/layout/MainLayout";
 import { Helmet } from "react-helmet-async";
 import { LegalMentions } from "@/components/legal/LegalMentions";
