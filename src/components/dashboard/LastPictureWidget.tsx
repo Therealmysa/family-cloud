@@ -95,21 +95,21 @@ export const LastPictureWidget = () => {
                 className="object-cover w-full h-full transition-transform hover:scale-105 duration-500"
               />
             </AspectRatio>
-            <div className="mt-3 bg-muted/70 p-3 rounded-lg">
-              <p className="text-base font-medium line-clamp-1">{lastPicture.title}</p>
+            <div className="mt-3 bg-[#f0f9f9] dark:bg-[#1e3a3a] p-4 rounded-lg shadow-sm">
+              <p className="text-lg font-medium line-clamp-1">{lastPicture.title}</p>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-base font-medium text-foreground">
                   By {lastPicture.profile?.name}
                 </span>
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-base font-medium text-foreground">
                   {formatDate(lastPicture.date_uploaded)}
                 </span>
               </div>
               <Button 
                 asChild 
-                variant="secondary" 
-                size="sm" 
-                className="mt-3 w-full md:w-auto"
+                variant="gallery" 
+                size="default" 
+                className="mt-4 w-full md:w-auto text-base"
               >
                 <Link to="/gallery">
                   View gallery
@@ -125,13 +125,14 @@ export const LastPictureWidget = () => {
             <div className="p-4 rounded-full bg-muted">
               <Image className="h-7 w-7 text-muted-foreground" />
             </div>
-            <p className="text-base text-muted-foreground">
+            <p className="text-lg font-medium text-muted-foreground">
               No pictures uploaded yet.
             </p>
             <Button 
               asChild 
-              variant="secondary"
-              size="sm"
+              variant="gallery"
+              size="default"
+              className="text-base"
             >
               <Link to="/create-post">
                 Share a moment

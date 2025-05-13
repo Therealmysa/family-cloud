@@ -116,7 +116,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 bg-muted/70 p-2 rounded-lg">
+            <div className="flex items-center gap-2 bg-[#f5f0ff] dark:bg-[#2a1e47] p-3 rounded-lg shadow-sm">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -128,14 +128,14 @@ export const LastMessageWidget = () => {
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-foreground bg-muted/70 p-3 rounded-lg rounded-tl-none">
+            <p className="text-base text-foreground bg-[#f5f0ff] dark:bg-[#2a1e47] p-4 rounded-lg rounded-tl-none shadow-sm">
               {lastMessage.content}
             </p>
             <Button 
               asChild 
               variant="primary" 
-              size="sm" 
-              className="w-full md:w-auto"
+              size="default" 
+              className="w-full md:w-auto text-base"
             >
               <Link to="/messages">
                 View all messages
@@ -150,13 +150,14 @@ export const LastMessageWidget = () => {
             <div className="p-4 rounded-full bg-muted">
               <MessageSquare className="h-7 w-7 text-muted-foreground" />
             </div>
-            <p className="text-base text-muted-foreground">
+            <p className="text-lg font-medium text-muted-foreground">
               No messages yet. Start a conversation with your family!
             </p>
             <Button 
               asChild 
               variant="primary"
-              size="sm"
+              size="default"
+              className="text-base"
             >
               <Link to="/messages">
                 Start messaging

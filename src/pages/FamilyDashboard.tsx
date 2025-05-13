@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,7 +101,7 @@ const FamilyDashboard = () => {
                 </p>
                 <Button 
                   asChild 
-                  variant="secondary" 
+                  variant="gallery" 
                   className="w-full text-base font-medium"
                 >
                   <Link to="/gallery">View Gallery</Link>
@@ -125,7 +124,7 @@ const FamilyDashboard = () => {
                 </p>
                 <Button 
                   asChild 
-                  variant="accent" 
+                  variant="feed" 
                   className="w-full text-base font-medium"
                 >
                   <Link to="/feed">Go to Feed</Link>
@@ -181,7 +180,7 @@ const FamilyDashboard = () => {
             asChild 
             size="xl" 
             variant="primary"
-            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-medium"
+            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-bold"
           >
             <Link to="/create-post" className="flex items-center gap-2">
               <Heart className="h-6 w-6" />
