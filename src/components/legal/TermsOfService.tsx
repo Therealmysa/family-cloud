@@ -5,13 +5,13 @@ export function TermsOfService() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <span className="text-primary">📜</span> Terms of Service
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 text-sm sm:text-base">
         <section>
-          <h3 className="text-lg font-semibold mb-2">1. Purpose</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">1. Purpose</h3>
           <p>
             This document defines the terms of use for the <strong>FamilyCloud</strong> website, 
             accessible via <a href="https://family-cloud.mysa-tech.fr" className="text-primary hover:underline">family-cloud.mysa-tech.fr</a>.
@@ -19,7 +19,7 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">2. Service Access</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">2. Service Access</h3>
           <p>The service is accessible to users with an account. It allows:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Exchanging messages between members of the same family group</li>
@@ -29,7 +29,7 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">3. Account Creation</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">3. Account Creation</h3>
           <p>
             The user must provide a valid email address. They are solely responsible for 
             maintaining the confidentiality of their credentials.
@@ -37,7 +37,7 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">4. User Commitments</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">4. User Commitments</h3>
           <p>The user agrees to:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Not share illegal, violent, or inappropriate content</li>
@@ -47,14 +47,14 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">5. Data and Confidentiality</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">5. Data and Confidentiality</h3>
           <p>
             Data is processed in accordance with the Privacy Policy described above.
           </p>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">6. Liability Limitations</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">6. Liability Limitations</h3>
           <p>The publisher cannot be held responsible in case of:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Service outages beyond their control</li>
@@ -64,7 +64,7 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">7. Intellectual Property</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">7. Intellectual Property</h3>
           <p>
             All content (logo, design, code, texts, etc.) remains the exclusive property of the publisher, 
             except for files or messages sent by users.
@@ -72,7 +72,7 @@ export function TermsOfService() {
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">8. Terms Evolution</h3>
+          <h3 className="font-semibold text-base sm:text-lg mb-2">8. Terms Evolution</h3>
           <p>
             Terms of service may be updated at any time. Users will be informed in case of significant changes.
           </p>
