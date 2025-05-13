@@ -1,6 +1,5 @@
-
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "./Header";
 
@@ -54,11 +53,12 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
       <footer className="bg-white/50 dark:bg-gray-900/50 py-6 backdrop-blur-sm">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground">© {new Date().getFullYear()} FamilyCloud. All rights reserved.</p>
-          <div className="mt-4 text-xs text-muted-foreground">
+          <div className="flex flex-wrap justify-center gap-4 mt-4 text-xs text-muted-foreground">
             <address className="not-italic">
               <a href="https://mysa-tech.fr" className="hover:text-primary transition-colors" target="_blank" rel="noopener noreferrer">MYSA Tech</a> | 
               <a href="mailto:contact@mysa-tech.fr" className="hover:text-primary transition-colors ml-1">contact@mysa-tech.fr</a>
             </address>
+            <Link to="/legal" className="hover:text-primary transition-colors">Legal Information</Link>
           </div>
         </div>
       </footer>
