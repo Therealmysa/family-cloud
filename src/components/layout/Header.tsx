@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   const { user } = useAuth();
@@ -41,11 +42,13 @@ export default function Header() {
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-4">
             <NavigationItems items={navigationItems} />
+            <ThemeToggle />
             <UserMenu />
           </nav>
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
+            <ThemeToggle />
             <Button
               type="button"
               variant="ghost"

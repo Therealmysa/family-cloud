@@ -14,6 +14,7 @@ import { Loader2, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Profile } from "@/types/profile";
+import { useTheme } from "@/hooks/use-theme";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -29,6 +30,7 @@ interface ProfileFormProps {
 }
 
 const ProfileForm = ({ user, profile }: ProfileFormProps) => {
+  const { setTheme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
@@ -58,6 +60,9 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
         .eq("id", user.id);
 
       if (error) throw error;
+
+      // Update theme when profile is updated
+      setTheme(data.theme);
 
       toast({
         title: "Profile updated",
@@ -134,7 +139,7 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-start mb-6">
+    <div className="flex flex-col sm:flex-row gap-6 items-start mb-6 w-full overflow-hidden">
       <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
         <Avatar className="w-24 h-24">
           <AvatarImage src={avatarUrl || ""} />
