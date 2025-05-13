@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,7 +33,7 @@ const Index = () => {
         <title>FamilyCloud - Private Family Sharing Platform | Secure Photo Sharing App</title>
         <meta name="description" content="FamilyCloud provides a secure and private digital space for families to share photos, chat privately, and create beautiful galleries of memories. Try our family-friendly sharing platform today." />
         <meta name="keywords" content="family sharing, private photos, secure messaging, family moments, digital family album, family sharing app, private photo storage, family chat" />
-        <link rel="canonical" href="https://family-cloud.mysa-tech.fr" />
+        <link rel="canonical" href="https://mysa-tech.fr" />
       </Helmet>
 
       <div className="flex flex-col items-center justify-center">

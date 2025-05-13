@@ -1,6 +1,6 @@
 
 # FamilyCloud robots.txt
-# Website: https://family-cloud.mysa-tech.fr
+# Website: https://mysa-tech.fr
 
 # Allow all bots to index the website
 User-agent: *
@@ -38,4 +38,4 @@ User-agent: facebookexternalhit
 Allow: /
 
 # Sitemap location
-Sitemap: https://family-cloud.mysa-tech.fr/sitemap.xml
+Sitemap: https://mysa-tech.fr/sitemap.xml

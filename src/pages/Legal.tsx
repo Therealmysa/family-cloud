@@ -1,3 +1,4 @@
+
 import MainLayout from "@/components/layout/MainLayout";
 import { Helmet } from "react-helmet-async";
 import { LegalMentions } from "@/components/legal/LegalMentions";
@@ -11,6 +12,7 @@ const Legal = () => {
         <title>Legal Information | Privacy Policy | Terms of Service | FamilyCloud</title>
         <meta name="description" content="Important legal information about FamilyCloud including privacy policy, terms of service, and legal notices for our secure family sharing platform." />
         <meta name="keywords" content="privacy policy, terms of service, legal information, family sharing app, data protection, user agreement" />
+        <link rel="canonical" href="https://mysa-tech.fr/legal" />
       </Helmet>
 
       <div className="container mx-auto py-8 px-4">

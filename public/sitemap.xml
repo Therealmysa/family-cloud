@@ -2,37 +2,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/</loc>
+    <loc>https://mysa-tech.fr/</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/auth</loc>
+    <loc>https://mysa-tech.fr/auth</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/legal</loc>
+    <loc>https://mysa-tech.fr/legal</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/dashboard</loc>
+    <loc>https://mysa-tech.fr/dashboard</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/feed</loc>
+    <loc>https://mysa-tech.fr/feed</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://family-cloud.mysa-tech.fr/gallery</loc>
+    <loc>https://mysa-tech.fr/gallery</loc>
     <lastmod>2025-05-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
