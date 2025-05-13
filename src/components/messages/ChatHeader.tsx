@@ -23,20 +23,20 @@ export const ChatHeader = ({ chat, onBackClick }: ChatHeaderProps) => {
   };
 
   return (
-    <div className="sticky top-0 z-10 p-3 sm:p-4 border-b bg-white dark:bg-gray-800 flex items-center gap-2 sm:gap-3">
+    <div className="sticky top-0 z-10 p-3 sm:p-4 border-b border-b-border/40 bg-white dark:bg-gray-800 flex items-center gap-2 sm:gap-3 shadow-sm">
       {onBackClick && (
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={onBackClick} 
-          className="flex-shrink-0"
+          className="flex-shrink-0 hover:bg-muted/50"
         >
           <ArrowLeft className="h-5 w-5" />
           <span className="sr-only">Back to chat list</span>
         </Button>
       )}
       
-      <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border border-primary/20">
         <AvatarImage src={getChatAvatar(chat)} />
         <AvatarFallback className="bg-purple-200 text-purple-700 text-xs sm:text-sm">
           {chat.type === "group" ? (

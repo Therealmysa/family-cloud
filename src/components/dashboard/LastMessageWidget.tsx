@@ -96,7 +96,7 @@ export const LastMessageWidget = () => {
   };
 
   return (
-    <Card className={`border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden ${isMobile ? 'min-h-[280px]' : ''}`}>
+    <Card className={`border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden ${isMobile ? 'min-h-[300px]' : ''}`}>
       <CardHeader className="pb-2 border-b border-border">
         <CardTitle className="text-lg flex items-center gap-2">
           <div className="p-2 rounded-full bg-primary/10">
@@ -105,7 +105,7 @@ export const LastMessageWidget = () => {
           <span>Last Message</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className={`pt-4 ${isMobile ? 'px-3' : ''}`}>
+      <CardContent className={`pt-4 ${isMobile ? 'px-4' : ''}`}>
         {loading ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 bg-muted dark:bg-gray-700/70 p-2 rounded-lg">
+            <div className="flex items-center gap-2 bg-muted/70 dark:bg-gray-700/70 p-2 sm:p-3 rounded-lg mx-1 sm:mx-0 shadow-sm">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -130,7 +130,7 @@ export const LastMessageWidget = () => {
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-foreground bg-muted dark:bg-gray-700/70 p-3 rounded-lg rounded-tl-none">
+            <p className="text-base text-foreground bg-muted/70 dark:bg-gray-700/70 p-3 sm:p-4 rounded-lg rounded-tl-none mx-1 sm:mx-0 shadow-sm">
               {lastMessage.content}
             </p>
             <Button 
@@ -148,7 +148,7 @@ export const LastMessageWidget = () => {
             </Button>
           </div>
         ) : (
-          <div className={`flex flex-col items-center justify-center ${isMobile ? 'py-10' : 'py-8'} text-center space-y-4`}>
+          <div className={`flex flex-col items-center justify-center ${isMobile ? 'py-12' : 'py-8'} text-center space-y-4`}>
             <div className="p-4 rounded-full bg-muted">
               <MessageSquare className="h-7 w-7 text-muted-foreground" />
             </div>

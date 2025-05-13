@@ -27,7 +27,6 @@ export const ChatContainer = ({
   onBackToList,
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
-  const [isAtBottom, setIsAtBottom] = useState(true);
 
   if (!selectedChat) {
     return <EmptyState />;
