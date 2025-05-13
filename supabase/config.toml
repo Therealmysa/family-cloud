@@ -4,4 +4,3 @@ project_id = "zbhonwmadpxokkcbfpgp"
 # Storage configuration
 [storage]
 file_size_limit = 50000000  # 50MB file size limit
-
