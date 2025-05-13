@@ -18,7 +18,7 @@ const postSchema = z.object({
   media: z.any()
     .refine(files => files?.length === 1, "A file is required")
     .refine(
-      files => files?.[0]?.size <= 50000000, // 50MB (increased from 20MB)
+      files => files?.[0]?.size <= 50000000, // 50MB
       "Max file size is 50MB"
     )
     .refine(
@@ -62,7 +62,10 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
   // Reset the form
   const resetForm = () => {
     form.reset();
-    setPreviewUrl(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl); // Clean up the object URL
+      setPreviewUrl(null);
+    }
     onCancel();
   };
 
@@ -87,19 +90,22 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       
       console.log("Starting upload of file:", fileName, "size:", file.size, "type:", file.type);
       
-      // Upload media to storage with content type specified
+      // Explicitly set content type and cache control
+      const uploadOptions = {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false
+      };
+      
+      // Upload media to storage
       const { data, error: uploadError } = await supabase
         .storage
         .from('family-media')
-        .upload(filePath, file, {
-          contentType: file.type, // Explicitly set content type
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(filePath, file, uploadOptions);
       
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        throw uploadError;
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
       console.log("Upload successful:", data);
@@ -141,10 +147,15 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       
       if (mediaError) {
         console.error("Media record error:", mediaError);
-        throw mediaError;
+        throw new Error(`Database error: ${mediaError.message}`);
       }
       
       console.log("Media record created:", mediaData);
+      
+      // Clean up the preview URL
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
       
       toast({
         title: "Success!",
@@ -152,13 +163,14 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         variant: "default",
       });
       
-      resetForm();
+      form.reset();
+      setPreviewUrl(null);
       onSuccess();
     } catch (error: any) {
       console.error("Error in form submission:", error);
       toast({
         title: "Error sharing moment",
-        description: error.message,
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
