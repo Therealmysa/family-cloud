@@ -82,6 +82,7 @@ export default function CreateFamilyForm() {
         });
       } else {
         toast({
+          title: "Chat created",
           description: "Family group chat has been created.",
         });
       }
