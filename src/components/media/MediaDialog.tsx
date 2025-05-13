@@ -56,9 +56,11 @@ export function MediaDialog({
   // Check if media is a video
   const isVideo = media?.url?.match(/\.(mp4|webm|ogg)$/i);
 
-  // Check if user can edit or delete
+  // Check if user can edit the media (only the creator can edit)
   const canEdit = media?.user_id === user?.id;
-  const canDelete = canEdit || profile?.is_admin;
+  
+  // Check if user can delete the media (creator or admin can delete)
+  const canDelete = media?.user_id === user?.id || profile?.is_admin === true;
 
   // Handle like/unlike
   const likeMutation = useMutation({
