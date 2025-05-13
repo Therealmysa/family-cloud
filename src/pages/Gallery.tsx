@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,16 +9,19 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Calendar, User, Play } from "lucide-react";
+import { Search, Calendar, User, Play, PlusCircle } from "lucide-react";
 import { MediaDialog } from "@/components/media/MediaDialog";
 import { Media } from "@/types/media";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Gallery = () => {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedImage, setSelectedImage] = useState<Media | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">("all");
+  const isMobile = useIsMobile();
 
   // Group images by date
   const groupByDate = (images: Media[]) => {
@@ -126,6 +130,11 @@ const Gallery = () => {
     }
   };
 
+  // Handle navigation to create post
+  const handleCreatePost = () => {
+    navigate("/create-post");
+  };
+
   // Check if an item is a video
   const isVideo = (url: string) => {
     return url.match(/\.(mp4|webm|ogg)$/i) !== null;
@@ -169,14 +178,26 @@ const Gallery = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Family Gallery</h1>
           
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input
-              placeholder="Search memories..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Input
+                placeholder="Search memories..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <Button 
+              onClick={handleCreatePost}
+              className={`flex items-center gap-2 shrink-0 ${isMobile ? 'py-5' : ''}`}
+              variant="primary"
+              size={isMobile ? "default" : "default"}
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span className={isMobile ? "hidden" : "inline"}>Add Media</span>
+            </Button>
           </div>
         </div>
 
