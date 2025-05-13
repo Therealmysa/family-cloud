@@ -25,7 +25,7 @@ const Profile = () => {
 
   return (
     <MainLayout title="Profile" requireAuth={true}>
-      <div className="px-2 py-4 sm:px-4 sm:py-6 max-w-full mx-auto">
+      <div className="w-full px-1 py-4 sm:px-3 sm:py-6 overflow-x-hidden">
         <h1 className="text-2xl font-bold text-center mb-6 sm:mb-8">Profile Settings</h1>
         
         <Tabs defaultValue="profile" className="w-full">
@@ -34,9 +34,9 @@ const Profile = () => {
             <TabsTrigger value="family" disabled={!profile.family_id}>Family Settings</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="profile">
-            <div className="grid gap-4 sm:gap-6">
-              <Card className="w-full">
+          <TabsContent value="profile" className="w-full">
+            <div className="grid gap-4 sm:gap-6 w-full">
+              <Card className="w-full overflow-hidden">
                 <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Your Profile</CardTitle>
                   <CardDescription>
@@ -48,7 +48,7 @@ const Profile = () => {
                 </CardContent>
               </Card>
               
-              <Card className="w-full">
+              <Card className="w-full overflow-hidden">
                 <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Account Settings</CardTitle>
                   <CardDescription>
@@ -62,9 +62,9 @@ const Profile = () => {
             </div>
           </TabsContent>
           
-          <TabsContent value="family">
-            <div className="grid gap-4 sm:gap-6">
-              <Card className="w-full">
+          <TabsContent value="family" className="w-full">
+            <div className="grid gap-4 sm:gap-6 w-full">
+              <Card className="w-full overflow-hidden">
                 <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Family Information</CardTitle>
                   <CardDescription>
