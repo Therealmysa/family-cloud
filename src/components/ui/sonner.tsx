@@ -15,19 +15,19 @@ function Toaster({ position = "top-center", ...props }: ToasterProps) {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-lg",
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-lg group-[.toaster]:relative group-[.toaster]:pr-10",
           description: "group-[.toast]:text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:rounded",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded",
           closeButton:
-            "group-[.toast]:bg-transparent group-[.toast]:text-foreground group-[.toast]:opacity-100 group-[.toast]:hover:opacity-100",
+            "group-[.toast]:absolute group-[.toast]:right-2 group-[.toast]:top-2 group-[.toast]:p-1.5 group-[.toast]:rounded-md group-[.toast]:bg-transparent group-[.toast]:text-foreground/70 group-[.toast]:opacity-100 group-[.toast]:hover:bg-muted/50 group-[.toast]:hover:text-foreground",
         },
       }}
       position={position}
       closeButton={true}
-      closeIcon={<X className="h-4 w-4" />}
+      closeIcon={<X className="h-5 w-5" />}
       {...props}
     />
   )

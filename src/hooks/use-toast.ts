@@ -1,7 +1,5 @@
-
 import * as React from "react";
 import { toast as sonnerToast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -76,9 +74,8 @@ export function toast({
   ...props
 }: Partial<ToasterToast> & { id?: string }) {
   const id = props?.id || String(Date.now());
-  const isMobile = window.innerWidth < 640;
 
-  // Always use Sonner toast for notifications
+  // Always use Sonner toast for notifications with improved close button styling
   if (variant === "success") {
     sonnerToast.success(title as string, { 
       description,
@@ -105,24 +102,7 @@ export function toast({
     });
   }
 
-  // Only add to shadcn toaster system on desktop - this prevents duplication on all devices
-  if (!isMobile) {
-    // IMPORTANT: We're disabling this to prevent duplicate toasts on desktop
-    // This means Sonner will be our only toast system for all devices
-    /*
-    dispatch({
-      type: "ADD_TOAST",
-      toast: {
-        id,
-        title,
-        description,
-        action,
-        variant,
-        ...props,
-      },
-    });
-    */
-  }
+  // We're using only Sonner now - no shadcn toasts to prevent duplication
 
   return {
     id,
