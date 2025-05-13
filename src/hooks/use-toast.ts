@@ -80,13 +80,29 @@ export function toast({
   // Always use sonner toast regardless of device
   // This ensures a single notification system
   if (variant === "success") {
-    sonnerToast.success(title as string, { description });
+    sonnerToast.success(title as string, { 
+      description,
+      id,
+      dismissible: true, // Enable dismiss button
+    });
   } else if (variant === "warning") {
-    sonnerToast.warning(title as string, { description });
+    sonnerToast.warning(title as string, { 
+      description, 
+      id,
+      dismissible: true, // Enable dismiss button
+    });
   } else if (variant === "destructive") {
-    sonnerToast.error(title as string, { description });
+    sonnerToast.error(title as string, { 
+      description,
+      id,
+      dismissible: true, // Enable dismiss button
+    });
   } else {
-    sonnerToast(title as string, { description });
+    sonnerToast(title as string, { 
+      description,
+      id,
+      dismissible: true, // Enable dismiss button
+    });
   }
 
   // We're only going to add toasts to the shadcn system on desktop
@@ -105,7 +121,10 @@ export function toast({
 
   return {
     id,
-    dismiss: () => dispatch({ type: "DISMISS_TOAST", toastId: id }),
+    dismiss: () => {
+      dispatch({ type: "DISMISS_TOAST", toastId: id });
+      sonnerToast.dismiss(id);
+    },
     update: (props: ToasterToast) =>
       dispatch({
         type: "UPDATE_TOAST",
@@ -130,6 +149,11 @@ export function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss: (toastId?: string) => {
+      dispatch({ type: "DISMISS_TOAST", toastId });
+      if (toastId) {
+        sonnerToast.dismiss(toastId);
+      }
+    },
   };
 }
