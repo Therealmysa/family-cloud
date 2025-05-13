@@ -112,6 +112,12 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     }
   };
 
+  // Helper function to truncate message content
+  const truncateMessage = (content: string, maxLength: number = 100) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
+
   // Set up realtime subscription for messages
   useEffect(() => {
     if (!selectedChat) return;
@@ -169,6 +175,7 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     messages,
     profiles,
     isLoadingMessages,
-    sendMessage: handleSendMessage
+    sendMessage: handleSendMessage,
+    truncateMessage
   };
 }

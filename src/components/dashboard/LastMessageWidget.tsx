@@ -95,8 +95,15 @@ export const LastMessageWidget = () => {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
+  // Truncate message content based on available space
+  const truncateMessage = (content: string, isCompact: boolean = false) => {
+    const limit = isCompact ? 60 : 120;
+    if (content.length <= limit) return content;
+    return content.substring(0, limit) + '...';
+  };
+
   return (
-    <Card className={`border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden ${isMobile ? 'min-h-[300px]' : ''}`}>
+    <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden h-full">
       <CardHeader className="pb-2 border-b border-border">
         <CardTitle className="text-lg flex items-center gap-2">
           <div className="p-2 rounded-full bg-primary/10">
@@ -105,7 +112,7 @@ export const LastMessageWidget = () => {
           <span>Last Message</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className={`pt-4 ${isMobile ? 'px-4' : ''}`}>
+      <CardContent className="pt-4 flex flex-col h-[calc(100%-60px)]">
         {loading ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -117,29 +124,31 @@ export const LastMessageWidget = () => {
             <Skeleton className="h-5 w-3/4" />
           </div>
         ) : lastMessage ? (
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 flex flex-col">
             <div className="flex items-center gap-2 bg-muted/70 dark:bg-gray-700/70 p-2 sm:p-3 rounded-lg mx-1 sm:mx-0 shadow-sm">
-              <Avatar className="h-10 w-10 border border-primary/20">
+              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
                   {lastMessage.sender_name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-base font-medium">{lastMessage.sender_name}</span>
-              <span className="text-sm font-semibold text-foreground ml-auto">
+              <span className="text-sm sm:text-base font-medium line-clamp-1">{lastMessage.sender_name}</span>
+              <span className="text-xs font-semibold text-foreground ml-auto">
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-foreground bg-muted/70 dark:bg-gray-700/70 p-3 sm:p-4 rounded-lg rounded-tl-none mx-1 sm:mx-0 shadow-sm">
-              {lastMessage.content}
-            </p>
+            <div className="flex-1">
+              <p className="text-sm sm:text-base text-foreground bg-muted/70 dark:bg-gray-700/70 p-3 rounded-lg rounded-tl-none mx-1 sm:mx-0 shadow-sm">
+                {truncateMessage(lastMessage.content, isMobile)}
+              </p>
+            </div>
             <Button 
               asChild 
               variant="primary" 
-              size={isMobile ? "default" : "sm"} 
-              className={`${isMobile ? 'w-full text-base py-5' : 'w-full md:w-auto'}`}
+              size={isMobile ? "sm" : "sm"} 
+              className="w-full sm:w-auto mt-auto"
             >
-              <Link to="/messages">
+              <Link to="/messages" className="flex items-center justify-center gap-1">
                 View all messages
                 <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -148,18 +157,18 @@ export const LastMessageWidget = () => {
             </Button>
           </div>
         ) : (
-          <div className={`flex flex-col items-center justify-center ${isMobile ? 'py-12' : 'py-8'} text-center space-y-4`}>
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
             <div className="p-4 rounded-full bg-muted">
-              <MessageSquare className="h-7 w-7 text-muted-foreground" />
+              <MessageSquare className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-base text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               No messages yet. Start a conversation with your family!
             </p>
             <Button 
               asChild 
               variant="primary"
-              size={isMobile ? "default" : "sm"}
-              className={isMobile ? "text-base py-5" : ""}
+              size={isMobile ? "sm" : "sm"}
+              className="mt-auto"
             >
               <Link to="/messages">
                 Start messaging
