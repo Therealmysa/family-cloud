@@ -5,8 +5,11 @@ import { LegalMentions } from "@/components/legal/LegalMentions";
 import { PrivacyPolicy } from "@/components/legal/PrivacyPolicy";
 import { TermsOfService } from "@/components/legal/TermsOfService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Legal = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <MainLayout title="Legal Information">
       <Helmet>
@@ -21,7 +24,7 @@ const Legal = () => {
         <h1 className="text-3xl font-bold mb-8 text-center">Legal Information</h1>
 
         <Tabs defaultValue="legal" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`${isMobile ? 'flex flex-col space-y-2 w-full' : 'grid w-full grid-cols-3'}`}>
             <TabsTrigger value="legal">Legal Notices</TabsTrigger>
             <TabsTrigger value="privacy">Privacy Policy</TabsTrigger>
             <TabsTrigger value="terms">Terms of Service</TabsTrigger>
