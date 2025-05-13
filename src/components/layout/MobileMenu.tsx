@@ -2,7 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
-import { Cloud, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -36,9 +36,11 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <DrawerHeader className="border-b border-border">
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-2">
-                <Cloud className="h-6 w-6 text-primary" />
-              </div>
+              <img 
+                src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
+                alt="FamilyCloud Logo" 
+                className="h-10 w-10 mr-2"
+              />
               <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 FamilyCloud
               </DrawerTitle>

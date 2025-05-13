@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Cloud } from "lucide-react";
+import { Menu } from "lucide-react";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
@@ -27,9 +27,11 @@ export default function Header() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-2">
-                <Cloud className="h-6 w-6 text-primary" />
-              </div>
+              <img 
+                src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
+                alt="FamilyCloud Logo" 
+                className="h-10 w-10 mr-2"
+              />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 FamilyCloud
               </h1>
