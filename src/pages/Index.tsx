@@ -6,6 +6,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronRight, Heart, Lock, Shield, Smile, Users } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -21,6 +22,17 @@ const Index = () => {
       }
     }
   }, [user, profile, navigate]);
+
+  // Show a welcome toast when the page loads
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Welcome to FamilyCloud",
+        description: "Share moments with your loved ones",
+        variant: "success"
+      });
+    }
+  }, [user]);
 
   return (
     <MainLayout title="Home">
@@ -41,7 +53,13 @@ const Index = () => {
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   {!user && (
                     <>
-                      <Button asChild size="lg" className="px-8">
+                      <Button asChild size="lg" className="px-8" onClick={() => {
+                        toast({
+                          title: "Getting Started",
+                          description: "Create your family account now!",
+                          variant: "success"
+                        });
+                      }}>
                         <Link to="/auth?signup=true">Get Started <ChevronRight className="ml-2 h-4 w-4" /></Link>
                       </Button>
                       <Button asChild variant="outlined" size="lg">
