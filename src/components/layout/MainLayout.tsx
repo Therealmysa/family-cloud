@@ -32,8 +32,8 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -41,17 +41,17 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
   // Apply padding to all pages except messages page
   const containerClasses = isMessagesPage 
     ? "flex-grow container mx-auto px-0 py-0" 
-    : "flex-grow container mx-auto px-4 py-4 sm:px-6 sm:py-6";
+    : "flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8";
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted">
       <Header />
       <main className={containerClasses}>
         {children}
       </main>
-      <footer className="bg-gray-50 dark:bg-gray-900 py-6">
-        <div className="container mx-auto px-4 text-center text-gray-500 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} FamilyCloud. All rights reserved.</p>
+      <footer className="bg-white/50 dark:bg-gray-900/50 py-6 backdrop-blur-sm">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground">© {new Date().getFullYear()} FamilyCloud. All rights reserved.</p>
         </div>
       </footer>
     </div>

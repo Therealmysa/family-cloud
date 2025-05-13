@@ -6,7 +6,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { MessageSquare, Image, Calendar, Users } from "lucide-react";
+import { MessageSquare, Image, Calendar, Users, Cloud, Heart, Share } from "lucide-react";
 import { LastMessageWidget } from "@/components/dashboard/LastMessageWidget";
 import { LastPictureWidget } from "@/components/dashboard/LastPictureWidget";
 
@@ -33,102 +33,123 @@ const FamilyDashboard = () => {
   return (
     <MainLayout title="Family Dashboard" requireAuth={true}>
       <div className="w-full">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-purple-700 dark:text-purple-400">
-            {profile?.name ? `Welcome, ${profile.name}` : 'Welcome to Your Family Dashboard'}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10 mb-4">
+            <Heart className="h-8 w-8 text-primary animate-float" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            {profile?.name ? `Welcome, ${profile.name}` : 'Welcome to Your Family Space'}
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Your private family space to share and connect
+          <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+            Your private space to share moments and stay connected with loved ones
           </p>
         </div>
         
         {/* Activity Highlights Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
-            Recent Activity
+        <div className="mb-12 bg-gradient-to-br from-primary/5 to-secondary/5 p-6 rounded-2xl">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Cloud className="h-5 w-5 text-primary" />
+            <span>Recent Family Activity</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <LastMessageWidget />
             <LastPictureWidget />
           </div>
         </div>
         
         {/* Quick Access Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
-            Quick Access
+        <div className="mb-12">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <Share className="h-5 w-5 text-primary" />
+            <span>Quick Access</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                  <MessageSquare className="h-5 w-5 mr-2" /> Messages
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="border-none shadow-soft hover:shadow-card transition-all duration-300 bg-white/50 dark:bg-gray-800/50 overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardHeader className="pb-2 relative">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Messages</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   Chat with family members in private conversations
                 </p>
-                <Button asChild size="sm" className="w-full">
+                <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20">
                   <Link to="/messages">Open Messages</Link>
                 </Button>
               </CardContent>
             </Card>
             
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                  <Image className="h-5 w-5 mr-2" /> Gallery
+            <Card className="border-none shadow-soft hover:shadow-card transition-all duration-300 bg-white/50 dark:bg-gray-800/50 overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardHeader className="pb-2 relative">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-secondary/10">
+                    <Image className="h-4 w-4 text-secondary" />
+                  </div>
+                  <span>Gallery</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   Browse all family photos and videos in one place
                 </p>
-                <Button asChild size="sm" className="w-full">
+                <Button asChild variant="outline" className="w-full bubble-button bg-secondary/10 border-0 text-secondary hover:bg-secondary/20">
                   <Link to="/gallery">View Gallery</Link>
                 </Button>
               </CardContent>
             </Card>
             
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                  <Calendar className="h-5 w-5 mr-2" /> Daily Feed
+            <Card className="border-none shadow-soft hover:shadow-card transition-all duration-300 bg-white/50 dark:bg-gray-800/50 overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardHeader className="pb-2 relative">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-accent/10">
+                    <Calendar className="h-4 w-4 text-accent" />
+                  </div>
+                  <span>Daily Feed</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              <CardContent className="relative">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   See today's moments shared by family members
                 </p>
-                <Button asChild size="sm" className="w-full">
+                <Button asChild variant="outline" className="w-full bubble-button bg-accent/10 border-0 text-accent hover:bg-accent/20">
                   <Link to="/feed">Go to Feed</Link>
                 </Button>
               </CardContent>
             </Card>
             
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-purple-700 dark:text-purple-400">
-                  <Users className="h-5 w-5 mr-2" /> Family Members
+            <Card className="border-none shadow-soft hover:shadow-card transition-all duration-300 bg-white/50 dark:bg-gray-800/50 overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardHeader className="pb-2 relative">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-primary/5 dark:bg-primary/10">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Family</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
                 {profile?.is_admin ? (
                   <>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       Manage family members and settings
                     </p>
-                    <Button asChild size="sm" className="w-full">
+                    <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20">
                       <Link to="/family-admin">Family Admin</Link>
                     </Button>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       View your profile and settings
                     </p>
-                    <Button asChild size="sm" className="w-full">
+                    <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20">
                       <Link to="/profile">My Profile</Link>
                     </Button>
                   </>
@@ -139,9 +160,16 @@ const FamilyDashboard = () => {
         </div>
         
         {/* Create Post/Share Moment button */}
-        <div className="mb-8">
-          <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link to="/create-post">Share Today's Moment</Link>
+        <div className="mb-8 text-center">
+          <Button 
+            asChild 
+            size="lg" 
+            className="rounded-full px-8 py-6 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            <Link to="/create-post" className="flex items-center gap-2">
+              <Heart className="h-5 w-5" />
+              <span>Share Today's Moment</span>
+            </Link>
           </Button>
         </div>
       </div>
