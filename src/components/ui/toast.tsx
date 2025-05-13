@@ -128,30 +128,3 @@ export {
   ToastClose,
   ToastAction,
 }
-
-// Add useToast hook directly in this file
-// This is what's missing from the current implementation
-import { createContext, useContext } from "react";
-
-type ToastContextType = {
-  toasts: Array<{
-    id: string;
-    title?: React.ReactNode;
-    description?: React.ReactNode;
-    action?: ToastActionElement;
-    variant?: "default" | "destructive" | "success" | "warning";
-  }>;
-};
-
-const ToastContext = createContext<ToastContextType>({ toasts: [] });
-
-function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error("useToast must be used within a ToastProvider");
-  }
-  return context;
-}
-
-// Export the hook
-export { useToast };

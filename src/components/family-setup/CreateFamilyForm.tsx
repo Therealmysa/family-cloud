@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const createFamilySchema = z.object({
   name: z.string().min(2, "Family name must be at least 2 characters"),
@@ -62,6 +61,7 @@ export default function CreateFamilyForm() {
       toast({
         title: "Family created!",
         description: "Your family has been successfully created.",
+        variant: "success",
       });
 
       // Create the default family group chat
@@ -84,6 +84,7 @@ export default function CreateFamilyForm() {
         toast({
           title: "Chat created",
           description: "Family group chat has been created.",
+          variant: "success",
         });
       }
 

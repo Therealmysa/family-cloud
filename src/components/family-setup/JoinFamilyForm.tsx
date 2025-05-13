@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const joinFamilySchema = z.object({
   inviteCode: z.string().length(6, "Invite code must be exactly 6 characters"),
@@ -61,6 +60,7 @@ export default function JoinFamilyForm() {
       toast({
         title: "Success!",
         description: "You've successfully joined the family.",
+        variant: "success",
       });
 
       // Add user to the family group chat
