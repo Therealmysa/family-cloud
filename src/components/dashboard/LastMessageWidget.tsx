@@ -1,14 +1,13 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 export const LastMessageWidget = () => {
   const { profile } = useAuth();
@@ -17,6 +16,7 @@ export const LastMessageWidget = () => {
     timestamp: string;
     sender_name: string;
     sender_avatar: string | null;
+    sender_id: string;
     chat_id: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,8 @@ export const LastMessageWidget = () => {
             content, 
             timestamp, 
             chat_id,
-            sender: profiles!messages_sender_id_fkey(name, avatar_url)
+            sender_id,
+            sender: profiles!messages_sender_id_fkey(name, avatar_url, id)
           `)
           .in("chat_id", chatIds)
           .order("timestamp", { ascending: false })
@@ -61,6 +62,7 @@ export const LastMessageWidget = () => {
             timestamp: message.timestamp,
             sender_name: message.sender?.name || "Unknown",
             sender_avatar: message.sender?.avatar_url,
+            sender_id: message.sender_id,
             chat_id: message.chat_id
           });
         }
@@ -102,6 +104,14 @@ export const LastMessageWidget = () => {
     return content.substring(0, limit) + '...';
   };
 
+  // Create a profile object for the ProfileAvatar component
+  const senderProfile = lastMessage ? {
+    id: lastMessage.sender_id,
+    name: lastMessage.sender_name,
+    avatar_url: lastMessage.sender_avatar,
+    family_id: profile?.family_id || null
+  } : null;
+
   return (
     <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden h-full">
       <CardHeader className="pb-2 border-b border-border">
@@ -126,12 +136,11 @@ export const LastMessageWidget = () => {
         ) : lastMessage ? (
           <div className="space-y-4 flex-1 flex flex-col">
             <div className="flex items-center gap-2 bg-muted/70 dark:bg-gray-700/70 p-2 sm:p-3 rounded-lg mx-1 sm:mx-0 shadow-sm">
-              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border border-primary/20">
-                <AvatarImage src={lastMessage.sender_avatar || undefined} />
-                <AvatarFallback className="text-sm bg-primary/10 text-primary">
-                  {lastMessage.sender_name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar 
+                profile={senderProfile} 
+                size={isMobile ? "sm" : "md"}
+                className="border border-primary/20"
+              />
               <span className="text-sm sm:text-base font-medium line-clamp-1">{lastMessage.sender_name}</span>
               <span className="text-xs font-semibold text-foreground ml-auto">
                 {formatTime(lastMessage.timestamp)}

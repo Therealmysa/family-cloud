@@ -1,12 +1,12 @@
 
 import { Heart, MessageCircle } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useState } from "react";
 import { MediaDialog } from "../media/MediaDialog";
 import { Media } from "@/types/media";
 import { useAuth } from "@/hooks/useAuth";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 type FeedItemProps = {
   item: Media;
@@ -34,12 +34,7 @@ export const FeedItem = ({
         />
         <CardContent className="pt-4">
           <div className="flex items-center space-x-4 mb-2">
-            <Avatar>
-              <AvatarImage src={item.profile?.avatar_url || ""} />
-              <AvatarFallback>
-                {item.profile?.name?.substring(0, 2).toUpperCase() || ""}
-              </AvatarFallback>
-            </Avatar>
+            <ProfileAvatar profile={item.profile} />
             <div>
               <p className="font-medium">{item.profile?.name}</p>
               <p className="text-sm text-gray-500">

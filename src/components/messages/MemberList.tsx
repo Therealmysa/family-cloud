@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Profile } from "@/types/profile";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { MemberProfile } from "@/components/profile/MemberProfile";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 type MemberListProps = {
   filteredMembers: Profile[];
@@ -68,12 +68,7 @@ export const MemberList = ({
               onClick={() => openMemberProfile(member)}
               className="flex items-center space-x-3 flex-1 cursor-pointer"
             >
-              <Avatar>
-                <AvatarImage src={member.avatar_url || ""} />
-                <AvatarFallback>
-                  {member.name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar profile={member} />
               <span>{member.name}</span>
             </div>
             

@@ -1,10 +1,10 @@
 
 import { useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Message } from "@/types/message";
 import { Profile } from "@/types/profile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 type MessageListProps = {
   messages: Message[];
@@ -68,12 +68,10 @@ export const MessageList = ({ messages, profiles, compact = false }: MessageList
             >
               {showSender && !isCurrentUser && (
                 <div className="flex items-center gap-2 mb-1 px-1">
-                  <Avatar className={compact ? "h-4 w-4" : "h-5 w-5"}>
-                    <AvatarImage src={sender.avatar_url || ""} />
-                    <AvatarFallback className={compact ? "text-[8px]" : "text-[10px]"}>
-                      {sender.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ProfileAvatar 
+                    profile={sender} 
+                    size={compact ? "xs" : "sm"}
+                  />
                   <span className="text-xs text-gray-500 font-medium">{sender.name}</span>
                 </div>
               )}
@@ -105,4 +103,4 @@ export const MessageList = ({ messages, profiles, compact = false }: MessageList
       <div ref={messagesEndRef} />
     </div>
   );
-};
+}

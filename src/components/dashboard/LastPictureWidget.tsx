@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Media } from "@/types/media";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 export const LastPictureWidget = () => {
   const { profile } = useAuth();
@@ -31,7 +31,7 @@ export const LastPictureWidget = () => {
             url, 
             created_at,
             date_uploaded,
-            profile:profiles(name, avatar_url)
+            profile:profiles(id, name, avatar_url, family_id)
           `)
           .eq("family_id", profile.family_id)
           .order("date_uploaded", { ascending: false })
@@ -100,9 +100,15 @@ export const LastPictureWidget = () => {
             <div className="mt-3 bg-muted/70 dark:bg-gray-700/70 p-3 sm:p-4 rounded-lg mx-1 sm:mx-0 shadow-sm">
               <p className="text-base font-medium line-clamp-1">{lastPicture.title}</p>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm font-medium text-foreground">
-                  By {lastPicture.profile?.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <ProfileAvatar 
+                    profile={lastPicture.profile} 
+                    size="sm" 
+                  />
+                  <span className="text-sm font-medium text-foreground">
+                    {lastPicture.profile?.name}
+                  </span>
+                </div>
                 <span className="text-sm font-medium text-foreground">
                   {formatDate(lastPicture.date_uploaded)}
                 </span>

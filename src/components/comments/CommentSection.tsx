@@ -6,8 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Comment } from "@/types/media";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 export function CommentSection({ mediaId }: { mediaId: string }) {
   const { user } = useAuth();
@@ -112,12 +112,10 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
         <div className="space-y-3 max-h-[200px] overflow-y-auto">
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.profile?.avatar_url || ""} />
-                <AvatarFallback>
-                  {comment.profile?.name?.substring(0, 2).toUpperCase() || ""}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar 
+                profile={comment.profile} 
+                size="sm"
+              />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium">{comment.profile?.name}</p>
