@@ -101,10 +101,10 @@ const Messages = () => {
 
   return (
     <MainLayout title="Messages" requireAuth={true}>
-      <div className="flex flex-col sm:flex-row h-[calc(100vh-10rem)] sm:h-[calc(100vh-14rem)] overflow-hidden w-full rounded-lg shadow-md border border-border/30">
+      <div className="flex flex-col sm:flex-row h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] overflow-hidden rounded-lg shadow-lg border border-border/40 bg-white/30 dark:bg-gray-800/20 backdrop-blur-sm">
         {/* Chats sidebar - show only when showChatList is true on mobile */}
         {(!isMobile || showChatList) && (
-          <div className="w-full sm:w-80 border-r border-r-border/40 bg-white dark:bg-gray-800/50 flex flex-col h-full">
+          <div className="w-full sm:w-80 border-r border-r-border/40 bg-white dark:bg-gray-800/80 flex flex-col h-full">
             <div className="p-3 sm:p-4 border-b border-b-border/40 flex justify-between items-center bg-muted/30">
               <h2 className="text-base sm:text-lg font-medium">Messages</h2>
               <CreateConversation onChatCreated={handleChatCreated} />
@@ -121,7 +121,7 @@ const Messages = () => {
 
         {/* Chat window - show only when showChatList is false on mobile */}
         {(!isMobile || !showChatList) && (
-          <div className="flex-1 flex flex-col bg-gray-50/70 dark:bg-gray-900/70 h-full">
+          <div className="flex-1 flex flex-col bg-gray-50/90 dark:bg-gray-900/80 h-full">
             <ChatContainer
               selectedChat={selectedChat}
               messages={messages}
