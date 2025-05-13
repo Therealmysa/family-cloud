@@ -1,5 +1,5 @@
 
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useState } from "react";
@@ -21,17 +21,35 @@ export const FeedItem = ({
 }: FeedItemProps) => {
   const { profile } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // Check if item is a video
+  const isVideo = item.url.match(/\.(mp4|webm|ogg)$/i);
 
   return (
     <>
       <Card key={item.id} className="overflow-hidden">
-        <img 
-          src={item.url} 
-          alt={item.title}
-          className="w-full h-auto object-cover max-h-[500px] cursor-pointer"
-          loading="lazy"
-          onClick={() => setDialogOpen(true)}
-        />
+        <div className="relative cursor-pointer" onClick={() => setDialogOpen(true)}>
+          {isVideo ? (
+            <div className="relative">
+              <video 
+                src={item.url} 
+                className="w-full h-auto object-cover max-h-[500px]"
+                poster={item.thumbnail_url}
+                preload="metadata"
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <Play className="h-16 w-16 text-white" />
+              </div>
+            </div>
+          ) : (
+            <img 
+              src={item.url} 
+              alt={item.title}
+              className="w-full h-auto object-cover max-h-[500px]"
+              loading="lazy"
+            />
+          )}
+        </div>
         <CardContent className="pt-4">
           <div className="flex items-center space-x-4 mb-2">
             <ProfileAvatar profile={item.profile} />

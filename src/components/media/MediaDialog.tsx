@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Heart, MessageCircle, Pencil, Trash } from 'lucide-react';
+import { Heart, MessageCircle, Pencil, Trash, Download, Maximize, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CommentSection } from '../comments/CommentSection';
@@ -27,6 +27,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Media } from '@/types/media';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { MediaEditForm } from './MediaEditForm';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 interface MediaDialogProps {
   media: Media | null;
@@ -50,6 +51,10 @@ export function MediaDialog({
   const [activeTab, setActiveTab] = useState<'comments'>('comments');
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fullscreenView, setFullscreenView] = useState(false);
+
+  // Check if media is a video
+  const isVideo = media?.url?.match(/\.(mp4|webm|ogg)$/i);
 
   // Check if user can edit or delete
   const canEdit = media?.user_id === user?.id;
@@ -191,6 +196,23 @@ export function MediaDialog({
     });
   };
 
+  // Handle download
+  const handleDownload = () => {
+    if (!media) return;
+    
+    const link = document.createElement('a');
+    link.href = media.url;
+    link.download = media.title || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Success",
+      description: "Download started",
+    });
+  };
+
   if (!media) return null;
 
   return (
@@ -211,11 +233,45 @@ export function MediaDialog({
             <div className="grid gap-4 md:grid-cols-5">
               {/* Image column */}
               <div className="md:col-span-3 relative">
-                <img 
-                  src={media.url} 
-                  alt={media.title} 
-                  className="w-full h-auto rounded-md object-cover max-h-[500px]" 
-                />
+                {isVideo ? (
+                  <video 
+                    src={media.url} 
+                    controls
+                    className="w-full h-auto rounded-md object-contain max-h-[500px]"
+                  />
+                ) : (
+                  <div className="relative group">
+                    <img 
+                      src={media.url} 
+                      alt={media.title} 
+                      className="w-full h-auto rounded-md object-contain max-h-[500px] cursor-pointer" 
+                      onClick={() => setFullscreenView(true)}
+                    />
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        className="rounded-full p-2 h-8 w-8"
+                        onClick={() => setFullscreenView(true)}
+                      >
+                        <Maximize className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Media action buttons */}
+                <div className="flex justify-end mt-2 space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownload}
+                    className="flex items-center gap-1"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Download</span>
+                  </Button>
+                </div>
               </div>
               
               {/* Info and comments column */}
@@ -297,6 +353,36 @@ export function MediaDialog({
         </DialogContent>
       </Dialog>
 
+      {/* Fullscreen view */}
+      <Sheet open={fullscreenView} onOpenChange={setFullscreenView}>
+        <SheetContent side="bottom" className="h-screen p-0 max-w-full flex items-center justify-center bg-black/95">
+          <div className="relative w-full h-full flex items-center justify-center overflow-auto p-4">
+            <img 
+              src={media.url} 
+              alt={media.title} 
+              className="max-w-full max-h-full object-contain"
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-none"
+              onClick={() => setFullscreenView(false)}
+            >
+              Close
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white border-none"
+              onClick={handleDownload}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -320,4 +406,3 @@ export function MediaDialog({
     </>
   );
 }
-

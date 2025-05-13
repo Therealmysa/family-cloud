@@ -8,7 +8,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Calendar, User } from "lucide-react";
+import { Search, Calendar, User, Play } from "lucide-react";
 import { MediaDialog } from "@/components/media/MediaDialog";
 import { Media } from "@/types/media";
 
@@ -70,7 +70,6 @@ const Gallery = () => {
         throw error;
       }
 
-      // Check if user has posted today
       if (data.length === 0) return [];
 
       // Get likes for all media items using our RPC function
@@ -127,6 +126,43 @@ const Gallery = () => {
     }
   };
 
+  // Check if an item is a video
+  const isVideo = (url: string) => {
+    return url.match(/\.(mp4|webm|ogg)$/i) !== null;
+  };
+
+  // Render a media item thumbnail
+  const renderMediaItem = (item: Media) => {
+    return (
+      <div 
+        key={item.id} 
+        className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity relative"
+        onClick={() => handleOpenMedia(item)}
+      >
+        {isVideo(item.url) ? (
+          <div className="relative h-full w-full">
+            <video 
+              src={item.url} 
+              className="w-full h-full object-cover"
+              poster={item.thumbnail_url}
+              preload="metadata"
+            />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <Play className="h-12 w-12 text-white" />
+            </div>
+          </div>
+        ) : (
+          <img 
+            src={item.url} 
+            alt={item.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <MainLayout title="Gallery" requireAuth={true}>
       <div className="container max-w-6xl mx-auto px-4 py-6">
@@ -146,7 +182,7 @@ const Gallery = () => {
 
         <Tabs defaultValue="all" className="mb-6" onValueChange={(value) => setViewMode(value as any)}>
           <TabsList className="mb-4">
-            <TabsTrigger value="all">All Photos</TabsTrigger>
+            <TabsTrigger value="all">All Media</TabsTrigger>
             <TabsTrigger value="byDate">By Date</TabsTrigger>
             <TabsTrigger value="byMember">By Family Member</TabsTrigger>
           </TabsList>
@@ -162,24 +198,11 @@ const Gallery = () => {
               <TabsContent value="all" className="mt-0">
                 {filteredMedia.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredMedia.map((item) => (
-                      <div 
-                        key={item.id} 
-                        className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => handleOpenMedia(item)}
-                      >
-                        <img 
-                          src={item.url} 
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    ))}
+                    {filteredMedia.map((item) => renderMediaItem(item))}
                   </div>
                 ) : (
                   <div className="text-center p-8">
-                    <p className="text-gray-500">No photos found</p>
+                    <p className="text-gray-500">No media found</p>
                   </div>
                 )}
               </TabsContent>
@@ -199,26 +222,13 @@ const Gallery = () => {
                         </h3>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {images.map((item) => (
-                          <div 
-                            key={item.id} 
-                            className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => handleOpenMedia(item)}
-                          >
-                            <img 
-                              src={item.url} 
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
+                        {images.map((item) => renderMediaItem(item))}
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center p-8">
-                    <p className="text-gray-500">No photos found</p>
+                    <p className="text-gray-500">No media found</p>
                   </div>
                 )}
               </TabsContent>
@@ -232,26 +242,13 @@ const Gallery = () => {
                         <h3 className="font-semibold">{member.name}</h3>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {member.images.map((item) => (
-                          <div 
-                            key={item.id} 
-                            className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => handleOpenMedia(item)}
-                          >
-                            <img 
-                              src={item.url} 
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
+                        {member.images.map((item) => renderMediaItem(item))}
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center p-8">
-                    <p className="text-gray-500">No photos found</p>
+                    <p className="text-gray-500">No media found</p>
                   </div>
                 )}
               </TabsContent>

@@ -8,6 +8,7 @@ export type Media = {
   user_id: string;
   created_at: string;
   date_uploaded: string;
+  thumbnail_url?: string | null;
   profile?: {
     id: string;
     name: string;
