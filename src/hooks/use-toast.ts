@@ -74,7 +74,7 @@ export function toast({
   action,
   variant = "default",
   ...props
-}: Omit<ToasterToast, "id">) {
+}: Partial<ToasterToast> & { id?: string }) {
   const id = props?.id || String(Date.now());
 
   // Also send to sonner toast if it exists
@@ -82,7 +82,7 @@ export function toast({
     sonnerToast.success(title as string, { description });
   } else if (variant === "warning") {
     sonnerToast.warning(title as string, { description });
-  } else if (variant === "destructive" || variant === "error") {
+  } else if (variant === "destructive") {
     sonnerToast.error(title as string, { description });
   } else {
     sonnerToast(title as string, { description });
