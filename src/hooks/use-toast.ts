@@ -123,6 +123,12 @@ function dispatch(action: Action) {
   });
 }
 
+type ToastShowProps = (props: ToastProps) => {
+  id: string;
+  dismiss: () => void;
+  update: (props: ToastProps) => void;
+};
+
 function useToast() {
   const [state, setState] = React.useState<State>({ toasts: [] });
 
@@ -136,56 +142,59 @@ function useToast() {
     };
   }, [state]);
 
+  // Fixed toast function with proper type annotation
+  const toast: ToastShowProps = (props) => {
+    const id = props.id || genId();
+    const variantMap = {
+      default: undefined,
+      destructive: "error",
+      success: "success",
+      warning: "warning",
+    };
+    
+    // For external toast (sonner)
+    if (props.title) {
+      const sonnerVariant = props.variant ? variantMap[props.variant] : undefined;
+      
+      Sonner.toast(props.title, {
+        description: props.description,
+        className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
+        // @ts-ignore - sonner has its own variant types
+        variant: sonnerVariant,
+      });
+    }
+    
+    // For internal toast
+    const toast = {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open: boolean) => {
+        if (!open) {
+          dispatch({ type: "DISMISS_TOAST", toastId: id });
+        }
+      },
+    };
+
+    dispatch({
+      type: "ADD_TOAST",
+      toast,
+    });
+
+    return {
+      id,
+      dismiss: () => dispatch({ type: "DISMISS_TOAST", toastId: id }),
+      update: (props: ToastProps) =>
+        dispatch({
+          type: "UPDATE_TOAST",
+          toast: { ...props, id },
+        }),
+    };
+  };
+
   return {
     ...state,
-    toast: (props: ToastProps) => {
-      const id = props.id || genId();
-      const variantMap = {
-        default: undefined,
-        destructive: "error",
-        success: "success",
-        warning: "warning",
-      };
-      
-      // For external toast (sonner)
-      if (props.title) {
-        const sonnerVariant = props.variant ? variantMap[props.variant] : undefined;
-        
-        Sonner.toast(props.title, {
-          description: props.description,
-          className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
-          // @ts-ignore - sonner has its own variant types
-          variant: sonnerVariant,
-        });
-      }
-      
-      // For internal toast
-      const toast = {
-        ...props,
-        id,
-        open: true,
-        onOpenChange: (open: boolean) => {
-          if (!open) {
-            dispatch({ type: "DISMISS_TOAST", toastId: id });
-          }
-        },
-      };
-
-      dispatch({
-        type: "ADD_TOAST",
-        toast,
-      });
-
-      return {
-        id,
-        dismiss: () => dispatch({ type: "DISMISS_TOAST", toastId: id }),
-        update: (props: ToastProps) =>
-          dispatch({
-            type: "UPDATE_TOAST",
-            toast: { ...props, id },
-          }),
-      };
-    },
+    toast,
     dismiss: (toastId?: string) =>
       dispatch({ type: "DISMISS_TOAST", toastId }),
     remove: (toastId?: string) =>
@@ -194,12 +203,36 @@ function useToast() {
 }
 
 // Helper function to easily call toast outside of components
-export const toast = (props: ToastProps) => {
-  const { toast: showToast } = useToast();
-  if (typeof window !== "undefined") {
-    return showToast(props);
+export function toast(props: ToastProps) {
+  const id = props.id || genId();
+  const variantMap = {
+    default: undefined,
+    destructive: "error",
+    success: "success",
+    warning: "warning",
+  };
+  
+  // For external toast (sonner)
+  if (props.title) {
+    const sonnerVariant = props.variant ? variantMap[props.variant] : undefined;
+    
+    Sonner.toast(props.title, {
+      description: props.description,
+      className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
+      // @ts-ignore - sonner has its own variant types
+      variant: sonnerVariant,
+    });
   }
-  return { id: "0", dismiss: () => {}, update: () => {} };
-};
+
+  return {
+    id,
+    dismiss: () => dispatch({ type: "DISMISS_TOAST", toastId: id }),
+    update: (props: ToastProps) =>
+      dispatch({
+        type: "UPDATE_TOAST",
+        toast: { ...props, id },
+      }),
+  };
+}
 
 export { useToast };
