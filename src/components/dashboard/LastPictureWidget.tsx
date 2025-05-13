@@ -95,13 +95,13 @@ export const LastPictureWidget = () => {
                 className="object-cover w-full h-full transition-transform hover:scale-105 duration-500"
               />
             </AspectRatio>
-            <div className="mt-3 bg-[#f0f9f9] dark:bg-[#1e3a3a] p-4 rounded-lg shadow-sm">
+            <div className="mt-3 bg-[#006466] text-white dark:bg-[#006466] p-4 rounded-lg shadow-sm">
               <p className="text-lg font-medium line-clamp-1">{lastPicture.title}</p>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-base font-medium text-foreground">
+                <span className="text-base font-medium">
                   By {lastPicture.profile?.name}
                 </span>
-                <span className="text-base font-medium text-foreground">
+                <span className="text-base font-medium">
                   {formatDate(lastPicture.date_uploaded)}
                 </span>
               </div>

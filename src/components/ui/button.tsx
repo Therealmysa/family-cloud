@@ -20,12 +20,12 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground font-medium",
         link: "text-primary font-semibold underline-offset-4 hover:underline",
         // Enhanced variants with better contrast
-        primary: "bg-[#9555e0] text-white shadow-md hover:bg-[#8644d4] font-bold border border-[#9555e0]/20",
-        accent: "bg-[#ff6b35] text-white shadow-md hover:bg-[#f25e28] font-bold border border-[#ff6b35]/20",
+        primary: "bg-[#9555e0] text-white shadow-md hover:bg-[#8644d4] font-bold",
+        accent: "bg-[#ff6b35] text-white shadow-md hover:bg-[#f25e28] font-bold",
         soft: "bg-muted text-foreground shadow-md hover:bg-muted/80 font-medium",
         outlined: "border-2 border-[#9555e0] text-[#9555e0] bg-white dark:bg-black/20 shadow-md hover:bg-[#9555e0]/10 font-semibold",
-        gallery: "bg-[#34a0a4] text-white shadow-md hover:bg-[#2a8a8e] font-bold border border-[#34a0a4]/20",
-        feed: "bg-[#ff9e00] text-white shadow-md hover:bg-[#f09600] font-bold border border-[#ff9e00]/20",
+        gallery: "bg-[#34a0a4] text-white shadow-md hover:bg-[#2a8a8e] font-bold border-2 border-[#34a0a4]",
+        feed: "bg-[#ff9e00] text-white shadow-md hover:bg-[#f09600] font-bold border-2 border-[#ff9e00]",
       },
       size: {
         default: "h-10 px-5 py-2 text-base",

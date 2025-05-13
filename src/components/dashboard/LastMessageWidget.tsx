@@ -116,7 +116,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 bg-[#f5f0ff] dark:bg-[#2a1e47] p-3 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 bg-[#7b2cbf] text-white dark:bg-[#7b2cbf] p-3 rounded-lg shadow-sm">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -124,11 +124,11 @@ export const LastMessageWidget = () => {
                 </AvatarFallback>
               </Avatar>
               <span className="text-base font-medium">{lastMessage.sender_name}</span>
-              <span className="text-sm font-semibold text-foreground ml-auto">
+              <span className="text-sm font-semibold ml-auto">
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-foreground bg-[#f5f0ff] dark:bg-[#2a1e47] p-4 rounded-lg rounded-tl-none shadow-sm">
+            <p className="text-base text-white bg-[#7b2cbf] dark:bg-[#7b2cbf] p-4 rounded-lg rounded-tl-none shadow-sm">
               {lastMessage.content}
             </p>
             <Button 
