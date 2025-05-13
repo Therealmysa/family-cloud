@@ -1,7 +1,9 @@
+
 import { useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "./Header";
+import ObfuscatedEmail from "@/components/ui/obfuscated-email";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -56,7 +58,7 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
           <div className="flex flex-wrap justify-center gap-4 mt-4 text-xs text-muted-foreground">
             <address className="not-italic">
               <a href="https://mysa-tech.fr" className="hover:text-primary transition-colors" target="_blank" rel="noopener noreferrer">MYSA Tech</a> | 
-              <a href="mailto:contact@mysa-tech.fr" className="hover:text-primary transition-colors ml-1">contact@mysa-tech.fr</a>
+              <ObfuscatedEmail email="contact@mysa-tech.fr" className="hover:text-primary transition-colors ml-1" />
             </address>
             <Link to="/legal" className="hover:text-primary transition-colors">Legal Information</Link>
           </div>
