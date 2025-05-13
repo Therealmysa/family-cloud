@@ -139,6 +139,7 @@ export type Database = {
           description: string | null
           family_id: string
           id: string
+          thumbnail_url: string | null
           title: string
           url: string
           user_id: string
@@ -149,6 +150,7 @@ export type Database = {
           description?: string | null
           family_id: string
           id?: string
+          thumbnail_url?: string | null
           title: string
           url: string
           user_id: string
@@ -159,6 +161,7 @@ export type Database = {
           description?: string | null
           family_id?: string
           id?: string
+          thumbnail_url?: string | null
           title?: string
           url?: string
           user_id?: string

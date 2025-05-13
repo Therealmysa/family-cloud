@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -221,11 +222,10 @@ const Gallery = () => {
       let thumbnailUrl = null;
       
       if (isVideo) {
-        // For videos, we'll create a placeholder thumbnail
-        // In a real app, you might want to generate a real thumbnail
-        const placeholderPath = `thumbnails/${fileName.replace(`.${fileExt}`, '.jpg')}`;
-        // Here we'd ideally generate a real thumbnail, but for now we'll use a placeholder
-        // You would need a server-side function to generate video thumbnails
+        // For videos, we'll create a placeholder thumbnail or use first frame
+        // In a real app with server-side processing, you'd generate an actual thumbnail
+        // For now, we'll use a timestamp URL parameter as a simple way to ensure the video loads a poster frame
+        thumbnailUrl = `${publicUrl}#t=0.1`;
       }
       
       // Create media record
