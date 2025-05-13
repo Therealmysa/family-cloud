@@ -16,18 +16,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Heart, MessageCircle, Pencil, Trash, FileDown, X, Play, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CommentSection } from '../comments/CommentSection';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
 import { Media } from '@/types/media';
-import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { MediaEditForm } from './MediaEditForm';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { CommentSection } from '../comments/CommentSection';
+import { MediaFullscreenView } from './MediaFullscreenView';
+import { MediaPreview } from './MediaPreview';
+import { MediaInfo } from './MediaInfo';
+import { MediaActions } from './MediaActions';
 
 interface MediaDialogProps {
   media: Media | null;
@@ -48,13 +47,9 @@ export function MediaDialog({
 }: MediaDialogProps) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'comments'>('comments');
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [fullscreenView, setFullscreenView] = useState(false);
-
-  // Check if media is a video
-  const isVideo = media?.url?.match(/\.(mp4|webm|ogg)$/i);
 
   // Check if user can edit the media (only the creator can edit)
   const canEdit = media?.user_id === user?.id;
@@ -166,7 +161,7 @@ export function MediaDialog({
     }
   });
 
-  // Handle like/unlike button click
+  // Handler functions
   const handleLikeToggle = (mediaId: string, isLiked: boolean) => {
     if (!user) {
       toast({
@@ -180,14 +175,12 @@ export function MediaDialog({
     likeMutation.mutate({ mediaId, isLiked });
   };
 
-  // Handle delete confirmation
   const handleDelete = () => {
     if (!media) return;
     deleteMutation.mutate(media.id);
     setShowDeleteDialog(false);
   };
 
-  // Handle edit mode toggle
   const handleEditSuccess = () => {
     setIsEditing(false);
     if (onMediaUpdated) onMediaUpdated();
@@ -198,7 +191,6 @@ export function MediaDialog({
     });
   };
 
-  // Handle download - fixed to force download instead of opening in new tab
   const handleDownload = () => {
     if (!media) return;
     
@@ -207,20 +199,15 @@ export function MediaDialog({
     link.href = media.url;
     
     // Set the download attribute with a filename
-    // Extract the filename from the URL or use the title/default
+    const isVideo = media.url?.match(/\.(mp4|webm|ogg)$/i);
     const filename = media.title || 
                      media.url.split('/').pop() || 
                      'download' + (isVideo ? '.mp4' : '.jpg');
     
     link.setAttribute('download', filename);
     
-    // Append to the document temporarily
     document.body.appendChild(link);
-    
-    // Trigger the download
     link.click();
-    
-    // Clean up
     document.body.removeChild(link);
     
     toast({
@@ -247,119 +234,29 @@ export function MediaDialog({
             />
           ) : (
             <div className="grid gap-4 md:grid-cols-5">
-              {/* Image column */}
-              <div className="md:col-span-3 relative">
-                {isVideo ? (
-                  <video 
-                    src={media.url} 
-                    controls
-                    className="w-full h-auto rounded-md object-contain max-h-[500px]"
-                  />
-                ) : (
-                  <div className="relative group">
-                    <img 
-                      src={media.url} 
-                      alt={media.title} 
-                      className="w-full h-auto rounded-md object-contain max-h-[500px] cursor-pointer" 
-                      onClick={() => setFullscreenView(true)}
-                    />
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="rounded-full p-2 h-8 w-8"
-                        onClick={() => setFullscreenView(true)}
-                      >
-                        <Maximize className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Media action buttons */}
-                <div className="flex justify-end mt-2 space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownload}
-                    className="flex items-center gap-1"
-                  >
-                    <FileDown className="h-4 w-4" />
-                    <span>Download</span>
-                  </Button>
-                </div>
-              </div>
+              {/* Media preview section */}
+              <MediaPreview 
+                media={media}
+                onFullscreenView={() => setFullscreenView(true)}
+                onDownload={handleDownload}
+              />
               
               {/* Info and comments column */}
               <div className="md:col-span-2 space-y-4 max-h-[500px] overflow-y-auto">
                 {/* Post info */}
-                <div className="flex items-center gap-3">
-                  <ProfileAvatar profile={media.profile} />
-                  <div>
-                    <p className="font-medium">{media.profile?.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(media.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Description */}
-                {media.description && (
-                  <p className="text-gray-700 dark:text-gray-300">{media.description}</p>
-                )}
+                <MediaInfo media={media} />
                 
                 {/* Action buttons */}
-                <div className="flex justify-between">
-                  <div className="flex gap-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`flex items-center gap-1 ${media.is_liked ? 'text-red-500' : ''}`}
-                      onClick={() => handleLikeToggle(media.id, !!media.is_liked)}
-                      disabled={likeMutation.isPending}
-                    >
-                      <Heart className={`h-4 w-4 ${media.is_liked ? 'fill-current' : ''}`} />
-                      <span>{media.likes_count || 0} {media.likes_count === 1 ? 'Like' : 'Likes'}</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() => setActiveTab('comments')}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      <span>Comments</span>
-                    </Button>
-                  </div>
-
-                  {/* Edit/Delete buttons */}
-                  <div className="flex gap-2">
-                    {canEdit && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-1"
-                        onClick={() => setIsEditing(true)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        <span className="hidden sm:inline">Edit</span>
-                      </Button>
-                    )}
-                    
-                    {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={() => setShowDeleteDialog(true)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash className="h-4 w-4" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <MediaActions 
+                  media={media}
+                  onLike={handleLikeToggle}
+                  onCommentFocus={() => {}}
+                  onEdit={() => setIsEditing(true)}
+                  onDelete={() => setShowDeleteDialog(true)}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                  isLikePending={likeMutation.isPending}
+                />
                 
                 {/* Comments */}
                 <CommentSection mediaId={media.id} />
@@ -369,41 +266,14 @@ export function MediaDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Fullscreen view with improved button visibility */}
-      <Sheet open={fullscreenView} onOpenChange={setFullscreenView}>
-        <SheetContent side="bottom" className="h-screen p-0 max-w-full flex items-center justify-center bg-black/95">
-          <div className="relative w-full h-full flex items-center justify-center overflow-auto p-4">
-            <img 
-              src={media.url} 
-              alt={media.title} 
-              className="max-w-full max-h-full object-contain"
-            />
-            
-            {/* Improved visibility for buttons - semi-transparent background and better positioning */}
-            <div className="absolute top-4 right-4 z-10 flex gap-2">
-              <Button 
-                variant="secondary" 
-                size="icon"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white border-none rounded-full w-10 h-10 shadow-md"
-                onClick={() => setFullscreenView(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            <div className="absolute bottom-4 right-4 z-10">
-              <Button
-                variant="secondary"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white border-none rounded-full shadow-md flex items-center gap-2 px-4"
-                onClick={handleDownload}
-              >
-                <FileDown className="h-5 w-5" />
-                Download
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Fullscreen view component */}
+      <MediaFullscreenView
+        open={fullscreenView}
+        onOpenChange={setFullscreenView}
+        mediaUrl={media.url}
+        mediaTitle={media.title}
+        onDownload={handleDownload}
+      />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
