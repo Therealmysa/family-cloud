@@ -1,20 +1,14 @@
-
 import MainLayout from "@/components/layout/MainLayout";
 import { Helmet } from "react-helmet-async";
 import { LegalMentions } from "@/components/legal/LegalMentions";
 import { PrivacyPolicy } from "@/components/legal/PrivacyPolicy";
 import { TermsOfService } from "@/components/legal/TermsOfService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 const Legal = () => {
-  return (
-    <MainLayout title="Legal Information">
+  return <MainLayout title="Legal Information">
       <Helmet>
         <title>Legal Information | FamilyCloud</title>
-        <meta
-          name="description"
-          content="Legal information, privacy policy, and terms of service for FamilyCloud."
-        />
+        <meta name="description" content="Legal information, privacy policy, and terms of service for FamilyCloud." />
       </Helmet>
 
       <div className="container mx-auto py-8 px-4">
@@ -24,7 +18,7 @@ const Legal = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="legal">Legal Notices</TabsTrigger>
             <TabsTrigger value="privacy">Privacy Policy</TabsTrigger>
-            <TabsTrigger value="terms">Terms of Service</TabsTrigger>
+            <TabsTrigger value="terms" className="">Terms of Service</TabsTrigger>
           </TabsList>
           <TabsContent value="legal" className="mt-6">
             <LegalMentions />
@@ -37,8 +31,6 @@ const Legal = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
-  );
+    </MainLayout>;
 };
-
 export default Legal;
