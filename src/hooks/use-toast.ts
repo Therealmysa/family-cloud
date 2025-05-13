@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { Toaster as Sonner } from "sonner";
+import { toast as sonnerToast, Toaster as Sonner } from "sonner";
 
 const TOAST_LIMIT = 20;
 export type ToastProps = {
@@ -156,7 +156,7 @@ function useToast() {
     if (props.title) {
       const sonnerVariant = props.variant ? variantMap[props.variant] : undefined;
       
-      Sonner.toast(props.title, {
+      sonnerToast(props.title, {
         description: props.description,
         className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
         // @ts-ignore - sonner has its own variant types
@@ -216,7 +216,7 @@ export function toast(props: ToastProps) {
   if (props.title) {
     const sonnerVariant = props.variant ? variantMap[props.variant] : undefined;
     
-    Sonner.toast(props.title, {
+    sonnerToast(props.title, {
       description: props.description,
       className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
       // @ts-ignore - sonner has its own variant types
