@@ -116,7 +116,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 bg-[#7b2cbf] text-white dark:bg-[#7b2cbf] p-3 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 bg-muted/70 p-2 rounded-lg">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -124,18 +124,18 @@ export const LastMessageWidget = () => {
                 </AvatarFallback>
               </Avatar>
               <span className="text-base font-medium">{lastMessage.sender_name}</span>
-              <span className="text-sm font-semibold ml-auto">
+              <span className="text-sm font-semibold text-foreground ml-auto">
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-white bg-[#7b2cbf] dark:bg-[#7b2cbf] p-4 rounded-lg rounded-tl-none shadow-sm">
+            <p className="text-base text-foreground bg-muted/70 p-3 rounded-lg rounded-tl-none">
               {lastMessage.content}
             </p>
             <Button 
               asChild 
               variant="primary" 
-              size="default" 
-              className="w-full md:w-auto text-base"
+              size="sm" 
+              className="w-full md:w-auto"
             >
               <Link to="/messages">
                 View all messages
@@ -150,14 +150,13 @@ export const LastMessageWidget = () => {
             <div className="p-4 rounded-full bg-muted">
               <MessageSquare className="h-7 w-7 text-muted-foreground" />
             </div>
-            <p className="text-lg font-medium text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               No messages yet. Start a conversation with your family!
             </p>
             <Button 
               asChild 
               variant="primary"
-              size="default"
-              className="text-base"
+              size="sm"
             >
               <Link to="/messages">
                 Start messaging

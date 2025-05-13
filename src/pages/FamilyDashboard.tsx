@@ -102,7 +102,7 @@ const FamilyDashboard = () => {
                 </p>
                 <Button 
                   asChild 
-                  variant="gallery" 
+                  variant="secondary" 
                   className="w-full text-base font-medium"
                 >
                   <Link to="/gallery">View Gallery</Link>
@@ -125,7 +125,7 @@ const FamilyDashboard = () => {
                 </p>
                 <Button 
                   asChild 
-                  variant="feed" 
+                  variant="accent" 
                   className="w-full text-base font-medium"
                 >
                   <Link to="/feed">Go to Feed</Link>
@@ -181,7 +181,7 @@ const FamilyDashboard = () => {
             asChild 
             size="xl" 
             variant="primary"
-            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-bold"
+            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-medium"
           >
             <Link to="/create-post" className="flex items-center gap-2">
               <Heart className="h-6 w-6" />

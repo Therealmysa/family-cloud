@@ -10,29 +10,27 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 font-semibold",
+        default: "bg-primary text-white shadow-sm hover:bg-primary/90",
         destructive:
-          "bg-destructive text-white shadow-md hover:bg-destructive/90 font-semibold",
+          "bg-destructive text-white shadow-sm hover:bg-destructive/90",
         outline:
-          "border-2 border-input bg-background shadow-md hover:bg-accent hover:text-accent-foreground font-medium",
+          "border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/80 font-semibold",
-        ghost: "hover:bg-accent hover:text-accent-foreground font-medium",
+          "bg-secondary text-white shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary font-semibold underline-offset-4 hover:underline",
-        // Enhanced variants with better contrast
-        primary: "bg-[#9555e0] text-white shadow-md hover:bg-[#8644d4] font-bold",
-        accent: "bg-[#ff6b35] text-white shadow-md hover:bg-[#f25e28] font-bold",
-        soft: "bg-muted text-foreground shadow-md hover:bg-muted/80 font-medium",
-        outlined: "border-2 border-[#9555e0] text-[#9555e0] bg-white dark:bg-black/20 shadow-md hover:bg-[#9555e0]/10 font-semibold",
-        gallery: "bg-[#34a0a4] text-white shadow-md hover:bg-[#2a8a8e] font-bold border-2 border-[#34a0a4]",
-        feed: "bg-[#ff9e00] text-white shadow-md hover:bg-[#f09600] font-bold border-2 border-[#ff9e00]",
+        // Add new variants with better contrast
+        primary: "bg-primary text-white shadow-sm hover:bg-primary/90 font-semibold",
+        accent: "bg-accent text-white shadow-sm hover:bg-accent/90 font-semibold",
+        soft: "bg-muted text-foreground shadow-sm hover:bg-muted/80 font-semibold",
+        outlined: "border-2 border-primary text-primary bg-white/90 dark:bg-black/20 shadow-sm hover:bg-primary/10",
       },
       size: {
-        default: "h-10 px-5 py-2 text-base",
-        sm: "h-9 rounded-md px-4 py-2 text-sm",
-        lg: "h-11 rounded-md px-8 text-base",
+        default: "h-10 px-4 py-2 text-base",
+        sm: "h-9 rounded-md px-3 text-sm",
+        lg: "h-11 rounded-md px-8 text-lg",
         icon: "h-10 w-10",
-        xl: "h-12 rounded-md px-10 text-lg font-bold",
+        xl: "h-12 rounded-md px-10 text-xl",
       },
     },
     defaultVariants: {
