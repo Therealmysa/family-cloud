@@ -20,10 +20,10 @@ const Legal = () => {
           <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-purple-700 dark:text-purple-400">Legal Information</h1>
 
           <Tabs defaultValue="legal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="legal" className="">Legal Notices</TabsTrigger>
-              <TabsTrigger value="privacy" className="">Privacy Policy</TabsTrigger>
-              <TabsTrigger value="terms" className="">Terms of Service</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 gap-2 mb-6">
+              <TabsTrigger value="legal" className="py-3 text-base">Legal Notices</TabsTrigger>
+              <TabsTrigger value="privacy" className="py-3 text-base">Privacy Policy</TabsTrigger>
+              <TabsTrigger value="terms" className="py-3 text-base">Terms of Service</TabsTrigger>
             </TabsList>
             <Separator className="mb-6" />
             <TabsContent value="legal" className="mt-4">
