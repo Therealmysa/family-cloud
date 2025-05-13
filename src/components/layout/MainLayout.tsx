@@ -40,7 +40,7 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
 
   // Apply specific styling for messages page to center content
   const containerClasses = isMessagesPage 
-    ? "flex-grow container max-w-4xl mx-auto px-2" 
+    ? "flex-grow w-full max-w-6xl mx-auto" 
     : "flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8";
 
   return (

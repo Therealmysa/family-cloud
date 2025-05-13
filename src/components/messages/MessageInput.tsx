@@ -1,56 +1,52 @@
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, SendHorizontal } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { SendHorizontal } from "lucide-react";
 
 type MessageInputProps = {
   onSendMessage: (content: string) => void;
-  placeholder?: string;
 };
 
-export const MessageInput = ({ onSendMessage, placeholder = "Type a message" }: MessageInputProps) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const isMobile = useIsMobile();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  
+  // Handle submit
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isSending) return;
     
-    setIsSending(true);
+    if (!message.trim()) return;
     
     try {
-      await onSendMessage(newMessage.trim());
-      setNewMessage("");
+      setSubmitting(true);
+      await onSendMessage(message.trim());
+      setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
     } finally {
-      setIsSending(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 border-t border-t-border/30">
-      <form className="flex gap-2" onSubmit={handleSubmit}>
+    <div className="p-4 sm:p-5 bg-white dark:bg-gray-800 border-t border-t-border/30">
+      <form className="flex gap-3" onSubmit={handleSubmit}>
         <Input
-          placeholder={placeholder}
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 border-border/40 focus-visible:ring-primary/30"
-          disabled={isSending}
+          placeholder="Type a message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="flex-1 border-border/40 focus-visible:ring-primary/30 text-base"
+          autoFocus
         />
-        <Button 
-          type="submit" 
-          size="icon" 
-          variant="primary"
-          disabled={!newMessage.trim() || isSending}
-          className={`${isSending ? "opacity-70" : ""} ${isMobile ? "h-9 w-9" : ""}`}
+        
+        <Button
+          type="submit"
+          disabled={!message.trim() || submitting}
+          className="bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02] font-semibold border-2 border-primary/30"
+          size="icon"
         >
-          {isSending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <SendHorizontal className="h-4 w-4" />
-          )}
+          <SendHorizontal className="h-4 w-4" />
         </Button>
       </form>
     </div>

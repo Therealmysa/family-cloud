@@ -23,7 +23,7 @@ export const ChatHeader = ({ chat, onBackClick }: ChatHeaderProps) => {
   };
 
   return (
-    <div className="sticky top-0 z-10 p-3 sm:p-4 border-b border-b-border/40 bg-white dark:bg-gray-800 flex items-center gap-2 sm:gap-3 shadow-sm">
+    <div className="sticky top-0 z-10 p-4 sm:p-5 border-b border-b-border/40 bg-white dark:bg-gray-800 flex items-center gap-3 shadow-sm">
       {onBackClick && (
         <Button 
           variant="ghost" 
@@ -36,19 +36,19 @@ export const ChatHeader = ({ chat, onBackClick }: ChatHeaderProps) => {
         </Button>
       )}
       
-      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border border-primary/20">
+      <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border border-primary/20">
         <AvatarImage src={getChatAvatar(chat)} />
         <AvatarFallback className="bg-purple-200 text-purple-700 text-xs sm:text-sm">
           {chat.type === "group" ? (
-            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
           ) : (
             chat.otherMember?.name.substring(0, 2).toUpperCase() || "?"
           )}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <h3 className="font-medium text-sm sm:text-base truncate">{getChatName(chat)}</h3>
-        <p className="text-xs text-gray-500 truncate">
+        <h3 className="font-medium text-base sm:text-lg truncate">{getChatName(chat)}</h3>
+        <p className="text-xs sm:text-sm text-gray-500 truncate">
           {chat.type === "group" 
             ? `${chat.members.length} members` 
             : "Private conversation"}

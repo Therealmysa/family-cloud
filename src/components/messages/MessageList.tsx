@@ -32,7 +32,7 @@ export const MessageList = ({ messages, profiles }: MessageListProps) => {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gray-50/60 dark:bg-gray-900/60">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gray-50/60 dark:bg-gray-900/60">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-gray-500">No messages yet. Start the conversation!</p>
@@ -63,7 +63,7 @@ export const MessageList = ({ messages, profiles }: MessageListProps) => {
               )}
 
               <div
-                className={`px-4 py-2 rounded-lg max-w-[80%] ${
+                className={`px-4 py-3 rounded-lg ${
                   isCurrentUser
                     ? "bg-primary text-white shadow-md"
                     : "bg-white dark:bg-gray-800 shadow-md border border-border/20"
