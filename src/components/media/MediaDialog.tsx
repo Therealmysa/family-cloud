@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Heart, MessageCircle, Pencil, Trash, Download, Maximize, Play } from 'lucide-react';
+import { Heart, MessageCircle, Pencil, Trash, FileDown, X, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CommentSection } from '../comments/CommentSection';
@@ -196,15 +196,29 @@ export function MediaDialog({
     });
   };
 
-  // Handle download
+  // Handle download - fixed to force download instead of opening in new tab
   const handleDownload = () => {
     if (!media) return;
     
+    // Create a temporary anchor element
     const link = document.createElement('a');
     link.href = media.url;
-    link.download = media.title || 'download';
+    
+    // Set the download attribute with a filename
+    // Extract the filename from the URL or use the title/default
+    const filename = media.title || 
+                     media.url.split('/').pop() || 
+                     'download' + (isVideo ? '.mp4' : '.jpg');
+    
+    link.setAttribute('download', filename);
+    
+    // Append to the document temporarily
     document.body.appendChild(link);
+    
+    // Trigger the download
     link.click();
+    
+    // Clean up
     document.body.removeChild(link);
     
     toast({
@@ -268,7 +282,7 @@ export function MediaDialog({
                     onClick={handleDownload}
                     className="flex items-center gap-1"
                   >
-                    <Download className="h-4 w-4" />
+                    <FileDown className="h-4 w-4" />
                     <span>Download</span>
                   </Button>
                 </div>
@@ -353,7 +367,7 @@ export function MediaDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Fullscreen view */}
+      {/* Fullscreen view with improved button visibility */}
       <Sheet open={fullscreenView} onOpenChange={setFullscreenView}>
         <SheetContent side="bottom" className="h-screen p-0 max-w-full flex items-center justify-center bg-black/95">
           <div className="relative w-full h-full flex items-center justify-center overflow-auto p-4">
@@ -362,23 +376,29 @@ export function MediaDialog({
               alt={media.title} 
               className="max-w-full max-h-full object-contain"
             />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-none"
-              onClick={() => setFullscreenView(false)}
-            >
-              Close
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white border-none"
-              onClick={handleDownload}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
+            
+            {/* Improved visibility for buttons - semi-transparent background and better positioning */}
+            <div className="absolute top-4 right-4 z-10 flex gap-2">
+              <Button 
+                variant="secondary" 
+                size="icon"
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white border-none rounded-full w-10 h-10 shadow-md"
+                onClick={() => setFullscreenView(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="absolute bottom-4 right-4 z-10">
+              <Button
+                variant="secondary"
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white border-none rounded-full shadow-md flex items-center gap-2 px-4"
+                onClick={handleDownload}
+              >
+                <FileDown className="h-5 w-5" />
+                Download
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
