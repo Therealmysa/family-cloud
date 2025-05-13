@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -26,8 +25,8 @@ const postSchema = z.object({
   media: z.any()
     .refine(files => files?.length === 1, "A file is required")
     .refine(
-      files => files?.[0]?.size <= 20000000, // 20MB
-      "Max file size is 20MB"
+      files => files?.[0]?.size <= 50000000, // 50MB (increased from 20MB)
+      "Max file size is 50MB"
     )
     .refine(
       files => ["image/jpeg", "image/jpg", "image/png", "image/webp", "video/mp4", "video/webm", "video/ogg"].includes(files?.[0]?.type),
@@ -372,18 +371,18 @@ const Gallery = () => {
                               />
                               
                               {previewUrl && (
-                                <div className="mt-4 max-h-[400px] overflow-hidden rounded-lg">
+                                <div className="mt-4 max-w-full overflow-hidden rounded-lg">
                                   {form.getValues("media")?.[0]?.type.startsWith('video/') ? (
                                     <video 
                                       src={previewUrl} 
                                       controls
-                                      className="w-full h-auto object-contain"
+                                      className="w-full h-auto max-h-[600px] object-contain"
                                     />
                                   ) : (
                                     <img 
                                       src={previewUrl} 
                                       alt="Preview" 
-                                      className="w-full h-auto object-contain"
+                                      className="w-full h-auto max-h-[600px] object-contain"
                                     />
                                   )}
                                 </div>
@@ -543,4 +542,3 @@ const Gallery = () => {
 };
 
 export default Gallery;
-
