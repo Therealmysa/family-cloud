@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   ChevronRight, Heart, Lock, Shield, Smile, Users, 
   Check, Camera, Award, Clock, FileText, ThumbsUp, 
-  Zap, Globe, Smartphone 
+  Zap, Globe, Smartphone, Laptop, Tablet 
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
