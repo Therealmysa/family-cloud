@@ -24,7 +24,7 @@ export function useFeed() {
         .from("media")
         .select(`
           *,
-          profile:profiles(name, avatar_url)
+          profile:profiles(id, name, avatar_url, family_id)
         `)
         .eq("family_id", profile.family_id)
         .order("date_uploaded", { ascending: false })
@@ -68,7 +68,8 @@ export function useFeed() {
         };
       });
 
-      return processedData as Media[];
+      // Type assertion to Media[] after ensuring structure matches
+      return processedData as unknown as Media[];
     },
     enabled: !!profile?.family_id && !!user?.id,
   });
