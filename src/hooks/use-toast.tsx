@@ -1,22 +1,16 @@
 
-import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast"
-import { useToast as useToastPrimitive } from "@radix-ui/react-toast"
-import { 
-  Dispatch, 
-  SetStateAction,
-  useCallback,
-  useEffect,
-} from "react"
-import { createContext, useContext, useState } from "react"
+import { Toast as ToastPrimitive, ToastActionElement, ToastProps } from "@/components/ui/toast"
+import { createContext, useContext, useState, useCallback, ReactNode } from "react"
 
 const TOAST_LIMIT = 5
 const TOAST_REMOVE_DELAY = 1000
 
-type ToasterToast = Toast & {
+type ToasterToast = {
   id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
+  title?: ReactNode
+  description?: ReactNode
   action?: ToastActionElement
+  variant?: "default" | "destructive" | "success" | "warning"
 }
 
 const actionTypes = {
@@ -33,31 +27,10 @@ function genId() {
   return count.toString()
 }
 
-type Action =
-  | {
-      type: typeof actionTypes.ADD_TOAST
-      toast: ToasterToast
-    }
-  | {
-      type: typeof actionTypes.UPDATE_TOAST
-      toast: Partial<ToasterToast>
-    }
-  | {
-      type: typeof actionTypes.DISMISS_TOAST
-      toastId?: string
-    }
-  | {
-      type: typeof actionTypes.REMOVE_TOAST
-      toastId?: string
-    }
-
 interface ToastContextType {
   toasts: ToasterToast[]
   addToast: (toast: Omit<ToasterToast, "id">) => void
-  updateToast: (
-    toastId: string,
-    data: Partial<ToasterToast>
-  ) => void
+  updateToast: (toastId: string, data: Partial<ToasterToast>) => void
   dismissToast: (toastId: string) => void
   removeToast: (toastId: string) => void
 }
@@ -91,7 +64,7 @@ function useToastProvider({
         ]
       })
     },
-    [toasts]
+    []
   )
 
   const updateToast = useCallback(
@@ -104,7 +77,7 @@ function useToastProvider({
         return [...state]
       })
     },
-    [toasts]
+    []
   )
 
   const dismissToast = useCallback(
@@ -117,7 +90,7 @@ function useToastProvider({
         return [...state]
       })
     },
-    [toasts]
+    []
   )
 
   const removeToast = useCallback(
@@ -126,7 +99,7 @@ function useToastProvider({
         return state.filter(({ id }) => id !== toastId)
       })
     },
-    [toasts]
+    []
   )
 
   return {
@@ -138,12 +111,15 @@ function useToastProvider({
   }
 }
 
+interface ToastProviderProps {
+  children: ReactNode;
+  initialData?: Partial<ToasterToast>[];
+}
+
 function ToastProvider({
   children,
   ...props
-}: {
-  children: React.ReactNode
-}) {
+}: ToastProviderProps) {
   const value = useToastProvider(props)
 
   return (
@@ -162,9 +138,10 @@ function useToastContext() {
 }
 
 function useToast() {
-  const { addToast, updateToast, dismissToast, removeToast } = useToastContext()
+  const { toasts, addToast, updateToast, dismissToast, removeToast } = useToastContext()
 
   return {
+    toasts,
     toast: (props: Omit<ToasterToast, "id">) => {
       addToast(props)
     },
@@ -180,8 +157,8 @@ function useToast() {
   }
 }
 
-// Simplified toast function for ease of use
-const toast = (props: Omit<ToasterToast, "id">) => {
+// Simplified toast function for direct use
+function toast(props: Omit<ToasterToast, "id">) {
   const context = useContext(ToastContext)
   if (context) {
     context.addToast(props)
@@ -191,5 +168,6 @@ const toast = (props: Omit<ToasterToast, "id">) => {
 export { 
   ToastProvider, 
   useToast, 
-  toast 
+  toast,
+  type ToasterToast
 }
