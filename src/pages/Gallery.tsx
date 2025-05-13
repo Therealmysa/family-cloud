@@ -8,27 +8,15 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, Calendar, User } from "lucide-react";
-
-type Media = {
-  id: string;
-  title: string;
-  description: string | null;
-  url: string;
-  user_id: string;
-  created_at: string;
-  date_uploaded: string;
-  profile: {
-    name: string;
-    avatar_url: string | null;
-  } | null;
-};
+import { MediaDialog } from "@/components/media/MediaDialog";
+import { Media } from "@/types/media";
 
 const Gallery = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedImage, setSelectedImage] = useState<Media | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">("all");
 
   // Group images by date
@@ -62,32 +50,57 @@ const Gallery = () => {
     return Object.values(grouped);
   };
 
-  const { data: mediaItems, isLoading } = useQuery({
+  const { data: mediaItems, isLoading, refetch } = useQuery({
     queryKey: ["gallery", profile?.family_id],
     queryFn: async () => {
-      if (!profile?.family_id) return [];
+      if (!profile?.family_id || !user?.id) return [];
 
+      // Query media items for the family, including likes information
       const { data, error } = await supabase
         .from("media")
         .select(`
           *,
-          profile:profiles(name, avatar_url)
+          profile:profiles(id, name, avatar_url, family_id)
         `)
         .eq("family_id", profile.family_id)
-        .order("date_uploaded", { ascending: false });
+        .order("date_uploaded", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load gallery. Please try again later.",
-          variant: "destructive",
-        });
-        return [];
+        throw error;
       }
 
-      return data as Media[];
+      // Check if user has posted today
+      if (data.length === 0) return [];
+
+      // Get likes for all media items using our RPC function
+      const mediaIds = data.map(item => item.id);
+      const { data: likesData, error: likesError } = await supabase
+        .rpc('get_likes_for_media', { 
+          media_ids: mediaIds,
+          current_user_id: user.id
+        });
+
+      if (likesError) {
+        console.error("Error fetching likes:", likesError);
+      }
+
+      // Process media items to add like information
+      const processedData = data.map(item => {
+        const likeInfo = likesData && Array.isArray(likesData) 
+          ? likesData.find(like => like.media_id === item.id) 
+          : undefined;
+          
+        return {
+          ...item,
+          likes_count: likeInfo?.likes_count || 0,
+          is_liked: likeInfo?.is_liked || false
+        };
+      });
+
+      return processedData as unknown as Media[];
     },
-    enabled: !!profile?.family_id,
+    enabled: !!profile?.family_id && !!user?.id,
   });
 
   // Filter media items based on search term
@@ -98,6 +111,21 @@ const Gallery = () => {
 
   const groupedByDate = groupByDate(filteredMedia);
   const groupedByMember = groupByMember(filteredMedia);
+
+  // Handle opening the media dialog
+  const handleOpenMedia = (media: Media) => {
+    setSelectedImage(media);
+    setDialogOpen(true);
+  };
+
+  // Handle dialog close and refresh data if needed
+  const handleDialogClose = (needsRefresh: boolean) => {
+    setDialogOpen(false);
+    setSelectedImage(null);
+    if (needsRefresh) {
+      refetch();
+    }
+  };
 
   return (
     <MainLayout title="Gallery" requireAuth={true}>
@@ -138,7 +166,7 @@ const Gallery = () => {
                       <div 
                         key={item.id} 
                         className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => setSelectedImage(item)}
+                        onClick={() => handleOpenMedia(item)}
                       >
                         <img 
                           src={item.url} 
@@ -175,7 +203,7 @@ const Gallery = () => {
                           <div 
                             key={item.id} 
                             className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => setSelectedImage(item)}
+                            onClick={() => handleOpenMedia(item)}
                           >
                             <img 
                               src={item.url} 
@@ -208,7 +236,7 @@ const Gallery = () => {
                           <div 
                             key={item.id} 
                             className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => setSelectedImage(item)}
+                            onClick={() => handleOpenMedia(item)}
                           >
                             <img 
                               src={item.url} 
@@ -231,33 +259,20 @@ const Gallery = () => {
           )}
         </Tabs>
 
-        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-          <DialogContent className="sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>{selectedImage?.title}</DialogTitle>
-              {selectedImage?.description && (
-                <DialogDescription>
-                  {selectedImage.description}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-            <div className="mt-2">
-              <img 
-                src={selectedImage?.url} 
-                alt={selectedImage?.title} 
-                className="w-full h-auto max-h-[70vh] object-contain rounded-md"
-              />
-            </div>
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-500">
-                  Shared by {selectedImage?.profile?.name} on {' '}
-                  {selectedImage && new Date(selectedImage.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {selectedImage && (
+          <MediaDialog 
+            media={selectedImage} 
+            open={dialogOpen} 
+            onOpenChange={(open) => {
+              if (!open) handleDialogClose(false);
+            }}
+            onMediaUpdated={() => refetch()}
+            onMediaDeleted={() => {
+              handleDialogClose(true);
+            }}
+            familyId={profile?.family_id} 
+          />
+        )}
       </div>
     </MainLayout>
   );
