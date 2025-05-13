@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { toast as sonnerToast } from "sonner";
 
@@ -75,7 +76,7 @@ export function toast({
 }: Partial<ToasterToast> & { id?: string }) {
   const id = props?.id || String(Date.now());
 
-  // Always use Sonner toast for notifications with improved close button styling
+  // Always use Sonner toast for notifications with properly styled close button
   if (variant === "success") {
     sonnerToast.success(title as string, { 
       description,
