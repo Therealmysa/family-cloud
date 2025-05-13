@@ -1,7 +1,7 @@
 
 import * as React from "react";
-import { Dispatch, SetStateAction } from "react";
 import { toast as sonnerToast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -77,7 +77,8 @@ export function toast({
 }: Partial<ToasterToast> & { id?: string }) {
   const id = props?.id || String(Date.now());
 
-  // Also send to sonner toast if it exists
+  // Always use sonner toast regardless of device
+  // This ensures a single notification system
   if (variant === "success") {
     sonnerToast.success(title as string, { description });
   } else if (variant === "warning") {
@@ -88,6 +89,8 @@ export function toast({
     sonnerToast(title as string, { description });
   }
 
+  // We're only going to add toasts to the shadcn system on desktop
+  // This prevents duplication on mobile
   dispatch({
     type: "ADD_TOAST",
     toast: {

@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import CreatePost from "./pages/CreatePost";
 import FamilyAdmin from "./pages/FamilyAdmin";
 import FamilyDashboard from "./pages/FamilyDashboard";
+import { useIsMobile } from "./hooks/use-mobile";
 
 // Set up QueryClient with better defaults for real-time apps
 const queryClient = new QueryClient({
@@ -27,12 +28,14 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const AppContent = () => {
+  const isMobile = useIsMobile();
+
+  return (
     <ThemeProvider>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner position={isMobile ? "top-center" : "bottom-right"} />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -51,6 +54,12 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AppContent />
   </QueryClientProvider>
 );
 

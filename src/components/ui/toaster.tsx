@@ -8,9 +8,17 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function Toaster() {
   const { toasts } = useToast()
+  const isMobile = useIsMobile()
+
+  // Don't render the shadcn toaster on mobile devices
+  // We'll use Sonner exclusively on mobile to avoid duplicates
+  if (isMobile) {
+    return null
+  }
 
   return (
     <ToastProvider>
