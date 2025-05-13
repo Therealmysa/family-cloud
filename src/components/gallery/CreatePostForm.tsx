@@ -85,15 +85,24 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `media/${fileName}`;
       
-      // Upload media to storage
-      const { error: uploadError } = await supabase
+      console.log("Starting upload of file:", fileName, "size:", file.size, "type:", file.type);
+      
+      // Upload media to storage with content type specified
+      const { data, error: uploadError } = await supabase
         .storage
         .from('family-media')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type, // Explicitly set content type
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) {
+        console.error("Upload error:", uploadError);
         throw uploadError;
       }
+      
+      console.log("Upload successful:", data);
       
       // Get public URL for the uploaded media
       const { data: { publicUrl } } = supabase
@@ -110,8 +119,10 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         thumbnailUrl = `${publicUrl}#t=0.1`;
       }
       
+      const now = new Date().toISOString();
+      
       // Create media record
-      const { error: mediaError } = await supabase
+      const { data: mediaData, error: mediaError } = await supabase
         .from('media')
         .insert({
           title: values.title,
@@ -120,11 +131,16 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
           user_id: userId,
           family_id: familyId,
           thumbnail_url: thumbnailUrl,
-        });
+          date_uploaded: now
+        })
+        .select();
       
       if (mediaError) {
+        console.error("Media record error:", mediaError);
         throw mediaError;
       }
+      
+      console.log("Media record created:", mediaData);
       
       toast({
         title: "Success!",
@@ -135,6 +151,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       resetForm();
       onSuccess();
     } catch (error: any) {
+      console.error("Error in form submission:", error);
       toast({
         title: "Error sharing moment",
         description: error.message,
