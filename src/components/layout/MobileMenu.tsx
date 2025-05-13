@@ -2,7 +2,15 @@
 import { useAuth } from "@/hooks/useAuth";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
-import { Cloud } from "lucide-react";
+import { Cloud, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -12,36 +20,46 @@ interface MobileMenuProps {
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user } = useAuth();
 
-  if (!isOpen) return null;
-
-  const navigationItems = user ? [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Feed", path: "/feed" },
-    { name: "Gallery", path: "/gallery" },
-    { name: "Messages", path: "/messages" },
-    { name: "Family Admin", path: "/family-admin" },
-  ] : [];
+  const navigationItems = user
+    ? [
+        { name: "Dashboard", path: "/dashboard" },
+        { name: "Feed", path: "/feed" },
+        { name: "Gallery", path: "/gallery" },
+        { name: "Messages", path: "/messages" },
+        { name: "Family Admin", path: "/family-admin" },
+      ]
+    : [];
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md">
-      <div className="flex flex-col px-6 py-8 space-y-6 overflow-y-auto max-h-screen">
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center">
-            <div className="bg-primary/10 rounded-full p-2 mr-2">
-              <Cloud className="h-6 w-6 text-primary" />
+    <Drawer open={isOpen} onOpenChange={onClose}>
+      <DrawerContent className="h-[85vh] max-h-[85vh]">
+        <DrawerHeader className="border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center">
+              <div className="bg-primary/10 rounded-full p-2 mr-2">
+                <Cloud className="h-6 w-6 text-primary" />
+              </div>
+              <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                FamilyCloud
+              </DrawerTitle>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              FamilyCloud
-            </h1>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <X className="h-6 w-6" />
+                <span className="sr-only">Fermer</span>
+              </Button>
+            </DrawerClose>
+          </div>
+        </DrawerHeader>
+        <div className="flex flex-col p-6 space-y-6 overflow-y-auto">
+          <div className="space-y-1">
+            <NavigationItems items={navigationItems} isMobile onClick={onClose} />
+          </div>
+          <div className="pt-4 border-t border-border">
+            <UserMenu isMobile onItemClick={onClose} />
           </div>
         </div>
-        <div className="space-y-1">
-          <NavigationItems items={navigationItems} isMobile onClick={onClose} />
-        </div>
-        <div className="pt-4 border-t border-border">
-          <UserMenu isMobile onItemClick={onClose} />
-        </div>
-      </div>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

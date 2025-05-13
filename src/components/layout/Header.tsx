@@ -44,18 +44,17 @@ export default function Header() {
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button
+            <Button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={toggleMobileMenu}
+              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
-              <span className="sr-only">Open main menu</span>
-              {mobileMenuOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
+              <span className="sr-only">{mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}</span>
+              <Menu className="block h-6 w-6" aria-hidden="true" />
+            </Button>
           </div>
         </div>
       </div>
