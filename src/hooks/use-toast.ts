@@ -1,6 +1,9 @@
 
-// Re-export from sonner instead of @radix-ui/react-toast
+// Import from sonner directly
 import { toast } from "sonner";
-import { useToast } from "@/components/ui/toast";
 
-export { toast, useToast };
+// Export the toast function directly
+export { toast };
+
+// Re-export useToast from our toast component
+export { useToast } from "@/components/ui/toast";

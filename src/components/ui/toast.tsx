@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -30,6 +31,8 @@ const toastVariants = cva(
         default: "border bg-background text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
+        success: "border border-green-500 bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300",
+        warning: "border border-yellow-500 bg-yellow-50 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-300",
       },
     },
     defaultVariants: {
@@ -125,3 +128,30 @@ export {
   ToastClose,
   ToastAction,
 }
+
+// Add useToast hook directly in this file
+// This is what's missing from the current implementation
+import { createContext, useContext } from "react";
+
+type ToastContextType = {
+  toasts: Array<{
+    id: string;
+    title?: React.ReactNode;
+    description?: React.ReactNode;
+    action?: ToastActionElement;
+    variant?: "default" | "destructive" | "success" | "warning";
+  }>;
+};
+
+const ToastContext = createContext<ToastContextType>({ toasts: [] });
+
+function useToast() {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  return context;
+}
+
+// Export the hook
+export { useToast };
