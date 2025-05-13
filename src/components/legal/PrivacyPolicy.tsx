@@ -5,20 +5,20 @@ export function PrivacyPolicy() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+        <CardTitle className="flex items-center gap-2">
           <span className="text-primary">🔒</span> Privacy Policy (GDPR)
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6 text-sm sm:text-base">
+      <CardContent className="space-y-6">
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">1. Data Controller</h3>
+          <h3 className="text-lg font-semibold mb-2">1. Data Controller</h3>
           <p>The data controller is:</p>
           <p><strong>AIT TAYEB Samy</strong><br />
           Contact email: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a></p>
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">2. Data Collected</h3>
+          <h3 className="text-lg font-semibold mb-2">2. Data Collected</h3>
           <p>When you use this website, we only collect data strictly necessary for the proper functioning of the service, including:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Login credentials (email, username)</li>
@@ -29,7 +29,7 @@ export function PrivacyPolicy() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">3. Purpose of Processing</h3>
+          <h3 className="text-lg font-semibold mb-2">3. Purpose of Processing</h3>
           <p>This data is used to:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Enable access to and functioning of the platform</li>
@@ -40,7 +40,7 @@ export function PrivacyPolicy() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">4. Storage and Security</h3>
+          <h3 className="text-lg font-semibold mb-2">4. Storage and Security</h3>
           <p>
             Data is hosted on <strong>Lovable.dev</strong> servers, in compliance with European standards.
             Technical measures are in place to ensure their confidentiality, integrity, and availability.
@@ -48,7 +48,7 @@ export function PrivacyPolicy() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">5. Retention Period</h3>
+          <h3 className="text-lg font-semibold mb-2">5. Retention Period</h3>
           <ul className="list-disc pl-6 mt-2">
             <li>Account data: as long as the user has not deleted their account</li>
             <li>Messages and files: according to service usage (deletable by the user)</li>
@@ -57,7 +57,7 @@ export function PrivacyPolicy() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">6. Your Rights</h3>
+          <h3 className="text-lg font-semibold mb-2">6. Your Rights</h3>
           <p>In accordance with GDPR, you have the right to:</p>
           <ul className="list-disc pl-6 mt-2">
             <li>Access your data</li>

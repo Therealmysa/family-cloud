@@ -5,11 +5,11 @@ export function LegalMentions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base sm:text-lg">Legal Notices</CardTitle>
+        <CardTitle>Legal Notices</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6 text-sm sm:text-base">
+      <CardContent className="space-y-6">
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">Website Publisher</h3>
+          <h3 className="text-lg font-semibold mb-2">Website Publisher</h3>
           <p>This website is published by:</p>
           <ul className="list-disc pl-6 mt-2">
             <li><strong>Name</strong>: AIT TAYEB Samy</li>
@@ -20,7 +20,7 @@ export function LegalMentions() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">Website Host</h3>
+          <h3 className="text-lg font-semibold mb-2">Website Host</h3>
           <p>The website is hosted by:</p>
           <ul className="list-disc pl-6 mt-2">
             <li><strong>Lovable.dev</strong></li>
@@ -29,7 +29,7 @@ export function LegalMentions() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">Intellectual Property</h3>
+          <h3 className="text-lg font-semibold mb-2">Intellectual Property</h3>
           <p>
             All content (texts, images, graphics, logos, icons, etc.) of the website is protected by current laws on intellectual property. 
             Any reproduction, representation, modification, or adaptation, in whole or in part, without the express authorization of the publisher is prohibited.
@@ -37,7 +37,7 @@ export function LegalMentions() {
         </section>
 
         <section>
-          <h3 className="font-semibold text-base sm:text-lg mb-2">Personal Data</h3>
+          <h3 className="text-lg font-semibold mb-2">Personal Data</h3>
           <p>
             Personal data collected via this website (email address, account information, exchanged messages, etc.) 
             is used solely for the proper functioning of the service.
