@@ -39,3 +39,11 @@ export type Comment = {
     family_id?: string | null;
   };
 };
+
+export const isVideoFile = (file: File): boolean => {
+  return file.type.startsWith('video/');
+};
+
+export const isVideoUrl = (url: string): boolean => {
+  return url.match(/\.(mp4|webm|ogg)$/i) !== null;
+};
