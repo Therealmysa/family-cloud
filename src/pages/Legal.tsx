@@ -1,4 +1,3 @@
-
 import MainLayout from "@/components/layout/MainLayout";
 import { Helmet } from "react-helmet-async";
 import { LegalMentions } from "@/components/legal/LegalMentions";
@@ -7,18 +6,12 @@ import { TermsOfService } from "@/components/legal/TermsOfService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
-
 const Legal = () => {
   const isMobile = useIsMobile();
-  
-  return (
-    <MainLayout title="Legal Information">
+  return <MainLayout title="Legal Information">
       <Helmet>
         <title>Legal Information | FamilyCloud</title>
-        <meta
-          name="description"
-          content="Legal information, privacy policy, and terms of service for FamilyCloud."
-        />
+        <meta name="description" content="Legal information, privacy policy, and terms of service for FamilyCloud." />
       </Helmet>
 
       <div className="container mx-auto py-8 px-4 sm:px-6 md:max-w-4xl">
@@ -48,8 +41,6 @@ const Legal = () => {
           </Tabs>
         </div>
       </div>
-    </MainLayout>
-  );
+    </MainLayout>;
 };
-
 export default Legal;
