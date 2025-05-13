@@ -15,17 +15,21 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storage: typeof window !== 'undefined' ? localStorage : undefined,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce' // More secure authentication flow
   },
   global: {
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Client-Info': 'family-app'
     }
   },
   realtime: {
     params: {
       eventsPerSecond: 10
     }
+  },
+  db: {
+    schema: 'public'
   }
 });
 

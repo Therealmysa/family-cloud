@@ -27,17 +27,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST (to prevent deadlocks)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        console.log("Auth state changed:", event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
         // Fetch profile with setTimeout to prevent deadlock
         if (newSession?.user) {
           setTimeout(async () => {
-            const profileData = await fetchUserProfile(newSession.user.id);
-            setProfile(profileData);
+            try {
+              const profileData = await fetchUserProfile(newSession.user.id);
+              setProfile(profileData);
+            } catch (err) {
+              console.error("Error fetching profile after auth state change:", err);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -53,13 +58,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (currentSession?.user) {
         fetchUserProfile(currentSession.user.id).then(profileData => {
           setProfile(profileData);
+        }).catch(err => {
+          console.error("Error fetching profile on init:", err);
         });
       }
       
       setLoading(false);
+    }).catch(err => {
+      console.error("Error getting session:", err);
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      // Properly clean up subscription
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Import auth methods
