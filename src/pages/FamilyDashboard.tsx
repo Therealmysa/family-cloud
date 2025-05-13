@@ -9,10 +9,12 @@ import { Link } from "react-router-dom";
 import { MessageSquare, Image, Calendar, Users, Cloud, Heart, Share } from "lucide-react";
 import { LastMessageWidget } from "@/components/dashboard/LastMessageWidget";
 import { LastPictureWidget } from "@/components/dashboard/LastPictureWidget";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const FamilyDashboard = () => {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   // Redirect to setup family if user doesn't have a family yet
   useEffect(() => {
@@ -33,7 +35,7 @@ const FamilyDashboard = () => {
   return (
     <MainLayout title="Family Dashboard" requireAuth={true}>
       <div className="w-full">
-        <div className="mb-10 text-center">
+        <div className="mb-8 md:mb-10 text-center">
           <div className="inline-flex items-center justify-center p-3 rounded-full bg-secondary/20 mb-5">
             <Heart className="h-9 w-9 text-primary animate-float" />
           </div>
@@ -46,24 +48,24 @@ const FamilyDashboard = () => {
         </div>
         
         {/* Activity Highlights Section */}
-        <div className="mb-14 bg-gradient-to-br from-background to-muted p-6 rounded-2xl shadow-sm">
+        <div className="mb-8 md:mb-14 bg-gradient-to-br from-background to-muted p-4 md:p-6 rounded-2xl shadow-sm">
           <h2 className="text-xl md:text-2xl font-semibold mb-5 flex items-center gap-2">
             <Cloud className="h-6 w-6 text-secondary" />
             <span>Recent Family Activity</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <LastMessageWidget />
             <LastPictureWidget />
           </div>
         </div>
         
         {/* Quick Access Section */}
-        <div className="mb-14">
-          <h2 className="text-xl md:text-2xl font-semibold mb-6 flex items-center gap-2">
+        <div className="mb-8 md:mb-14">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 flex items-center gap-2">
             <Share className="h-6 w-6 text-secondary" />
             <span>Quick Access</span>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 overflow-hidden group">
               <CardHeader className="pb-2 relative">
                 <CardTitle className="text-lg md:text-xl flex items-center gap-2">
@@ -80,7 +82,7 @@ const FamilyDashboard = () => {
                 <Button 
                   asChild 
                   variant="primary" 
-                  className="w-full text-base font-medium"
+                  className={`w-full text-base font-medium ${isMobile ? 'py-5' : ''}`}
                 >
                   <Link to="/messages">Open Messages</Link>
                 </Button>
@@ -103,7 +105,7 @@ const FamilyDashboard = () => {
                 <Button 
                   asChild 
                   variant="secondary" 
-                  className="w-full text-base font-medium"
+                  className={`w-full text-base font-medium ${isMobile ? 'py-5' : ''}`}
                 >
                   <Link to="/gallery">View Gallery</Link>
                 </Button>
@@ -126,7 +128,7 @@ const FamilyDashboard = () => {
                 <Button 
                   asChild 
                   variant="accent" 
-                  className="w-full text-base font-medium"
+                  className={`w-full text-base font-medium ${isMobile ? 'py-5' : ''}`}
                 >
                   <Link to="/feed">Go to Feed</Link>
                 </Button>
@@ -151,7 +153,7 @@ const FamilyDashboard = () => {
                     <Button 
                       asChild 
                       variant="outlined" 
-                      className="w-full text-base font-medium"
+                      className={`w-full text-base font-medium ${isMobile ? 'py-5' : ''}`}
                     >
                       <Link to="/family-admin">Family Admin</Link>
                     </Button>
@@ -164,7 +166,7 @@ const FamilyDashboard = () => {
                     <Button 
                       asChild 
                       variant="outlined" 
-                      className="w-full text-base font-medium"
+                      className={`w-full text-base font-medium ${isMobile ? 'py-5' : ''}`}
                     >
                       <Link to="/profile">My Profile</Link>
                     </Button>
@@ -179,9 +181,9 @@ const FamilyDashboard = () => {
         <div className="mb-8 text-center">
           <Button 
             asChild 
-            size="xl" 
+            size={isMobile ? "xl" : "xl"} 
             variant="primary"
-            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-medium"
+            className="rounded-full px-6 md:px-8 py-6 md:py-7 shadow-md hover:shadow-lg text-lg font-medium"
           >
             <Link to="/create-post" className="flex items-center gap-2">
               <Heart className="h-6 w-6" />

@@ -7,6 +7,7 @@ import { FeedItem } from "@/components/feed/FeedItem";
 import { EmptyFeed } from "@/components/feed/EmptyFeed";
 import { FeedSkeleton } from "@/components/feed/FeedSkeleton";
 import { useFeed } from "@/hooks/useFeed";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Feed = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Feed = () => {
     handleLikeToggle,
     likeMutation
   } = useFeed();
+  const isMobile = useIsMobile();
 
   // Handle navigation to post creation
   const handleCreatePost = () => {
@@ -31,7 +33,9 @@ const Feed = () => {
           <Button 
             onClick={handleCreatePost} 
             disabled={hasPostedToday}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${isMobile ? 'py-5' : ''}`}
+            variant={hasPostedToday ? "soft" : "primary"}
+            size={isMobile ? "default" : "default"}
           >
             <PlusCircle className="h-4 w-4" />
             {hasPostedToday ? "Posted Today" : "Share Moment"}

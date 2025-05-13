@@ -10,20 +10,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-white shadow-sm hover:bg-primary/90",
+        default: "bg-primary text-white shadow-md hover:bg-primary/90 font-semibold border-2 border-primary/30",
         destructive:
-          "bg-destructive text-white shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-white shadow-md hover:bg-destructive/90 font-semibold border-2 border-destructive/30",
         outline:
-          "border-2 border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border-2 border-input bg-background shadow-md hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary text-white shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-foreground shadow-md hover:bg-secondary/80 font-semibold border-2 border-secondary/30",
+        ghost: "hover:bg-accent hover:text-accent-foreground font-semibold",
         link: "text-primary font-semibold underline-offset-4 hover:underline",
-        // Add new variants with better contrast
-        primary: "bg-primary text-white shadow-sm hover:bg-primary/90 font-semibold",
-        accent: "bg-accent text-white shadow-sm hover:bg-accent/90 font-semibold",
-        soft: "bg-muted text-foreground shadow-sm hover:bg-muted/80 font-semibold",
-        outlined: "border-2 border-primary text-primary bg-white/90 dark:bg-black/20 shadow-sm hover:bg-primary/10",
+        // Variants with better contrast
+        primary: "bg-primary text-white shadow-md hover:bg-primary/90 font-semibold border-2 border-primary/30",
+        accent: "bg-accent text-white shadow-md hover:bg-accent/90 font-semibold border-2 border-accent/30",
+        soft: "bg-muted text-foreground shadow-md hover:bg-muted/80 font-semibold border-2 border-muted/30",
+        outlined: "border-2 border-primary text-primary bg-white/90 dark:bg-black/20 shadow-md hover:bg-primary/10 font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2 text-base",

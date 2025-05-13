@@ -9,11 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Media } from "@/types/media";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const LastPictureWidget = () => {
   const { profile } = useAuth();
   const [lastPicture, setLastPicture] = useState<Media | null>(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchLastPicture = async () => {
@@ -71,7 +73,7 @@ export const LastPictureWidget = () => {
   };
 
   return (
-    <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
+    <Card className={`border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden ${isMobile ? 'min-h-[280px]' : ''}`}>
       <CardHeader className="pb-2 border-b border-border">
         <CardTitle className="text-lg flex items-center gap-2">
           <div className="p-2 rounded-full bg-secondary/10">
@@ -80,7 +82,7 @@ export const LastPictureWidget = () => {
           <span>Last Picture</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className={`pt-4 ${isMobile ? 'px-3' : ''}`}>
         {loading ? (
           <div className="space-y-4">
             <Skeleton className="h-40 w-full rounded-xl" />
@@ -95,7 +97,7 @@ export const LastPictureWidget = () => {
                 className="object-cover w-full h-full transition-transform hover:scale-105 duration-500"
               />
             </AspectRatio>
-            <div className="mt-3 bg-muted/70 p-3 rounded-lg">
+            <div className="mt-3 bg-muted dark:bg-gray-700/70 p-3 rounded-lg">
               <p className="text-base font-medium line-clamp-1">{lastPicture.title}</p>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-sm font-medium text-foreground">
@@ -108,8 +110,8 @@ export const LastPictureWidget = () => {
               <Button 
                 asChild 
                 variant="secondary" 
-                size="sm" 
-                className="mt-3 w-full md:w-auto"
+                size={isMobile ? "default" : "sm"} 
+                className={`mt-3 ${isMobile ? 'w-full text-base py-5' : 'w-full md:w-auto'}`}
               >
                 <Link to="/gallery">
                   View gallery
@@ -121,7 +123,7 @@ export const LastPictureWidget = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+          <div className={`flex flex-col items-center justify-center ${isMobile ? 'py-10' : 'py-8'} text-center space-y-4`}>
             <div className="p-4 rounded-full bg-muted">
               <Image className="h-7 w-7 text-muted-foreground" />
             </div>
@@ -131,7 +133,8 @@ export const LastPictureWidget = () => {
             <Button 
               asChild 
               variant="secondary"
-              size="sm"
+              size={isMobile ? "default" : "sm"}
+              className={isMobile ? "text-base py-5" : ""}
             >
               <Link to="/create-post">
                 Share a moment
