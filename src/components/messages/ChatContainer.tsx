@@ -41,7 +41,7 @@ export const ChatContainer = ({
       
       {isLoadingMessages ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
+          <div className="w-6 h-6 border-3 border-t-transparent border-primary rounded-full animate-spin"></div>
         </div>
       ) : (
         <MessageList messages={messages} profiles={profiles} />
