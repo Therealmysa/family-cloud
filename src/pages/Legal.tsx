@@ -1,4 +1,3 @@
-
 import MainLayout from "@/components/layout/MainLayout";
 import { Helmet } from "react-helmet-async";
 import { LegalMentions } from "@/components/legal/LegalMentions";
@@ -6,7 +5,6 @@ import { PrivacyPolicy } from "@/components/legal/PrivacyPolicy";
 import { TermsOfService } from "@/components/legal/TermsOfService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-
 const Legal = () => {
   return <MainLayout title="Legal Information">
       <Helmet>
