@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 export const LastMessageWidget = () => {
   const { profile } = useAuth();
@@ -115,7 +116,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-lg">
+            <div className="flex items-center gap-2 bg-muted/70 p-2 rounded-lg">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -123,22 +124,26 @@ export const LastMessageWidget = () => {
                 </AvatarFallback>
               </Avatar>
               <span className="text-base font-medium">{lastMessage.sender_name}</span>
-              <span className="text-sm text-muted-foreground ml-auto">
+              <span className="text-sm font-semibold text-foreground ml-auto">
                 {formatTime(lastMessage.timestamp)}
               </span>
             </div>
-            <p className="text-base text-muted-foreground bg-muted/40 p-3 rounded-lg rounded-tl-none">
+            <p className="text-base text-foreground bg-muted/70 p-3 rounded-lg rounded-tl-none">
               {lastMessage.content}
             </p>
-            <Link 
-              to="/messages" 
-              className="text-sm font-medium text-primary hover:underline mt-2 inline-flex items-center gap-1 group bg-primary/10 px-3 py-1 rounded-full"
+            <Button 
+              asChild 
+              variant="primary" 
+              size="sm" 
+              className="w-full md:w-auto"
             >
-              <span>View all messages</span>
-              <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+              <Link to="/messages">
+                View all messages
+                <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
@@ -148,12 +153,15 @@ export const LastMessageWidget = () => {
             <p className="text-base text-muted-foreground">
               No messages yet. Start a conversation with your family!
             </p>
-            <Link 
-              to="/messages" 
-              className="text-sm font-medium text-primary hover:underline mt-2 inline-block bg-primary/10 px-4 py-2 rounded-full"
+            <Button 
+              asChild 
+              variant="primary"
+              size="sm"
             >
-              Start messaging
-            </Link>
+              <Link to="/messages">
+                Start messaging
+              </Link>
+            </Button>
           </div>
         )}
       </CardContent>

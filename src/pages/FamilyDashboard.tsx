@@ -77,7 +77,11 @@ const FamilyDashboard = () => {
                 <p className="text-base text-muted-foreground mb-5 line-clamp-2">
                   Chat with family members in private conversations
                 </p>
-                <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20 text-base font-medium">
+                <Button 
+                  asChild 
+                  variant="primary" 
+                  className="w-full text-base font-medium"
+                >
                   <Link to="/messages">Open Messages</Link>
                 </Button>
               </CardContent>
@@ -96,7 +100,11 @@ const FamilyDashboard = () => {
                 <p className="text-base text-muted-foreground mb-5 line-clamp-2">
                   Browse all family photos and videos in one place
                 </p>
-                <Button asChild variant="outline" className="w-full bubble-button bg-secondary/20 border-0 text-secondary hover:bg-secondary/30 dark:bg-secondary/30 dark:hover:bg-secondary/40 text-base font-medium">
+                <Button 
+                  asChild 
+                  variant="secondary" 
+                  className="w-full text-base font-medium"
+                >
                   <Link to="/gallery">View Gallery</Link>
                 </Button>
               </CardContent>
@@ -115,7 +123,11 @@ const FamilyDashboard = () => {
                 <p className="text-base text-muted-foreground mb-5 line-clamp-2">
                   See today's moments shared by family members
                 </p>
-                <Button asChild variant="outline" className="w-full bubble-button bg-accent/20 border-0 text-accent hover:bg-accent/30 dark:bg-accent/30 dark:hover:bg-accent/40 text-base font-medium">
+                <Button 
+                  asChild 
+                  variant="accent" 
+                  className="w-full text-base font-medium"
+                >
                   <Link to="/feed">Go to Feed</Link>
                 </Button>
               </CardContent>
@@ -136,7 +148,11 @@ const FamilyDashboard = () => {
                     <p className="text-base text-muted-foreground mb-5 line-clamp-2">
                       Manage family members and settings
                     </p>
-                    <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20 text-base font-medium">
+                    <Button 
+                      asChild 
+                      variant="outlined" 
+                      className="w-full text-base font-medium"
+                    >
                       <Link to="/family-admin">Family Admin</Link>
                     </Button>
                   </>
@@ -145,7 +161,11 @@ const FamilyDashboard = () => {
                     <p className="text-base text-muted-foreground mb-5 line-clamp-2">
                       View your profile and settings
                     </p>
-                    <Button asChild variant="outline" className="w-full bubble-button bg-primary/10 border-0 text-primary hover:bg-primary/20 text-base font-medium">
+                    <Button 
+                      asChild 
+                      variant="outlined" 
+                      className="w-full text-base font-medium"
+                    >
                       <Link to="/profile">My Profile</Link>
                     </Button>
                   </>
@@ -159,8 +179,9 @@ const FamilyDashboard = () => {
         <div className="mb-8 text-center">
           <Button 
             asChild 
-            size="lg" 
-            className="rounded-full px-8 py-7 bg-gradient-to-r from-secondary to-accent hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg text-lg font-medium"
+            size="xl" 
+            variant="primary"
+            className="rounded-full px-8 py-7 shadow-md hover:shadow-lg text-lg font-medium"
           >
             <Link to="/create-post" className="flex items-center gap-2">
               <Heart className="h-6 w-6" />
