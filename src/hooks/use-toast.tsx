@@ -11,6 +11,7 @@ type ToasterToast = {
   description?: ReactNode
   action?: ToastActionElement
   variant?: "default" | "destructive" | "success" | "warning"
+  dismissed?: boolean
 }
 
 const actionTypes = {
