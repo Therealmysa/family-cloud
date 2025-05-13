@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 40 30% 98%;
+    --background: 210 40% 98%;
     --foreground: 222 20% 18%;
 
     --card: 0 0% 100%;
@@ -16,35 +16,37 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 20% 18%;
 
-    --primary: 340 80% 80%;
+    /* Réduire l'intensité du rose en faveur d'une teinte plus douce */
+    --primary: 340 60% 70%;
     --primary-foreground: 222 20% 18%;
 
     --secondary: 160 40% 84%;
     --secondary-foreground: 222 20% 18%;
 
-    --muted: 40 20% 96%;
+    --muted: 210 40% 96%;
     --muted-foreground: 222 10% 40%;
 
-    --accent: 30 80% 86%;
+    /* Plus orangé et moins rose */
+    --accent: 30 70% 80%;
     --accent-foreground: 222 20% 18%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 40 30% 90%;
-    --input: 40 30% 90%;
-    --ring: 340 80% 80%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 340 60% 70%;
 
     --radius: 1rem;
 
-    --sidebar-background: 40 30% 98%;
+    --sidebar-background: 210 40% 98%;
     --sidebar-foreground: 222 20% 18%;
-    --sidebar-primary: 340 80% 80%;
+    --sidebar-primary: 340 60% 70%;
     --sidebar-primary-foreground: 222 20% 18%;
-    --sidebar-accent: 30 80% 90%;
+    --sidebar-accent: 30 70% 80%;
     --sidebar-accent-foreground: 222 20% 18%;
-    --sidebar-border: 40 30% 90%;
-    --sidebar-ring: 340 80% 80%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 340 60% 70%;
   }
 
   .dark {
@@ -57,7 +59,7 @@
     --popover: 222 20% 12%;
     --popover-foreground: 40 20% 96%;
 
-    --primary: 340 60% 65%;
+    --primary: 340 50% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 160 30% 40%;
@@ -74,16 +76,16 @@
 
     --border: 222 20% 18%;
     --input: 222 20% 18%;
-    --ring: 340 60% 65%;
+    --ring: 340 50% 60%;
 
     --sidebar-background: 222 20% 12%;
     --sidebar-foreground: 40 20% 96%;
-    --sidebar-primary: 340 60% 65%;
+    --sidebar-primary: 340 50% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 30 50% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 20% 18%;
-    --sidebar-ring: 340 60% 65%;
+    --sidebar-ring: 340 50% 60%;
   }
 }
 
@@ -102,10 +104,11 @@
   }
   
   .soft-gradient {
-    @apply bg-gradient-to-br from-primary/30 to-secondary/40;
+    @apply bg-gradient-to-br from-primary/20 to-secondary/30;
   }
   
   .bubble-button {
     @apply rounded-full px-6 py-2 transition-all duration-300 hover:scale-105;
   }
 }
+
