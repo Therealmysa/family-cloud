@@ -38,9 +38,9 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
     );
   }
 
-  // Apply padding to all pages except messages page
+  // Apply specific styling for messages page to center content
   const containerClasses = isMessagesPage 
-    ? "flex-grow container mx-auto px-0 py-0" 
+    ? "flex-grow max-w-6xl mx-auto px-0 py-0" 
     : "flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8";
 
   return (

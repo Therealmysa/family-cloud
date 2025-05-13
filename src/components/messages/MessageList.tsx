@@ -63,11 +63,11 @@ export const MessageList = ({ messages, profiles }: MessageListProps) => {
               )}
 
               <div
-                className={`px-4 py-2 rounded-lg max-w-[85%] sm:max-w-[80%] ${
+                className={`px-4 py-2 rounded-lg max-w-[85%] sm:max-w-[75%] ${
                   isCurrentUser
                     ? "bg-primary text-white shadow-sm"
                     : "bg-white dark:bg-gray-800 shadow-sm border border-border/20"
-                } ${isMobile ? "mx-1" : ""}`}
+                } ${isMobile ? "mx-2" : ""}`}
               >
                 <p>{message.content}</p>
                 <span
