@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,10 +100,10 @@ const Messages = () => {
 
   return (
     <MainLayout title="Messages" requireAuth={true}>
-      <div className="flex flex-col sm:flex-row h-[calc(100vh-160px)] overflow-hidden rounded-md shadow-md border border-border/30 mx-0 my-0">
+      <div className="flex flex-col sm:flex-row h-[calc(100vh-140px)] overflow-hidden rounded-md shadow-lg border border-border/30 mx-0 my-0">
         {/* Chats sidebar - show only when showChatList is true on mobile */}
         {(!isMobile || showChatList) && (
-          <div className="w-full sm:w-96 border-r border-r-border/30 bg-white dark:bg-gray-800/60 flex flex-col h-full">
+          <div className="w-full sm:w-[350px] lg:w-[400px] border-r border-r-border/30 bg-white dark:bg-gray-800/60 flex flex-col h-full">
             <div className="p-4 border-b border-b-border/30 flex justify-between items-center bg-muted/20">
               <h2 className="text-lg font-medium">Messages</h2>
               <CreateConversation onChatCreated={handleChatCreated} />

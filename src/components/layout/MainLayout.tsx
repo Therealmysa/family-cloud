@@ -38,9 +38,9 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
     );
   }
 
-  // Apply specific styling for messages page to center content
+  // Apply specific styling for messages page to make it larger on big screens
   const containerClasses = isMessagesPage 
-    ? "flex-grow w-full max-w-6xl mx-auto" 
+    ? "flex-grow w-full max-w-[1600px] mx-auto" 
     : "flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8";
 
   return (

@@ -30,23 +30,24 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="p-4 sm:p-5 bg-white dark:bg-gray-800 border-t border-t-border/30">
-      <form className="flex gap-3" onSubmit={handleSubmit}>
+    <div className="p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-800 border-t border-t-border/30">
+      <form className="flex gap-3 max-w-6xl mx-auto">
         <Input
           placeholder="Type a message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="flex-1 border-border/40 focus-visible:ring-primary/30 text-base"
+          className="flex-1 border-border/40 focus-visible:ring-primary/30 text-base md:text-lg py-6 px-4"
           autoFocus
         />
         
         <Button
           type="submit"
+          onClick={handleSubmit}
           disabled={!message.trim() || submitting}
-          className="bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02] font-semibold border-2 border-primary/30"
-          size="icon"
+          className="bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:scale-[1.02] font-semibold border-2 border-primary/30 h-auto px-5"
+          size="lg"
         >
-          <SendHorizontal className="h-4 w-4" />
+          <SendHorizontal className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
       </form>
     </div>
