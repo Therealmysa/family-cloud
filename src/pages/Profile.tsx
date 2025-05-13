@@ -25,37 +25,37 @@ const Profile = () => {
 
   return (
     <MainLayout title="Profile" requireAuth={true}>
-      <div className="container max-w-4xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-center mb-8">Profile Settings</h1>
+      <div className="px-2 py-4 sm:px-4 sm:py-6 max-w-full mx-auto">
+        <h1 className="text-2xl font-bold text-center mb-6 sm:mb-8">Profile Settings</h1>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8">
             <TabsTrigger value="profile">Personal Profile</TabsTrigger>
             <TabsTrigger value="family" disabled={!profile.family_id}>Family Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader className="px-4 py-3 md:px-6 md:py-4">
+            <div className="grid gap-4 sm:gap-6">
+              <Card className="w-full">
+                <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Your Profile</CardTitle>
                   <CardDescription>
                     Update your personal information and preferences
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-4 py-3 md:px-6">
+                <CardContent className="px-3 py-2 sm:px-4 sm:py-3 md:px-6">
                   <ProfileForm user={user} profile={profile} />
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader className="px-4 py-3 md:px-6 md:py-4">
+              <Card className="w-full">
+                <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Account Settings</CardTitle>
                   <CardDescription>
                     Manage your email and password
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-4 py-3 md:px-6">
+                <CardContent className="px-3 py-2 sm:px-4 sm:py-3 md:px-6">
                   <AccountSettings user={user} signOut={signOut} />
                 </CardContent>
               </Card>
@@ -63,15 +63,15 @@ const Profile = () => {
           </TabsContent>
           
           <TabsContent value="family">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader className="px-4 py-3 md:px-6 md:py-4">
+            <div className="grid gap-4 sm:gap-6">
+              <Card className="w-full">
+                <CardHeader className="px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4">
                   <CardTitle className="text-lg">Family Information</CardTitle>
                   <CardDescription>
                     View and manage your family settings
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-4 py-3 md:px-6">
+                <CardContent className="px-3 py-2 sm:px-4 sm:py-3 md:px-6">
                   <FamilySection profile={profile} />
                 </CardContent>
               </Card>
