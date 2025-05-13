@@ -115,7 +115,7 @@ export const LastMessageWidget = () => {
           </div>
         ) : lastMessage ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-lg">
               <Avatar className="h-10 w-10 border border-primary/20">
                 <AvatarImage src={lastMessage.sender_avatar || undefined} />
                 <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -132,7 +132,7 @@ export const LastMessageWidget = () => {
             </p>
             <Link 
               to="/messages" 
-              className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1 group"
+              className="text-sm font-medium text-primary hover:underline mt-2 inline-flex items-center gap-1 group bg-primary/10 px-3 py-1 rounded-full"
             >
               <span>View all messages</span>
               <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -150,7 +150,7 @@ export const LastMessageWidget = () => {
             </p>
             <Link 
               to="/messages" 
-              className="text-sm text-primary hover:underline mt-2 inline-block"
+              className="text-sm font-medium text-primary hover:underline mt-2 inline-block bg-primary/10 px-4 py-2 rounded-full"
             >
               Start messaging
             </Link>

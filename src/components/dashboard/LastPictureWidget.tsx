@@ -94,19 +94,19 @@ export const LastPictureWidget = () => {
                 className="object-cover w-full h-full transition-transform hover:scale-105 duration-500"
               />
             </AspectRatio>
-            <div className="mt-3">
+            <div className="mt-3 bg-muted/40 p-3 rounded-lg">
               <p className="text-base font-medium line-clamp-1">{lastPicture.title}</p>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   By {lastPicture.profile?.name}
                 </span>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   {formatDate(lastPicture.date_uploaded)}
                 </span>
               </div>
               <Link 
                 to="/gallery" 
-                className="text-sm text-secondary hover:underline mt-3 inline-flex items-center gap-1 group"
+                className="text-sm font-medium text-secondary bg-secondary/20 dark:bg-secondary/30 hover:bg-secondary/30 dark:hover:bg-secondary/40 px-3 py-1 mt-3 inline-flex items-center gap-1 group rounded-full"
               >
                 <span>View gallery</span>
                 <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,7 +125,7 @@ export const LastPictureWidget = () => {
             </p>
             <Link 
               to="/create-post" 
-              className="text-sm text-secondary hover:underline mt-2 inline-block"
+              className="text-sm font-medium text-secondary hover:underline mt-2 inline-block bg-secondary/20 dark:bg-secondary/30 px-4 py-2 rounded-full"
             >
               Share a moment
             </Link>
