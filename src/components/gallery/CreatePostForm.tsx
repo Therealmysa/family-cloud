@@ -119,7 +119,11 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         thumbnailUrl = `${publicUrl}#t=0.1`;
       }
       
-      const now = new Date().toISOString();
+      // Format the current date as YYYY-MM-DD for the database
+      const today = new Date();
+      const dateUploaded = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      
+      console.log("Using date_uploaded:", dateUploaded);
       
       // Create media record
       const { data: mediaData, error: mediaError } = await supabase
@@ -131,7 +135,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
           user_id: userId,
           family_id: familyId,
           thumbnail_url: thumbnailUrl,
-          date_uploaded: now
+          date_uploaded: dateUploaded
         })
         .select();
       
