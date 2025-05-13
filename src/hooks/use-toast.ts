@@ -76,48 +76,53 @@ export function toast({
   ...props
 }: Partial<ToasterToast> & { id?: string }) {
   const id = props?.id || String(Date.now());
+  const isMobile = window.innerWidth < 640;
 
-  // Always use sonner toast regardless of device
-  // This ensures a single notification system
+  // Always use Sonner toast for notifications
   if (variant === "success") {
     sonnerToast.success(title as string, { 
       description,
       id,
-      dismissible: true, // Enable dismiss button
+      dismissible: true,
     });
   } else if (variant === "warning") {
     sonnerToast.warning(title as string, { 
       description, 
       id,
-      dismissible: true, // Enable dismiss button
+      dismissible: true,
     });
   } else if (variant === "destructive") {
     sonnerToast.error(title as string, { 
       description,
       id,
-      dismissible: true, // Enable dismiss button
+      dismissible: true,
     });
   } else {
     sonnerToast(title as string, { 
       description,
       id,
-      dismissible: true, // Enable dismiss button
+      dismissible: true,
     });
   }
 
-  // We're only going to add toasts to the shadcn system on desktop
-  // This prevents duplication on mobile
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      id,
-      title,
-      description,
-      action,
-      variant,
-      ...props,
-    },
-  });
+  // Only add to shadcn toaster system on desktop - this prevents duplication on all devices
+  if (!isMobile) {
+    // IMPORTANT: We're disabling this to prevent duplicate toasts on desktop
+    // This means Sonner will be our only toast system for all devices
+    /*
+    dispatch({
+      type: "ADD_TOAST",
+      toast: {
+        id,
+        title,
+        description,
+        action,
+        variant,
+        ...props,
+      },
+    });
+    */
+  }
 
   return {
     id,

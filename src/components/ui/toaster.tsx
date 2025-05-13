@@ -12,14 +12,12 @@ import { useIsMobile } from "@/hooks/use-mobile"
 
 export function Toaster() {
   const { toasts } = useToast()
-  const isMobile = useIsMobile()
+  
+  // Don't render the shadcn toaster at all - we're using Sonner exclusively
+  // This prevents duplicate notifications on all devices
+  return null;
 
-  // Don't render the shadcn toaster on mobile devices
-  // We'll use Sonner exclusively on mobile to avoid duplicates
-  if (isMobile) {
-    return null
-  }
-
+  /* Original implementation - disabled to prevent duplicates
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
@@ -39,4 +37,5 @@ export function Toaster() {
       <ToastViewport />
     </ToastProvider>
   )
+  */
 }
