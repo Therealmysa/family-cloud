@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -14,11 +15,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, User, Copy, CheckCircle, AlertCircle, Loader2, Home, Settings } from "lucide-react";
+import { Camera, User, Copy, CheckCircle, AlertCircle, Loader2, Home, Settings, Lock, Trash2, ShieldX } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 const profileSchema = z.object({
@@ -27,7 +29,17 @@ const profileSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
 });
 
+const passwordSchema = z.object({
+  currentPassword: z.string().min(6, "Current password must be at least 6 characters"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 type ProfileFormValues = z.infer<typeof profileSchema>;
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
@@ -37,6 +49,9 @@ const Profile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [inviteCodeCopied, setInviteCodeCopied] = useState(false);
   const [familyData, setFamilyData] = useState<{ name: string; invite_code: string } | null>(null);
 
@@ -47,6 +62,15 @@ const Profile = () => {
       bio: profile?.bio || "",
       theme: profile?.theme as "light" | "dark" | "system" || "light",
     },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }
   });
 
   useEffect(() => {
@@ -109,6 +133,87 @@ const Profile = () => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordChange = async (data: PasswordFormValues) => {
+    setIsProcessing(true);
+    try {
+      // First verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: data.currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: data.newPassword
+      });
+
+      if (updateError) throw updateError;
+
+      // Reset form and close dialog
+      passwordForm.reset();
+      setShowPasswordDialog(false);
+      
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setIsProcessing(true);
+    try {
+      // Delete the user's profile first
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      // Delete the user's auth account
+      const { error: authError } = await supabase.auth.admin.deleteUser(
+        user.id
+      );
+
+      if (authError) {
+        // If we can't delete the auth account, try client-side deletion
+        await supabase.auth.signOut();
+      }
+
+      toast({
+        title: "Account deleted",
+        description: "Your account has been successfully deleted.",
+      });
+      
+      // Navigate to home page
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      setShowDeleteAccountDialog(false);
     }
   };
 
@@ -375,7 +480,10 @@ const Profile = () => {
                       <Label htmlFor="password">Password</Label>
                       <div className="flex gap-2">
                         <Input id="password" value="••••••••••••" type="password" readOnly disabled />
-                        <Button variant="outline">Change Password</Button>
+                        <Button variant="outline" onClick={() => setShowPasswordDialog(true)}>
+                          <Lock className="h-4 w-4 mr-1" />
+                          Change Password
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -384,7 +492,10 @@ const Profile = () => {
                   <Button variant="ghost" onClick={handleLogout}>
                     Sign out
                   </Button>
-                  <Button variant="destructive">Delete Account</Button>
+                  <Button variant="destructive" onClick={() => setShowDeleteAccountDialog(true)}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Account
+                  </Button>
                 </CardFooter>
               </Card>
             </div>
@@ -450,6 +561,113 @@ const Profile = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Password Change Dialog */}
+        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Change Password</DialogTitle>
+              <DialogDescription>
+                Enter your current password and a new password to update your login credentials.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...passwordForm}>
+              <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-4">
+                <FormField
+                  control={passwordForm.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Current Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={passwordForm.control}
+                  name="newPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={passwordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter>
+                  <Button 
+                    type="submit" 
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Change Password"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Account Dialog */}
+        <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete your account and all associated data.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                disabled={isProcessing}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <ShieldX className="mr-1 h-4 w-4" />
+                    Delete Account
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Invite Code Dialog */}
         <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>

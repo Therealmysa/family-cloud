@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Trash, UserX } from "lucide-react";
+import { Trash, UserX, ShieldOff } from "lucide-react";
 
 interface MemberManagementProps {
   familyMembers: any[];
@@ -88,6 +88,38 @@ export function MemberManagement({
     }
   };
 
+  const removeAdmin = async (memberId: string) => {
+    if (!familyId || currentUserId === memberId) return;
+    
+    setProcessingMemberId(memberId);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          is_admin: false,
+        })
+        .eq("id", memberId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Admin status removed",
+        description: "The member is no longer a family administrator.",
+      });
+      
+      // Refresh family members
+      refreshFamilyMembers(familyId);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingMemberId(null);
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 sm:px-6">
@@ -129,6 +161,18 @@ export function MemberManagement({
                           disabled={processingMemberId === member.id}
                         >
                           Make Admin
+                        </Button>
+                      )}
+                      {member.is_admin && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => removeAdmin(member.id)}
+                          className="text-xs"
+                          disabled={processingMemberId === member.id}
+                        >
+                          <ShieldOff className="h-3 w-3 mr-1" />
+                          Remove Admin
                         </Button>
                       )}
                       <Button 
