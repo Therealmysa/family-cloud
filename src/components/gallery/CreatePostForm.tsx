@@ -58,7 +58,7 @@ export const CreatePostForm = ({
 
   const resetForm = () => {
     form.reset();
-    previewUrl && URL.revokeObjectURL(previewUrl);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setFile(null);
     onCancel();
@@ -66,37 +66,43 @@ export const CreatePostForm = ({
 
   const onSubmit = async (values: PostFormValues) => {
     if (!userId || !familyId || !file) {
-      toast({ title: "Error", description: "All fields are required.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "You must fill all fields and select a file.",
+        variant: "destructive",
+      });
       return;
     }
     setIsSubmitting(true);
+
     try {
+      // 1) Build filename and path
       const ext = file.name.split(".").pop();
       const filename = `${userId}-${Date.now()}.${ext}`;
       const path = `media/${filename}`;
 
-      // Upload
-      const { error: upErr } = await supabase.storage
+      // 2) Upload to storage
+      const { error: uploadError } = await supabase.storage
         .from("family-media")
         .upload(path, file, { contentType: file.type, cacheControl: "3600" });
-      if (upErr) throw upErr;
+      if (uploadError) throw uploadError;
 
-      // Signed URL
-      const { data: sd, error: se } = await supabase.storage
+      // 3) Get public URL (bucket must be public)
+      const { data: urlData, error: urlError } = supabase.storage
         .from("family-media")
-        .createSignedUrl(path, 3600);
-      if (se || !sd?.signedUrl) throw se ?? new Error("No URL");
-      const publicUrl = sd.signedUrl;
+        .getPublicUrl(path);
+      if (urlError) throw urlError;
+      const publicUrl = urlData.publicUrl;
 
-      // Thumbnail
+      // 4) Thumbnail if video
       const isVideo = file.type.startsWith("video/");
-      const thumb = isVideo ? `${publicUrl}#t=0.1` : null;
+      const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
 
-      // Date
-      const dateUp = new Date().toISOString().split("T")[0];
+      // 5) Format date
+      const dateUploaded = new Date().toISOString().split("T")[0];
 
-      // Insert in DB
-      const { error: me } = await supabase
+      // 6) Insert record in database
+      const { error: dbError } = await supabase
         .from("media")
         .insert({
           title: values.title,
@@ -104,16 +110,24 @@ export const CreatePostForm = ({
           url: publicUrl,
           user_id: userId,
           family_id: familyId,
-          thumbnail_url: thumb,
-          date_uploaded: dateUp,
+          thumbnail_url: thumbnailUrl,
+          date_uploaded: dateUploaded,
         });
-      if (me) throw me;
+      if (dbError) throw dbError;
 
-      toast({ title: "Success!", description: "Shared with family." });
+      toast({
+        title: "Success!",
+        description: "Your moment has been shared with your family.",
+      });
+
       resetForm();
       onSuccess();
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({
+        title: "Error sharing moment",
+        description: err.message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -123,7 +137,12 @@ export const CreatePostForm = ({
     <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Share a Memory</h2>
-        <Button variant="ghost" size="sm" onClick={resetForm} className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetForm}
+          className="flex items-center gap-2"
+        >
           <X className="h-4 w-4" /> Cancel
         </Button>
       </div>
@@ -132,52 +151,88 @@ export const CreatePostForm = ({
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField control={form.control} name="title" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl><Input {...field} placeholder="My special moment" /></FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}/>
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="My special moment" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
-                  <FormControl><Textarea {...field} rows={3} className="resize-none"/></FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}/>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={3}
+                        className="resize-none"
+                        placeholder="Share more about this moment..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <FormField control={form.control} name="media" render={() => (
-                <FormItem>
-                  <FormLabel>Media (Image or Video)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg"
-                      onChange={onMediaChange}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                    />
-                  </FormControl>
-                  {/* Preview hors de FormControl */}
-                  {previewUrl && (
-                    <div className="mt-4 max-w-full overflow-hidden rounded-lg">
-                      {file?.type.startsWith("video/") ? (
-                        <video src={previewUrl} controls className="w-full max-h-[600px] object-contain" />
-                      ) : (
-                        <img src={previewUrl} alt="Preview" className="w-full max-h-[600px] object-contain" />
-                      )}
-                    </div>
-                  )}
-                  <FormMessage/>
-                </FormItem>
-              )}/>
+              <FormField
+                control={form.control}
+                name="media"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Media (Image or Video)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg"
+                        onChange={onMediaChange}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                      />
+                    </FormControl>
+                    {previewUrl && (
+                      <div className="mt-4 max-w-full overflow-hidden rounded-lg">
+                        {file?.type.startsWith("video/") ? (
+                          <video
+                            src={previewUrl}
+                            controls
+                            className="w-full max-h-[600px] object-contain"
+                          />
+                        ) : (
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full max-h-[600px] object-contain"
+                          />
+                        )}
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Uploading...</>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                  </>
                 ) : (
-                  <><Upload className="mr-2 h-4 w-4"/> Share with Family</>
+                  <>
+                    <Upload className="mr-2 h-4 w-4" /> Share with Family
+                  </>
                 )}
               </Button>
             </form>
