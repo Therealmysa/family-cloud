@@ -49,7 +49,12 @@ interface CreatePostFormProps {
   onCancel: () => void;
 }
 
-export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: CreatePostFormProps) => {
+export const CreatePostForm = ({
+  userId,
+  familyId,
+  onSuccess,
+  onCancel,
+}: CreatePostFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -66,6 +71,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      // Convertit FileList en Array<File>
       form.setValue("media", Array.from(event.target.files!));
     }
   };
@@ -92,6 +98,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     setIsSubmitting(true);
 
     try {
+      // Récupère le fichier comme tableau
       const files = values.media as File[];
       const file = files[0];
       const fileExt = file.name.split(".").pop();
@@ -104,32 +111,52 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         upsert: false,
       };
 
-      const { data: uploadData, error: uploadError } = await supabase
-        .storage
+      // 1) Upload
+      const { error: uploadError } = await supabase.storage
         .from("family-media")
         .upload(filePath, file, uploadOptions);
-      
+
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      const isVideo = file.type.startsWith("video/");
-      const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
-
-      const today = new Date();
-      const dateUploaded = today.toISOString().split("T")[0];
-
+      // 2) Génère l'URL signée
       const { data: signedData, error: signedError } = await supabase
         .storage
         .from("family-media")
         .createSignedUrl(filePath, 3600);
-      
+
       if (signedError || !signedData?.signedUrl) {
         throw new Error(`Signed URL error: ${signedError?.message}`);
       }
-      
       const publicUrl = signedData.signedUrl;
 
+      // 3) Calcule le thumbnail si c'est une vidéo
+      const isVideo = file.type.startsWith("video/");
+      const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
+
+      // 4) Prépare la date
+      const today = new Date();
+      const dateUploaded = today.toISOString().split("T")[0];
+
+      // 5) Insert en base
+      const { error: mediaError } = await supabase
+        .from("media")
+        .insert({
+          title: values.title,
+          description: values.description || null,
+          url: publicUrl,
+          user_id: userId,
+          family_id: familyId,
+          thumbnail_url: thumbnailUrl,
+          date_uploaded: dateUploaded,
+        });
+
+      if (mediaError) {
+        throw new Error(`Database error: ${mediaError.message}`);
+      }
+
+      // Nettoyage
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -157,7 +184,12 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Share a Memory</h2>
-        <Button variant="ghost" size="sm" onClick={resetForm} className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetForm}
+          className="flex items-center gap-2"
+        >
           <X className="h-4 w-4" />
           <span>Cancel</span>
         </Button>
@@ -217,7 +249,9 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
 
                         {previewUrl && (
                           <div className="mt-4 max-w-full overflow-hidden rounded-lg">
-                            {form.getValues("media")?.[0]?.type.startsWith("video/") ? (
+                            {form.getValues("media")?.[0]?.type.startsWith(
+                              "video/"
+                            ) ? (
                               <video
                                 src={previewUrl}
                                 controls
@@ -239,7 +273,11 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
