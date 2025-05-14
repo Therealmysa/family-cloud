@@ -17,24 +17,28 @@
     <meta name="author" content="MYSA Tech" />
     <meta name="keywords" content="family sharing, secure photo sharing, family chat, private messaging, family memories, digital family album" />
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://family-cloud.mysa-tech.fr" />
+    <!-- Canonical URL - using only one canonical link -->
+    <link rel="canonical" href="https://mysa-tech.fr" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://family-cloud.mysa-tech.fr" />
+    <meta property="og:url" content="https://mysa-tech.fr" />
     <meta property="og:title" content="FamilyCloud - Your Private Family Sharing Space" />
     <meta property="og:description" content="FamilyCloud - A secure and private space for families to share photos, messages, and moments. Connect with loved ones in a protected digital environment." />
-    <meta property="og:image" content="https://family-cloud.mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
+    <meta property="og:image" content="https://mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
     <meta property="og:site_name" content="FamilyCloud" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@mysa_tech" />
-    <meta name="twitter:url" content="https://family-cloud.mysa-tech.fr" />
+    <meta name="twitter:url" content="https://mysa-tech.fr" />
     <meta name="twitter:title" content="FamilyCloud - Your Private Family Sharing Space" />
     <meta name="twitter:description" content="FamilyCloud - A secure and private space for families to share photos, messages, and moments. Connect with loved ones in a protected digital environment." />
-    <meta name="twitter:image" content="https://family-cloud.mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
+    <meta name="twitter:image" content="https://mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
+    
+    <!-- Social media connectivity -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     
     <!-- Mobile specific -->
     <meta name="application-name" content="FamilyCloud" />
@@ -43,14 +47,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#6d28d9" />
     
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://cdn.gpteng.co 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com; connect-src 'self' https://www.google-analytics.com;" />
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
     <link rel="apple-touch-icon" href="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" />
     
-    <!-- Google Fonts -->
+    <!-- Preconnect to required domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS for better performance -->
+    <link rel="stylesheet" href="/styles/main.css">
     
     <!-- Structured data for rich results -->
     <script type="application/ld+json">
@@ -58,7 +72,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "FamilyCloud",
-        "url": "https://family-cloud.mysa-tech.fr",
+        "url": "https://mysa-tech.fr",
         "description": "A secure and private space for families to share photos, messages, and moments.",
         "applicationCategory": "SocialNetworking",
         "operatingSystem": "Web",
@@ -67,7 +81,7 @@
           "price": "0",
           "priceCurrency": "EUR"
         },
-        "screenshot": "https://family-cloud.mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png",
+        "screenshot": "https://mysa-tech.fr/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png",
         "author": {
           "@type": "Organization",
           "name": "MYSA Tech",
