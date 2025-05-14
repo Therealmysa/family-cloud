@@ -89,7 +89,11 @@ export default function CreateFamilyForm() {
       }
 
       // Redirect to the home page
-      navigate('/');
+     setTimeout(() => {
+        navigate('/dashboard');
+        window.location.reload();
+      }, 1000);
+
     } catch (error: any) {
       toast({
         title: "Error creating family",
