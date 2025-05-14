@@ -40,8 +40,11 @@ export default function CreateFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Create new family using RPC function with proper type casting
-      const { data: result, error } = await supabase.rpc<CreateFamilyResponse>(
+      // Create new family using RPC function with proper type parameters
+      const { data: result, error } = await supabase.rpc<CreateFamilyResponse, {
+        family_name: string;
+        user_id: string;
+      }>(
         'create_family',
         {
           family_name: data.name,

@@ -41,8 +41,11 @@ export default function JoinFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Use a server-side RPC function with proper type casting
-      const { data: result, error } = await supabase.rpc<JoinFamilyResponse>(
+      // Use a server-side RPC function with proper type parameters
+      const { data: result, error } = await supabase.rpc<JoinFamilyResponse, {
+        invite_code: string;
+        user_id: string;
+      }>(
         'join_family_by_invite',
         {
           invite_code: data.inviteCode.toUpperCase(),
