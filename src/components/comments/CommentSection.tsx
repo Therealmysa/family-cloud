@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Comment } from "@/types/media";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { asInsertType } from "@/utils/supabaseHelpers";
 
 export function CommentSection({ mediaId }: { mediaId: string }) {
   const { user } = useAuth();
@@ -49,14 +50,14 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     if (!user || !newComment.trim()) return;
 
     try {
-      // Insert directly into the comments table with explicit type casting
+      // Insert directly into the comments table with proper type casting
       const { error } = await supabase
         .from('comments')
-        .insert({
-          media_id: mediaId as unknown as any, // Type cast to handle UUID conversion
-          user_id: user.id as unknown as any,  // Type cast to handle UUID conversion 
+        .insert(asInsertType('comments', {
+          media_id: mediaId,
+          user_id: user.id,
           content: newComment.trim()
-        });
+        }));
 
       if (error) throw error;
 

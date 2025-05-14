@@ -27,6 +27,7 @@ import { Media } from '@/types/media';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { MediaEditForm } from './MediaEditForm';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { asInsertType, asUUID } from '@/utils/supabaseHelpers';
 
 interface MediaDialogProps {
   media: Media | null;
@@ -69,14 +70,20 @@ export function MediaDialog({
         const { error } = await supabase
           .from('likes')
           .delete()
-          .match({ user_id: user?.id, media_id: mediaId });
+          .match({ 
+            user_id: user?.id, 
+            media_id: mediaId 
+          });
         
         if (error) throw error;
       } else {
         // Like - insert new like
         const { error } = await supabase
           .from('likes')
-          .insert({ user_id: user?.id, media_id: mediaId });
+          .insert(asInsertType('likes', {
+            user_id: user?.id,
+            media_id: mediaId
+          }));
         
         if (error) throw error;
       }
@@ -130,7 +137,7 @@ export function MediaDialog({
       const { error } = await supabase
         .from('media')
         .delete()
-        .eq('id', mediaId);
+        .eq('id', asUUID(mediaId));
         
       if (error) throw error;
 

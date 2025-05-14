@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -11,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, X } from "lucide-react";
+import { asInsertType } from "@/utils/supabaseHelpers";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -73,7 +73,6 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
   const onSubmit = async (values: PostFormValues) => {
     if (!userId || !familyId) {
       toast({
-        title: "Error",
         description: "You must be logged in and part of a family to post.",
         variant: "destructive",
       });
@@ -134,7 +133,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       // Create media record
       const { data: mediaData, error: mediaError } = await supabase
         .from('media')
-        .insert({
+        .insert(asInsertType('media', {
           title: values.title,
           description: values.description || null,
           url: publicUrl,
@@ -142,7 +141,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
           family_id: familyId,
           thumbnail_url: thumbnailUrl,
           date_uploaded: dateUploaded
-        })
+        }))
         .select();
       
       if (mediaError) {
@@ -158,9 +157,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       }
       
       toast({
-        title: "Success!",
         description: "Your moment has been shared with your family.",
-        variant: "default",
       });
       
       form.reset();
@@ -169,7 +166,6 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     } catch (error: any) {
       console.error("Error in form submission:", error);
       toast({
-        title: "Error sharing moment",
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });

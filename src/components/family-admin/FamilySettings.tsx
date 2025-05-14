@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Home, Loader2, Users } from "lucide-react";
+import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
 
 // Define the shape of the family settings object
 interface FamilySettings {
@@ -57,14 +58,14 @@ export function FamilySettings({
     try {
       const { error } = await supabase
         .from("families")
-        .update({
+        .update(asUpdateType('families', {
           name: data.familyName,
           settings: {
             publicGallery: data.publicGallery,
             commentNotifications: data.commentNotifications,
-          } as any, // Type cast for settings compatibility
-        })
-        .eq("id", profile.family_id as any); // Type cast for UUID compatibility
+          },
+        }))
+        .eq("id", asUUID(profile.family_id));
 
       if (error) throw error;
 

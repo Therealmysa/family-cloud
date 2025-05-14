@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { asUUID, handlePotentialError } from "@/utils/supabaseHelpers";
 
 export const LastMessageWidget = () => {
   const { profile } = useAuth();
@@ -32,7 +33,7 @@ export const LastMessageWidget = () => {
         const { data: chats, error: chatError } = await supabase
           .from("chats")
           .select("id")
-          .eq("family_id", profile.family_id as any); // Type cast for UUID compatibility
+          .eq("family_id", asUUID(profile.family_id));
 
         if (chatError || !chats || chats.length === 0) {
           setLoading(false);
@@ -61,15 +62,21 @@ export const LastMessageWidget = () => {
           return;
         }
 
+        // Safely extract message data
         const message = messages[0];
         if (message) {
+          // Handle potential errors in the response with undefined checks
+          const senderData = message.sender && Array.isArray(message.sender) && message.sender.length > 0
+            ? message.sender[0]
+            : { name: "Unknown", avatar_url: null, id: null };
+
           setLastMessage({
-            content: message.content,
-            timestamp: message.timestamp,
-            sender_name: message.sender?.name || "Unknown",
-            sender_avatar: message.sender?.avatar_url,
-            sender_id: message.sender_id,
-            chat_id: message.chat_id
+            content: message.content || "",
+            timestamp: message.timestamp || new Date().toISOString(),
+            sender_name: senderData?.name || "Unknown",
+            sender_avatar: senderData?.avatar_url,
+            sender_id: message.sender_id || "",
+            chat_id: message.chat_id || ""
           });
         }
       } catch (error) {

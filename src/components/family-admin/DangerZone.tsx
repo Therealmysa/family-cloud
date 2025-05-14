@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Trash } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
 
 export function DangerZone() {
   const { profile } = useAuth();
@@ -23,11 +23,11 @@ export function DangerZone() {
       // First, update all profiles to remove family_id and is_admin status
       const { error: profilesError } = await supabase
         .from("profiles")
-        .update({
-          family_id: null as any, // Type cast for UUID compatibility
+        .update(asUpdateType('profiles', {
+          family_id: null,
           is_admin: false,
-        })
-        .eq("family_id", profile.family_id as any); // Type cast for UUID compatibility
+        }))
+        .eq("family_id", asUUID(profile.family_id));
 
       if (profilesError) throw profilesError;
 
@@ -35,7 +35,7 @@ export function DangerZone() {
       const { error: familyError } = await supabase
         .from("families")
         .delete()
-        .eq("id", profile.family_id as any); // Type cast for UUID compatibility
+        .eq("id", asUUID(profile.family_id));
 
       if (familyError) throw familyError;
 
