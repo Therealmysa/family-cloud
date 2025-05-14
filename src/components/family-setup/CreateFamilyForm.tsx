@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -48,8 +49,8 @@ export default function CreateFamilyForm() {
 
       if (error) throw error;
       
-      // Type casting the result to our defined interface
-      const typedResult = result as CreateFamilyResponse;
+      // Cast result to unknown first, then to our defined interface
+      const typedResult = result as unknown as CreateFamilyResponse;
       
       if (!typedResult || !typedResult.family_id) {
         throw new Error("Failed to create family");

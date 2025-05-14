@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -49,8 +50,8 @@ export default function JoinFamilyForm() {
 
       if (error) throw error;
 
-      // Type casting the result to our defined interface
-      const typedResult = result as JoinFamilyResponse;
+      // Cast result to unknown first, then to our defined interface
+      const typedResult = result as unknown as JoinFamilyResponse;
 
       if (!typedResult || typedResult.success !== true) {
         throw new Error(typedResult?.message || "Invalid invite code or failed to join family");
