@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -33,29 +34,17 @@ export default function JoinFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Find family by invite code
-      const { data: family, error: familyError } = await supabase
-        .from('families')
-        .select('id')
-        .eq('invite_code', data.inviteCode.toUpperCase())
-        .single();
+      // Use a server-side RPC function to join family instead of direct queries
+      const { data: result, error } = await supabase.rpc('join_family_by_invite', {
+        invite_code: data.inviteCode.toUpperCase(),
+        user_id: user.id
+      });
 
-      if (familyError) {
-        if (familyError.code === 'PGRST116') {
-          throw new Error("Invalid invite code. Please check and try again.");
-        }
-        throw familyError;
+      if (error) throw error;
+
+      if (!result || result.success !== true) {
+        throw new Error(result?.message || "Invalid invite code or failed to join family");
       }
-
-      // Update user profile with found family_id
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          family_id: family.id,
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
 
       toast({
         title: "Success!",
@@ -63,29 +52,13 @@ export default function JoinFamilyForm() {
         variant: "success",
       });
 
-      // Add user to the family group chat
-      const { data: familyChat, error: chatQueryError } = await supabase
-        .from('chats')
-        .select('id, members')
-        .eq('family_id', family.id)
-        .eq('type', 'group')
-        .single();
-
-      if (!chatQueryError && familyChat) {
-        const updatedMembers = [...familyChat.members, user.id];
-        
-        await supabase
-          .from('chats')
-          .update({ members: updatedMembers })
-          .eq('id', familyChat.id);
-      }
-
       // Redirect to the home page
       navigate('/');
     } catch (error: any) {
+      console.error("Join family error:", error);
       toast({
         title: "Error joining family",
-        description: error.message,
+        description: error.message || "Failed to join family. Please check the invite code and try again.",
         variant: "destructive",
       });
     } finally {

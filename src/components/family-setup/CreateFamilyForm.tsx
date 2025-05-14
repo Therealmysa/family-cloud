@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -33,67 +34,32 @@ export default function CreateFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Create new family - generate invite code directly here to avoid RLS issues
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Create new family using RPC function instead of direct insert
+      // This bypasses RLS issues by using a server-side function
+      const { data: result, error } = await supabase.rpc('create_family', {
+        family_name: data.name,
+        user_id: user.id
+      });
+
+      if (error) throw error;
       
-      const { data: family, error: familyError } = await supabase
-        .from('families')
-        .insert({
-          name: data.name,
-          invite_code: inviteCode,
-        })
-        .select('id')
-        .single();
-
-      if (familyError) throw familyError;
-
-      // Update user profile with family_id and admin status
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          family_id: family.id,
-          is_admin: true,
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-
+      if (!result || !result.family_id) {
+        throw new Error("Failed to create family");
+      }
+      
       toast({
         title: "Family created!",
         description: "Your family has been successfully created.",
         variant: "success",
       });
 
-      // Create the default family group chat
-      const { error: chatError } = await supabase
-        .from('chats')
-        .insert({
-          family_id: family.id,
-          type: 'group',
-          members: [user.id],
-        });
-
-      if (chatError) {
-        console.error("Error creating family chat:", chatError);
-        toast({
-          title: "Warning",
-          description: "Family created, but group chat creation failed.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Chat created",
-          description: "Family group chat has been created.",
-          variant: "success",
-        });
-      }
-
       // Redirect to the home page
       navigate('/');
     } catch (error: any) {
+      console.error("Create family error:", error);
       toast({
         title: "Error creating family",
-        description: error.message,
+        description: error.message || "Failed to create family. Please try again.",
         variant: "destructive",
       });
     } finally {
