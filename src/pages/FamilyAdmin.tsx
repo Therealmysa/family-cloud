@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@radix-ui/react-toast";
+import { toast } from "@/components/ui/use-toast";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -26,6 +26,7 @@ export default function FamilyAdmin() {
     
     if (!profile.is_admin) {
       toast({
+        title: "Access denied",
         description: "You need to be a family admin to view this page.",
         variant: "destructive",
       });
@@ -44,7 +45,7 @@ export default function FamilyAdmin() {
       const { data, error } = await supabase
         .from("families")
         .select("*")
-        .eq("id", familyId as any) // Type cast for UUID compatibility
+        .eq("id", familyId)
         .single();
 
       if (error) throw error;
@@ -53,7 +54,7 @@ export default function FamilyAdmin() {
       const { count } = await supabase
         .from("profiles")
         .select("*", { count: 'exact', head: true })
-        .eq("family_id", familyId as any); // Type cast for UUID compatibility
+        .eq("family_id", familyId);
 
       setFamilyData({
         ...data,
@@ -64,6 +65,7 @@ export default function FamilyAdmin() {
     } catch (error) {
       console.error("Error fetching family data:", error);
       toast({
+        title: "Error",
         description: "Failed to load family data. Please try again.",
         variant: "destructive",
       });
@@ -76,7 +78,7 @@ export default function FamilyAdmin() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("family_id", familyId as any); // Type cast for UUID compatibility
+        .eq("family_id", familyId);
 
       if (error) throw error;
       setFamilyMembers(data);

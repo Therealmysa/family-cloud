@@ -1,123 +1,206 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
 
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-import { useEffect } from "react"
-import { useAuth } from "@/hooks/useAuth"
-import { ColorPicker } from "@/components/ui/color-picker"
-import { supabase } from "@/integrations/supabase/client"
-import { asFamilyUpdate } from "@/utils/supabaseHelpers"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Home, Loader2, Users } from "lucide-react";
 
-const familySettingsSchema = z.object({
-  familyName: z.string().min(2, {
-    message: "Family name must be at least 2 characters.",
-  }),
-  primaryColor: z.string().optional(),
-})
+// Define the shape of the family settings object
+interface FamilySettings {
+  publicGallery?: boolean;
+  commentNotifications?: boolean;
+}
 
-export function FamilySettings() {
-  const { toast } = useToast()
-  const { profile, family } = useAuth()
+const adminFormSchema = z.object({
+  familyName: z.string().min(2, "Family name must be at least 2 characters"),
+  publicGallery: z.boolean().default(true),
+  commentNotifications: z.boolean().default(true),
+});
 
-  const form = useForm<z.infer<typeof familySettingsSchema>>({
-    resolver: zodResolver(familySettingsSchema),
+type AdminFormValues = z.infer<typeof adminFormSchema>;
+
+interface FamilySettingsProps {
+  familyData: any;
+  profile: any;
+  onOpenInviteDialog: () => void;
+  refreshFamilyData: (familyId: string) => void;
+}
+
+export function FamilySettings({ 
+  familyData, 
+  profile, 
+  onOpenInviteDialog, 
+  refreshFamilyData 
+}: FamilySettingsProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<AdminFormValues>({
+    resolver: zodResolver(adminFormSchema),
     defaultValues: {
-      familyName: family?.name || "",
-      primaryColor: family?.theme_color || "#000000",
+      familyName: familyData?.name || "",
+      publicGallery: familyData?.settings?.publicGallery ?? true,
+      commentNotifications: familyData?.settings?.commentNotifications ?? true,
     },
-  })
+  });
 
-  useEffect(() => {
-    if (family) {
-      form.reset({
-        familyName: family.name || "",
-        primaryColor: family.theme_color || "#000000",
-      })
-    }
-  }, [family, form])
-
-  const handleSubmit = async (values: z.infer<typeof familySettingsSchema>) => {
-    if (!profile?.family_id) {
-      toast({
-        title: "Not a member of a family",
-        description: "You must be a member of a family to change settings.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const onSubmit = async (data: AdminFormValues) => {
+    if (!profile?.family_id) return;
+    
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
-        .from('families')
-        .update(asFamilyUpdate({
-          name: values.familyName,
-          theme_color: values.primaryColor
-        }))
-        .eq('id', family.id);
-        
-      if (error) {
-        toast({
-          title: "Error updating family settings",
-          description: error.message,
-          variant: "destructive",
+        .from("families")
+        .update({
+          name: data.familyName,
+          settings: {
+            publicGallery: data.publicGallery,
+            commentNotifications: data.commentNotifications,
+          },
         })
-      } else {
-        toast({
-          title: "Success",
-          description: "Family settings updated successfully.",
-        })
-      }
-    } catch (error) {
+        .eq("id", profile.family_id);
+
+      if (error) throw error;
+
       toast({
-        title: "Something went wrong",
-        description: "Failed to update family settings. Please try again.",
+        title: "Settings updated",
+        description: "Your family settings have been successfully updated.",
+      });
+      
+      // Refresh family data
+      refreshFamilyData(profile.family_id);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
         variant: "destructive",
-      })
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="familyName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Family name</FormLabel>
-              <FormControl>
-                <Input placeholder="Family name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="primaryColor"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Primary Color</FormLabel>
-              <FormControl>
-                <ColorPicker value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Update family settings</Button>
-      </form>
-    </Form>
-  )
+    <Card className="overflow-hidden">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle>Family Information</CardTitle>
+        <CardDescription>
+          Configure your family settings and manage members
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-4 sm:px-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
+            <AvatarFallback className="bg-purple-100 text-purple-800">
+              <Home className="h-5 w-5 sm:h-6 sm:w-6" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="font-medium text-lg sm:text-xl">{familyData?.name}</h3>
+            <p className="text-sm text-gray-500">
+              {familyData?.memberCount || 0} {(familyData?.memberCount || 0) === 1 ? 'member' : 'members'}
+            </p>
+          </div>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="familyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Family Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter family name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Privacy & Notifications</h3>
+              
+              <FormField
+                control={form.control}
+                name="publicGallery"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 sm:p-4">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
+                      <FormLabel className="text-base">Public Photo Gallery</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Allow all family members to see all photos in the gallery
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="commentNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-3 sm:p-4">
+                    <div className="space-y-0.5 mb-2 sm:mb-0">
+                      <FormLabel className="text-base">Comment Notifications</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Notify members when someone comments on their posts
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
+              <Button 
+                type="submit" 
+                className="w-full sm:flex-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Settings"
+                )}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:flex-1"
+                onClick={onOpenInviteDialog}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Invite Members
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
 }

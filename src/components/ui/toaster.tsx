@@ -6,13 +6,16 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/components/ui/toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Toaster as SonnerToaster } from "sonner";
+} from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function Toaster() {
-  // We're using Sonner exclusively now, so just render the Sonner toaster
-  return <SonnerToaster position="top-center" closeButton />;
+  const { toasts } = useToast()
+  
+  // Don't render the shadcn toaster at all - we're using Sonner exclusively
+  // This prevents duplicate notifications on all devices
+  return null;
 
   /* Original implementation - disabled to prevent duplicates
   return (

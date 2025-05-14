@@ -1,3 +1,5 @@
 
-// Re-export everything from the UI component's toast
-export { toast, useToast } from "@radix-ui/react-toast";
+// Re-export from hooks implementation
+import { useToast, toast } from "@/hooks/use-toast";
+
+export { useToast, toast };

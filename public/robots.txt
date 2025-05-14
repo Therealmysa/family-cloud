@@ -6,19 +6,13 @@
 User-agent: *
 Allow: /
 
-# Allow specific paths with clean URL structure
+# Allow specific paths
 Allow: /index.html
-Allow: /feed
-Allow: /gallery
-Allow: /legal
-Allow: /dashboard
-Allow: /*.css
-Allow: /*.js
-Allow: /*.png
-Allow: /*.jpg
-Allow: /*.svg
-Allow: /*.webp
-Allow: /*.avif
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
 
 # Disallow private sections that should not be indexed
 Disallow: /auth
@@ -26,9 +20,6 @@ Disallow: /messages
 Disallow: /profile
 Disallow: /family-admin
 Disallow: /setup-family
-Disallow: /create-post
-Disallow: /*?*
-Disallow: /*_*
 
 # Specific bot configurations
 User-agent: Googlebot
@@ -48,4 +39,3 @@ Allow: /
 
 # Sitemap location
 Sitemap: https://mysa-tech.fr/sitemap.xml
-

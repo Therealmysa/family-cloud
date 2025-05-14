@@ -8,20 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const joinFamilySchema = z.object({
   inviteCode: z.string().length(6, "Invite code must be exactly 6 characters"),
 });
 
 type JoinFamilyFormValues = z.infer<typeof joinFamilySchema>;
-
-// Define a type for the response from join_family_by_invite function
-interface JoinFamilyResponse {
-  success: boolean;
-  message: string;
-  family_id?: string;
-}
 
 export default function JoinFamilyForm() {
   const { user } = useAuth();
@@ -40,33 +33,59 @@ export default function JoinFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Use a server-side RPC function
-      const { data: result, error } = await supabase
-        .rpc('join_family_by_invite', {
-          invite_code: data.inviteCode.toUpperCase(),
-          user_id: user.id
-        });
+      // Find family by invite code
+      const { data: family, error: familyError } = await supabase
+        .from('families')
+        .select('id')
+        .eq('invite_code', data.inviteCode.toUpperCase())
+        .single();
 
-      if (error) throw error;
-
-      // Cast result to unknown first, then to our defined interface
-      const typedResult = result as unknown as JoinFamilyResponse;
-
-      if (!typedResult || typedResult.success !== true) {
-        throw new Error(typedResult?.message || "Invalid invite code or failed to join family");
+      if (familyError) {
+        if (familyError.code === 'PGRST116') {
+          throw new Error("Invalid invite code. Please check and try again.");
+        }
+        throw familyError;
       }
 
+      // Update user profile with found family_id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          family_id: family.id,
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
       toast({
+        title: "Success!",
         description: "You've successfully joined the family.",
         variant: "success",
       });
 
+      // Add user to the family group chat
+      const { data: familyChat, error: chatQueryError } = await supabase
+        .from('chats')
+        .select('id, members')
+        .eq('family_id', family.id)
+        .eq('type', 'group')
+        .single();
+
+      if (!chatQueryError && familyChat) {
+        const updatedMembers = [...familyChat.members, user.id];
+        
+        await supabase
+          .from('chats')
+          .update({ members: updatedMembers })
+          .eq('id', familyChat.id);
+      }
+
       // Redirect to the home page
       navigate('/');
     } catch (error: any) {
-      console.error("Join family error:", error);
       toast({
-        description: error.message || "Failed to join family. Please check the invite code and try again.",
+        title: "Error joining family",
+        description: error.message,
         variant: "destructive",
       });
     } finally {

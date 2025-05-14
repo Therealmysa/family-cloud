@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Media } from "@/types/media";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { asUUID } from "@/utils/supabaseHelpers";
 
 export const LastPictureWidget = () => {
   const { profile } = useAuth();
@@ -24,7 +24,7 @@ export const LastPictureWidget = () => {
 
       try {
         // Get the last picture uploaded to the family
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("media")
           .select(`
             id, 
@@ -36,12 +36,10 @@ export const LastPictureWidget = () => {
             user_id,
             profile:profiles(id, name, avatar_url, family_id)
           `)
-          .eq("family_id", asUUID(profile.family_id))
+          .eq("family_id", profile.family_id)
           .order("date_uploaded", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(1);
-
-        if (error) throw error;
 
         if (data && data.length > 0) {
           // Ensure we have all the required fields for the Media type

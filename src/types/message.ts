@@ -1,6 +1,4 @@
 
-import { Profile } from "@/types/profile";
-
 // Define Message type
 export type Message = {
   id: string;
@@ -8,9 +6,8 @@ export type Message = {
   sender_id: string;
   content: string;
   timestamp: string;
-  sender?: Profile | {
+  sender?: {
     name: string;
     avatar_url: string | null;
-    id?: string;
   };
 };

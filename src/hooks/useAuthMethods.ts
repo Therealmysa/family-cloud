@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 export const useAuthMethods = () => {
   const signUp = async (email: string, password: string, name: string) => {
@@ -30,20 +30,16 @@ export const useAuthMethods = () => {
         throw error;
       }
 
-      toast.success("Account created", {
-        description: "Please check your email to verify your account."
+      toast({
+        title: "Account created",
+        description: "Please check your email to verify your account.",
       });
     } catch (error: any) {
-      // Check if it's a network error
-      if (error.message === "Failed to fetch" || error.name === "AuthRetryableFetchError") {
-        toast.error("Network error", {
-          description: "Unable to connect to authentication service. Please check your internet connection and try again."
-        });
-      } else {
-        toast.error("Sign up failed", {
-          description: error.message
-        });
-      }
+      toast({
+        title: "Sign up failed",
+        description: error.message,
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -68,8 +64,10 @@ export const useAuthMethods = () => {
       } 
       // Limit to 5 attempts within 30 minutes
       else if (loginAttempts >= 5) {
-        toast.error("Too many attempts", {
-          description: "Please try again later"
+        toast({
+          title: "Too many attempts",
+          description: "Please try again later",
+          variant: "destructive"
         });
         throw new Error("Too many login attempts. Please try again later.");
       }
@@ -77,9 +75,6 @@ export const useAuthMethods = () => {
       // Update attempt counter
       localStorage.setItem(loginAttemptKey, (loginAttempts + 1).toString());
       localStorage.setItem(`${loginAttemptKey}_time`, now.toString());
-      
-      // Add some delay to ensure Supabase API is responsive (helps with connection issues)
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Attempt sign in
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -95,20 +90,16 @@ export const useAuthMethods = () => {
       localStorage.removeItem(loginAttemptKey);
       localStorage.removeItem(`${loginAttemptKey}_time`);
 
-      toast.success("Welcome back!", {
-        description: "You've successfully signed in."
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in.",
       });
     } catch (error: any) {
-      // Check if it's a network error
-      if (error.message === "Failed to fetch" || error.name === "AuthRetryableFetchError") {
-        toast.error("Network error", {
-          description: "Unable to connect to authentication service. Please check your internet connection and try again."
-        });
-      } else {
-        toast.error("Sign in failed", {
-          description: error.message
-        });
-      }
+      toast({
+        title: "Sign in failed",
+        description: error.message,
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -127,12 +118,15 @@ export const useAuthMethods = () => {
       
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      toast.success("Signed out", {
-        description: "You've been successfully signed out."
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
       });
     } catch (error: any) {
-      toast.error("Sign out failed", {
-        description: error.message
+      toast({
+        title: "Sign out failed",
+        description: error.message,
+        variant: "destructive"
       });
     }
   };
@@ -151,20 +145,16 @@ export const useAuthMethods = () => {
         throw error;
       }
       
-      toast.success("Password reset email sent", {
-        description: "Check your email for a reset link."
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for a reset link.",
       });
     } catch (error: any) {
-      // Check if it's a network error
-      if (error.message === "Failed to fetch" || error.name === "AuthRetryableFetchError") {
-        toast.error("Network error", {
-          description: "Unable to connect to authentication service. Please check your internet connection and try again."
-        });
-      } else {
-        toast.error("Password reset failed", {
-          description: error.message
-        });
-      }
+      toast({
+        title: "Password reset failed",
+        description: error.message,
+        variant: "destructive"
+      });
       throw error;
     }
   };
