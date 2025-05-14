@@ -80,10 +80,12 @@ export function MediaDialog({
         // Like - insert new like
         const { error } = await supabase
           .from('likes')
-          .insert(asInsertType('likes', {
-            user_id: user?.id,
-            media_id: mediaId
-          }));
+          .insert(
+            asInsertType('likes', {
+              user_id: user?.id,
+              media_id: mediaId
+            })
+          );
         
         if (error) throw error;
       }

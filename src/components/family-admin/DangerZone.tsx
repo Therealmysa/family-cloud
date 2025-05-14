@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,21 +7,30 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { asUpdateType } from "@/utils/supabaseHelpers";
+import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
 
 export const DangerZone = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
   const deleteFamily = async () => {
+    if (!profile?.family_id) {
+      toast({
+        title: "Error",
+        description: "No family to delete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('families')
         .delete()
-        .eq('id', user?.profile?.family_id);
+        .eq('id', asUUID(profile.family_id));
 
       if (error) throw error;
 
@@ -31,7 +41,7 @@ export const DangerZone = () => {
           family_id: null,
           is_admin: false
         }))
-        .eq('family_id', user?.profile?.family_id);
+        .eq('family_id', asUUID(profile.family_id));
 
       if (updateError) throw updateError;
       
@@ -56,6 +66,15 @@ export const DangerZone = () => {
   };
 
   const removeFamilyForUser = async (userId: string) => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "User ID is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsRemoving(true);
     try {
       const { error } = await supabase
@@ -64,7 +83,7 @@ export const DangerZone = () => {
           family_id: null,
           is_admin: false
         }))
-        .eq('id', userId);
+        .eq('id', asUUID(userId));
 
       if (error) throw error;
       
@@ -95,7 +114,7 @@ export const DangerZone = () => {
       </CardHeader>
       <CardContent className="pt-4">
         <div className="space-y-4">
-          {user?.profile?.is_admin ? (
+          {profile?.is_admin ? (
             <div className="space-y-2">
               <h3 className="text-base font-medium text-red-500">Delete Family</h3>
               <p className="text-sm text-muted-foreground">
@@ -128,7 +147,7 @@ export const DangerZone = () => {
               </p>
               <Button
                 variant="outline"
-                onClick={() => removeFamilyForUser(user?.id || "")}
+                onClick={() => user?.id && removeFamilyForUser(user.id)}
                 disabled={isRemoving}
                 className="w-full sm:w-auto"
               >

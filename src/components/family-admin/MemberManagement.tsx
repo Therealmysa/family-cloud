@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/profile";
-import { asUpdateType } from "@/utils/supabaseHelpers";
+import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
 
 interface MemberManagementProps {
   members: Profile[];
@@ -20,7 +21,7 @@ export const MemberManagement = ({ members, setMembers }: MemberManagementProps)
         .update(asUpdateType('profiles', {
           is_admin: isAdmin
         }))
-        .eq('id', user.id);
+        .eq('id', asUUID(user.id));
       
       if (error) throw error;
       
@@ -49,7 +50,7 @@ export const MemberManagement = ({ members, setMembers }: MemberManagementProps)
           family_id: null,
           is_admin: false
         }))
-        .eq('id', user.id);
+        .eq('id', asUUID(user.id));
 
       if (error) throw error;
       
@@ -91,7 +92,10 @@ export const MemberManagement = ({ members, setMembers }: MemberManagementProps)
       {confirmRemoveId && (
         <div>
           <p>Are you sure you want to remove this member?</p>
-          <Button onClick={() => removeMember(members.find(m => m.id === confirmRemoveId)!)}>
+          <Button onClick={() => {
+            const member = members.find(m => m.id === confirmRemoveId);
+            if (member) removeMember(member);
+          }}>
             Yes
           </Button>
           <Button onClick={() => setConfirmRemoveId(null)}>Cancel</Button>

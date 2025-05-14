@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -149,15 +148,17 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       // Create media record
       const { data: mediaData, error: mediaError } = await supabase
         .from('media')
-        .insert(asInsertType('media', {
-          title: values.title,
-          description: values.description || null,
-          url: publicUrl,
-          user_id: userId,
-          family_id: familyId,
-          thumbnail_url: thumbnailUrl,
-          date_uploaded: dateUploaded
-        }))
+        .insert(
+          asInsertType('media', {
+            title: values.title,
+            description: values.description || null,
+            url: publicUrl,
+            user_id: userId,
+            family_id: familyId,
+            thumbnail_url: thumbnailUrl,
+            date_uploaded: dateUploaded
+          })
+        )
         .select();
       
       if (mediaError) {

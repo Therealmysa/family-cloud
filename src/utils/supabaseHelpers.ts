@@ -1,10 +1,16 @@
 
 import { Database } from "@/integrations/supabase/types";
+import { PostgrestError } from "@supabase/supabase-js";
 
 /**
  * Type helper for Supabase tables
  */
 export type Tables = Database['public']['Tables']
+
+/**
+ * Type for Supabase PostgresError responses
+ */
+export type SelectQueryError<T = string> = { error: PostgrestError | { message: T } }
 
 /**
  * Helper to cast values to their expected database types
@@ -63,3 +69,27 @@ export const safeAccess = <T, K extends keyof T>(obj: T | { error: any }, key: K
   }
   return fallback;
 };
+
+/**
+ * Safely extract data from a Supabase response
+ * @param response The Supabase response object
+ * @param fallback Default value to return if the response contains an error
+ */
+export function safeExtractData<T>(response: { data: T; error: any } | null, fallback: T): T {
+  if (response && !response.error) {
+    return response.data ?? fallback;
+  }
+  return fallback;
+}
+
+/**
+ * Creates a safe resolver for handling data from potentially error-containing responses
+ */
+export function createSafeResolver<T, R>(resolver: (data: T) => R, fallback: R) {
+  return (obj: T | { error: any }): R => {
+    if (obj && typeof obj === 'object' && !('error' in obj)) {
+      return resolver(obj as T);
+    }
+    return fallback;
+  };
+}

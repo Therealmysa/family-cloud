@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { asUUID, isError } from "@/utils/supabaseHelpers";
+import { asUUID, isError, safeExtractData } from "@/utils/supabaseHelpers";
 
 type LastMessageType = {
   content: string;
@@ -28,26 +27,27 @@ export const LastMessageWidget = () => {
 
   useEffect(() => {
     const fetchLastMessage = async () => {
-      if (!profile?.family_id) return;
+      if (!profile?.family_id) {
+        setLoading(false);
+        return;
+      }
 
       try {
         // Get all chats for the family
-        const { data: chats, error: chatError } = await supabase
+        const chatsResponse = await supabase
           .from("chats")
           .select("id")
           .eq("family_id", asUUID(profile.family_id));
-
-        if (chatError) throw chatError;
         
-        if (!chats || chats.length === 0) {
+        if (chatsResponse.error || !chatsResponse.data || chatsResponse.data.length === 0) {
           setLoading(false);
           return;
         }
-
-        const chatIds = chats.map(chat => chat.id);
+        
+        const chatIds = chatsResponse.data.map(chat => chat.id);
 
         // Get the last message from any chat
-        const { data: messages, error: messageError } = await supabase
+        const messagesResponse = await supabase
           .from("messages")
           .select(`
             id, 
@@ -61,32 +61,29 @@ export const LastMessageWidget = () => {
           .order("timestamp", { ascending: false })
           .limit(1);
 
-        if (messageError) throw messageError;
-        
-        if (!messages || messages.length === 0) {
+        if (messagesResponse.error || !messagesResponse.data || messagesResponse.data.length === 0) {
           setLoading(false);
           return;
         }
 
-        const message = messages[0];
+        const message = messagesResponse.data[0];
         
-        if (message && !isError(message)) {
-          // Extract sender data safely
-          const senderData = message.sender && 
-            Array.isArray(message.sender) ? 
-            message.sender[0] : 
-            typeof message.sender === 'object' ? 
-            message.sender : null;
-          
-          setLastMessage({
-            content: message.content || "",
-            timestamp: message.timestamp || new Date().toISOString(),
-            sender_name: senderData?.name || "Unknown",
-            sender_avatar: senderData?.avatar_url || null,
-            sender_id: message.sender_id || "",
-            chat_id: message.chat_id || ""
-          });
-        }
+        // Extract sender data safely
+        const senderData = message.sender && 
+          (Array.isArray(message.sender) 
+            ? message.sender[0] 
+            : typeof message.sender === 'object' 
+              ? message.sender 
+              : null);
+        
+        setLastMessage({
+          content: message.content || "",
+          timestamp: message.timestamp || new Date().toISOString(),
+          sender_name: senderData?.name || "Unknown",
+          sender_avatar: senderData?.avatar_url || null,
+          sender_id: message.sender_id || "",
+          chat_id: message.chat_id || ""
+        });
       } catch (error) {
         console.error("Error fetching last message:", error);
       } finally {

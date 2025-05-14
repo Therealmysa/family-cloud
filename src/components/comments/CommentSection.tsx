@@ -53,11 +53,13 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
       // Insert directly into the comments table with proper type casting
       const { error } = await supabase
         .from('comments')
-        .insert(asInsertType('comments', {
-          media_id: mediaId,
-          user_id: user.id,
-          content: newComment.trim()
-        }));
+        .insert(
+          asInsertType('comments', {
+            media_id: mediaId,
+            user_id: user.id,
+            content: newComment.trim()
+          })
+        );
 
       if (error) throw error;
 
