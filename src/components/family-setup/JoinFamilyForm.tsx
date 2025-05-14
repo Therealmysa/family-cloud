@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -41,17 +40,12 @@ export default function JoinFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Use a server-side RPC function with proper type parameters
-      const { data: result, error } = await supabase.rpc<JoinFamilyResponse, {
-        invite_code: string;
-        user_id: string;
-      }>(
-        'join_family_by_invite',
-        {
+      // Use a server-side RPC function
+      const { data: result, error } = await supabase
+        .rpc('join_family_by_invite', {
           invite_code: data.inviteCode.toUpperCase(),
           user_id: user.id
-        }
-      );
+        });
 
       if (error) throw error;
 

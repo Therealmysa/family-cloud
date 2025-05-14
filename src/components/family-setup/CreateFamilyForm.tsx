@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -40,21 +39,16 @@ export default function CreateFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Create new family using RPC function with proper type parameters
-      const { data: result, error } = await supabase.rpc<CreateFamilyResponse, {
-        family_name: string;
-        user_id: string;
-      }>(
-        'create_family',
-        {
+      // Create new family using RPC function
+      const { data: result, error } = await supabase
+        .rpc('create_family', {
           family_name: data.name,
           user_id: user.id
-        }
-      );
+        });
 
       if (error) throw error;
       
-      if (!result || !result.family_id) {
+      if (!result || typeof result.family_id === 'undefined') {
         throw new Error("Failed to create family");
       }
       
