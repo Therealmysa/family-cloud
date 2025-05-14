@@ -66,7 +66,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      form.setValue("media", event.target.files);
+      form.setValue("media", Array.from(event.target.files!));
     }
   };
 
@@ -92,7 +92,8 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     setIsSubmitting(true);
 
     try {
-      const file = values.media[0];
+      const files = values.media as File[];
+      const file = files[0];
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `media/${fileName}`;
