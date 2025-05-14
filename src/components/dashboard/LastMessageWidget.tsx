@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,8 +61,8 @@ export const LastMessageWidget = () => {
           return;
         }
 
-        // Safely extract message data
-        const message = handlePotentialError(messages[0], null);
+        // Safely handle potential errors in the response
+        const message = messages[0];
         if (message) {
           // Handle potential errors in the response with undefined checks
           const senderData = message.sender && Array.isArray(message.sender) && message.sender.length > 0

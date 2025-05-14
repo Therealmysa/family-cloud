@@ -1,75 +1,67 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { toast } from "@/components/ui/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Media } from "@/types/media";
+import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
 
-type MediaFormValues = {
-  title: string;
-  description: string;
-  file: FileList;
-};
+const editMediaSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  description: z.string().max(500, "Description is too long").optional(),
+});
+
+type EditMediaFormValues = z.infer<typeof editMediaSchema>;
 
 interface MediaEditFormProps {
   media: Media;
-  onSuccess: () => void;
   onCancel: () => void;
+  onSuccess: () => void;
 }
 
-export const MediaEditForm: React.FC<MediaEditFormProps> = ({ media, onSuccess, onCancel }) => {
-  const { register, handleSubmit, setValue } = useForm<MediaFormValues>({
-    defaultValues: {
-      title: media.title,
-      description: media.description,
-    },
-  });
+export function MediaEditForm({ media, onCancel, onSuccess }: MediaEditFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setValue("file", event.target.files);
-    }
-  };
+  const form = useForm<EditMediaFormValues>({
+    resolver: zodResolver(editMediaSchema),
+    defaultValues: {
+      title: media.title,
+      description: media.description || "",
+    },
+  });
 
-  const handleSubmitForm = async (values: MediaFormValues) => {
+  const onSubmit = async (values: EditMediaFormValues) => {
     setIsSubmitting(true);
     try {
-      const { title, description, file } = values;
+      // Update media record
+      const { error } = await supabase
+        .from('media')
+        .update(asUpdateType('media', {
+          title: values.title,
+          description: values.description,
+        }))
+        .eq('id', asUUID(media.id));
 
-      // Upload file to Supabase Storage
-      if (file && file.length > 0) {
-        const fileName = `${media.id}-${file[0].name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("media")
-          .upload(fileName, file[0]);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-      }
-
-      // Update media record in the database
-      const { error: updateError } = await supabase
-        .from("media")
-        .update({ title, description })
-        .eq("id", media.id);
-
-      if (updateError) {
-        throw updateError;
+      if (error) {
+        console.error("Media update error:", error);
+        throw new Error(`Database error: ${error.message}`);
       }
 
       toast({
-        title: "Media updated",
-        description: "Your media has been successfully updated.",
-        variant: "success",
+        description: "Photo details updated successfully",
       });
-
+      
+      form.reset();
       onSuccess();
-    } catch (error) {
-      console.error("Error updating media:", error);
+    } catch (error: any) {
+      console.error("Error in form submission:", error);
       toast({
-        title: "Update failed",
-        description: "There was a problem updating your media. Please try again.",
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -78,47 +70,58 @@ export const MediaEditForm: React.FC<MediaEditFormProps> = ({ media, onSuccess, 
   };
 
   return (
-    <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-4">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          Title
-        </label>
-        <input
-          id="title"
-          type="text"
-          {...register("title", { required: true })}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="My special moment" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description
-        </label>
-        <textarea
-          id="description"
-          {...register("description")}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
+        
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Share more about this moment..."
+                  className="resize-none"
+                  rows={3}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div>
-        <label htmlFor="file" className="block text-sm font-medium text-gray-700">
-          Upload File
-        </label>
-        <input
-          id="file"
-          type="file"
-          onChange={handleFileChange}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <button type="button" onClick={onCancel} className="inline-flex justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
-          Cancel
-        </button>
-        <button type="submit" disabled={isSubmitting} className="inline-flex justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-          {isSubmitting ? "Updating..." : "Update Media"}
-        </button>
-      </div>
-    </form>
+        
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Updating..." : "Update Photo"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-};
+}
