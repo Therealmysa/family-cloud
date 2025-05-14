@@ -104,10 +104,11 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         upsert: false,
       };
 
-      const { data, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
         .from("family-media")
         .upload(filePath, file, uploadOptions);
-
+      
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
@@ -123,22 +124,16 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       const today = new Date();
       const dateUploaded = today.toISOString().split("T")[0];
 
-      const { data: mediaData, error: mediaError } = await supabase
-        .from("media")
-        .insert({
-          title: values.title,
-          description: values.description || null,
-          url: publicUrl,
-          user_id: userId,
-          family_id: familyId,
-          thumbnail_url: thumbnailUrl,
-          date_uploaded: dateUploaded,
-        })
-        .select();
-
-      if (mediaError) {
-        throw new Error(`Database error: ${mediaError.message}`);
+      const { data: signedData, error: signedError } = await supabase
+        .storage
+        .from("family-media")
+        .createSignedUrl(filePath, 3600);
+      
+      if (signedError || !signedData?.signedUrl) {
+        throw new Error(`Signed URL error: ${signedError?.message}`);
       }
+      
+      const publicUrl = signedData.signedUrl;
 
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
