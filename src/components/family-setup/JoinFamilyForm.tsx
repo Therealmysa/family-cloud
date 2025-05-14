@@ -81,7 +81,11 @@ export default function JoinFamilyForm() {
       }
 
       // Redirect to the home page
-      navigate('/');
+      setTimeout(() => {
+        navigate('/dashboard');
+        window.location.reload();
+      }, 1000);
+      
     } catch (error: any) {
       toast({
         title: "Error joining family",
