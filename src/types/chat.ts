@@ -1,4 +1,5 @@
 
+
 // Define Chat type
 export type Chat = {
   id: string;
@@ -12,3 +13,4 @@ export type Chat = {
     avatar_url: string | null;
   };
 };
+

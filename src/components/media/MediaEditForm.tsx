@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -8,60 +9,54 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Media } from "@/types/media";
-import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
+import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
 
-const editMediaSchema = z.object({
+const editSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  description: z.string().max(500, "Description is too long").optional(),
+  description: z.string().max(500, "Description is too long").optional().nullable(),
 });
 
-type EditMediaFormValues = z.infer<typeof editMediaSchema>;
+type EditFormValues = z.infer<typeof editSchema>;
 
 interface MediaEditFormProps {
   media: Media;
-  onCancel: () => void;
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function MediaEditForm({ media, onCancel, onSuccess }: MediaEditFormProps) {
+export function MediaEditForm({ media, onSuccess, onCancel }: MediaEditFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<EditMediaFormValues>({
-    resolver: zodResolver(editMediaSchema),
+  
+  const form = useForm<EditFormValues>({
+    resolver: zodResolver(editSchema),
     defaultValues: {
-      title: media.title,
+      title: media.title || "",
       description: media.description || "",
     },
   });
 
-  const onSubmit = async (values: EditMediaFormValues) => {
+  const onSubmit = async (values: EditFormValues) => {
     setIsSubmitting(true);
+    
     try {
-      // Update media record
       const { error } = await supabase
         .from('media')
         .update(asUpdateType('media', {
           title: values.title,
-          description: values.description,
+          description: values.description
         }))
         .eq('id', asUUID(media.id));
-
-      if (error) {
-        console.error("Media update error:", error);
-        throw new Error(`Database error: ${error.message}`);
-      }
-
-      toast({
-        description: "Photo details updated successfully",
-      });
       
-      form.reset();
+      if (error) throw error;
+      
       onSuccess();
     } catch (error: any) {
-      console.error("Error in form submission:", error);
+      console.error("Error updating media:", error);
       toast({
-        description: error.message || "Something went wrong. Please try again.",
+        title: "Update failed",
+        description: error.message || "Failed to update. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -70,58 +65,68 @@ export function MediaEditForm({ media, onCancel, onSuccess }: MediaEditFormProps
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="My special moment" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Share more about this moment..."
-                  className="resize-none"
-                  rows={3}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Updating..." : "Update Photo"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="My special moment" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Share more about this moment..."
+                    className="resize-none"
+                    rows={3}
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { asUUID, handlePotentialError } from "@/utils/supabaseHelpers";
+import { asUUID, isError, safeAccess } from "@/utils/supabaseHelpers";
 
 export const LastMessageWidget = () => {
   const { profile } = useAuth();
@@ -61,19 +62,19 @@ export const LastMessageWidget = () => {
           return;
         }
 
-        // Safely handle potential errors in the response
         const message = messages[0];
-        if (message) {
-          // Handle potential errors in the response with undefined checks
-          const senderData = message.sender && Array.isArray(message.sender) && message.sender.length > 0
-            ? message.sender[0]
-            : { name: "Unknown", avatar_url: null, id: null };
-
+        
+        if (message && !isError(message)) {
+          // Safely handle the response data
+          const senderData = message.sender && 
+            Array.isArray(message.sender) && 
+            message.sender.length > 0 ? message.sender[0] : null;
+          
           setLastMessage({
             content: message.content || "",
             timestamp: message.timestamp || new Date().toISOString(),
             sender_name: senderData?.name || "Unknown",
-            sender_avatar: senderData?.avatar_url,
+            sender_avatar: senderData?.avatar_url || null,
             sender_id: message.sender_id || "",
             chat_id: message.chat_id || ""
           });
