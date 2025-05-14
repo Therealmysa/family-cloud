@@ -48,7 +48,10 @@ export default function CreateFamilyForm() {
 
       if (error) throw error;
       
-      if (!result || typeof result.family_id === 'undefined') {
+      // Type casting the result to our defined interface
+      const typedResult = result as CreateFamilyResponse;
+      
+      if (!typedResult || !typedResult.family_id) {
         throw new Error("Failed to create family");
       }
       
