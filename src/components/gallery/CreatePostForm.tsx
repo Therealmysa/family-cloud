@@ -113,11 +113,6 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      const { data: urlData } = supabase.storage
-        .from("family-media")
-        .getPublicUrl(filePath);
-
-      const publicUrl = urlData.publicUrl;
       const isVideo = file.type.startsWith("video/");
       const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
 
