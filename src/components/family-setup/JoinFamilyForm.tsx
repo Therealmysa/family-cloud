@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 const joinFamilySchema = z.object({
   inviteCode: z.string().length(6, "Invite code must be exactly 6 characters"),
@@ -58,7 +57,6 @@ export default function JoinFamilyForm() {
       }
 
       toast({
-        title: "Success!",
         description: "You've successfully joined the family.",
         variant: "success",
       });
@@ -68,7 +66,6 @@ export default function JoinFamilyForm() {
     } catch (error: any) {
       console.error("Join family error:", error);
       toast({
-        title: "Error joining family",
         description: error.message || "Failed to join family. Please check the invite code and try again.",
         variant: "destructive",
       });

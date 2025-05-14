@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 const createFamilySchema = z.object({
   name: z.string().min(2, "Family name must be at least 2 characters"),
@@ -57,7 +56,6 @@ export default function CreateFamilyForm() {
       }
       
       toast({
-        title: "Family created!",
         description: "Your family has been successfully created.",
         variant: "success",
       });
@@ -67,7 +65,6 @@ export default function CreateFamilyForm() {
     } catch (error: any) {
       console.error("Create family error:", error);
       toast({
-        title: "Error creating family",
         description: error.message || "Failed to create family. Please try again.",
         variant: "destructive",
       });

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +34,6 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast({
-        title: "Error",
         description: "Failed to load comments",
         variant: "destructive",
       });
@@ -66,7 +64,6 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     } catch (error) {
       console.error("Error posting comment:", error);
       toast({
-        title: "Error",
         description: "Failed to post comment",
         variant: "destructive",
       });

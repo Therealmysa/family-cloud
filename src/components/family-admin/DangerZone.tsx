@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +39,6 @@ export function DangerZone() {
       if (familyError) throw familyError;
 
       toast({
-        title: "Family deleted",
         description: "Your family has been successfully deleted.",
       });
       
@@ -48,7 +46,6 @@ export function DangerZone() {
       navigate("/profile");
     } catch (error: any) {
       toast({
-        title: "Error",
         description: error.message,
         variant: "destructive",
       });

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Dialog,
@@ -119,7 +118,6 @@ export function MediaDialog({
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to update like status",
         variant: "destructive",
       });
@@ -148,9 +146,7 @@ export function MediaDialog({
       });
 
       toast({
-        title: "Success",
         description: "Photo has been deleted",
-        variant: "default",
       });
 
       // Close dialog and notify parent
@@ -159,7 +155,6 @@ export function MediaDialog({
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to delete photo",
         variant: "destructive",
       });
@@ -170,9 +165,7 @@ export function MediaDialog({
   const handleLikeToggle = (mediaId: string, isLiked: boolean) => {
     if (!user) {
       toast({
-        title: "Authentication Required",
         description: "Please sign in to like posts",
-        variant: "default",
       });
       return;
     }
@@ -193,7 +186,6 @@ export function MediaDialog({
     if (onMediaUpdated) onMediaUpdated();
     
     toast({
-      title: "Success",
       description: "Photo details updated successfully",
     });
   };
@@ -224,7 +216,6 @@ export function MediaDialog({
     document.body.removeChild(link);
     
     toast({
-      title: "Success",
       description: "Download started",
     });
   };

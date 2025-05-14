@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -45,7 +44,6 @@ export function MemberManagement({
       if (error) throw error;
 
       toast({
-        title: "Member removed",
         description: "The family member has been removed successfully.",
       });
       
@@ -53,7 +51,6 @@ export function MemberManagement({
       refreshFamilyMembers(familyId);
     } catch (error: any) {
       toast({
-        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -77,7 +74,6 @@ export function MemberManagement({
       if (error) throw error;
 
       toast({
-        title: "Admin assigned",
         description: "The member is now a family administrator.",
       });
       
@@ -85,7 +81,6 @@ export function MemberManagement({
       refreshFamilyMembers(familyId);
     } catch (error: any) {
       toast({
-        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -109,7 +104,6 @@ export function MemberManagement({
       if (error) throw error;
 
       toast({
-        title: "Admin status removed",
         description: "The member is no longer a family administrator.",
       });
       
@@ -117,7 +111,6 @@ export function MemberManagement({
       refreshFamilyMembers(familyId);
     } catch (error: any) {
       toast({
-        title: "Error",
         description: error.message,
         variant: "destructive",
       });
