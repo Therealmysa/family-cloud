@@ -102,28 +102,6 @@ export function MediaDialog({
         });
       });
 
-      const fetchUpdatedMedia = async (mediaId: string) => {
-  const { data, error } = await supabase.rpc('get_likes_for_media', {
-    media_id_input: mediaId
-  });
-
-  if (error) {
-    console.error('Failed to fetch updated media:', error);
-    return;
-  }
-
-  // Met à jour le cache avec les nouvelles données
-  queryClient.setQueryData<Media[]>(["feed", familyId], (oldData) => {
-    if (!oldData) return [];
-    return oldData.map(item => item.id === mediaId ? { ...item, ...data } : item);
-  });
-
-  queryClient.setQueryData<Media[]>(["gallery", familyId], (oldData) => {
-    if (!oldData) return [];
-    return oldData.map(item => item.id === mediaId ? { ...item, ...data } : item);
-  });
-};
-
       // Also update the gallery data if it exists
       queryClient.setQueryData<Media[]>(["gallery", familyId], (oldData) => {
         if (!oldData) return [];
