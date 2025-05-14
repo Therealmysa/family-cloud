@@ -63,7 +63,7 @@ export const LastMessageWidget = () => {
         }
 
         // Safely extract message data
-        const message = messages[0];
+        const message = handlePotentialError(messages[0], null);
         if (message) {
           // Handle potential errors in the response with undefined checks
           const senderData = message.sender && Array.isArray(message.sender) && message.sender.length > 0

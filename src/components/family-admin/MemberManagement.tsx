@@ -1,17 +1,25 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserX, ShieldOff } from "lucide-react";
-import { MemberList } from "@/components/messages/MemberList";
-import { Profile } from "@/types/profile";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MoreVertical, CheckCheck } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
 
 interface MemberManagementProps {
-  familyMembers: Profile[];
+  familyMembers: any[];
   currentUserId: string | undefined;
-  familyId: string | undefined;
+  familyId: string | null;
   refreshFamilyMembers: (familyId: string) => void;
 }
 
@@ -19,36 +27,30 @@ export function MemberManagement({
   familyMembers, 
   currentUserId, 
   familyId,
-  refreshFamilyMembers 
+  refreshFamilyMembers
 }: MemberManagementProps) {
-  const [processingMemberId, setProcessingMemberId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { profile } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // For MemberList component compatibility (not used)
-  const selectedMembers: string[] = [];
-  const toggleMemberSelection = (memberId: string) => {};
+  const handleRemoveMember = async (member: any) => {
+    if (!familyId) return;
 
-  const removeMember = async (memberId: string) => {
-    if (!familyId || currentUserId === memberId) return;
-    
-    setProcessingMemberId(memberId);
+    setIsLoading(true);
     try {
-      // Update profile to remove family_id
       const { error } = await supabase
         .from("profiles")
-        .update({
-          family_id: null as any, // Type cast for UUID compatibility
-          is_admin: false,
-        })
-        .eq("id", memberId as any); // Type cast for UUID compatibility
+        .update(asUpdateType('profiles', {
+          family_id: null,
+          is_admin: false
+        }))
+        .eq("id", asUUID(member.id));
 
       if (error) throw error;
 
       toast({
-        description: "The family member has been removed successfully.",
+        description: `${member.name} has been removed from the family.`,
       });
       
-      // Refresh family members
       refreshFamilyMembers(familyId);
     } catch (error: any) {
       toast({
@@ -56,29 +58,28 @@ export function MemberManagement({
         variant: "destructive",
       });
     } finally {
-      setProcessingMemberId(null);
+      setIsLoading(false);
     }
   };
 
-  const makeAdmin = async (memberId: string) => {
-    if (!familyId || currentUserId === memberId) return;
-    
-    setProcessingMemberId(memberId);
+  const handleToggleAdmin = async (member: any) => {
+    if (!familyId) return;
+
+    setIsLoading(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
-          is_admin: true,
-        } as any) // Type cast for compatibility
-        .eq("id", memberId as any); // Type cast for UUID compatibility
+        .update(asUpdateType('profiles', {
+          is_admin: !member.is_admin
+        }))
+        .eq("id", asUUID(member.id));
 
       if (error) throw error;
 
       toast({
-        description: "The member is now a family administrator.",
+        description: `${member.name}'s admin status has been updated.`,
       });
       
-      // Refresh family members
       refreshFamilyMembers(familyId);
     } catch (error: any) {
       toast({
@@ -86,68 +87,68 @@ export function MemberManagement({
         variant: "destructive",
       });
     } finally {
-      setProcessingMemberId(null);
+      setIsLoading(false);
     }
   };
-
-  const removeAdmin = async (memberId: string) => {
-    if (!familyId || currentUserId === memberId) return;
-    
-    setProcessingMemberId(memberId);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          is_admin: false,
-        } as any) // Type cast for compatibility
-        .eq("id", memberId as any); // Type cast for UUID compatibility
-
-      if (error) throw error;
-
-      toast({
-        description: "The member is no longer a family administrator.",
-      });
-      
-      // Refresh family members
-      refreshFamilyMembers(familyId);
-    } catch (error: any) {
-      toast({
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setProcessingMemberId(null);
-    }
-  };
-
-  const filteredMembers = familyMembers.filter(member => 
-    member.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 sm:px-6">
-        <CardTitle>Family Members</CardTitle>
-        <CardDescription>
-          Manage your family members and their permissions
-        </CardDescription>
+        <CardTitle>Member Management</CardTitle>
+        <CardDescription>Manage members of your family</CardDescription>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
-        <div className="space-y-4">
-          {familyMembers.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">No family members found</p>
-          ) : (
-            <div className="divide-y">
-              <MemberList
-                filteredMembers={filteredMembers}
-                selectedMembers={selectedMembers}
-                isLoading={false}
-                toggleMemberSelection={toggleMemberSelection}
-                searchQuery={searchQuery}
-                showCheckboxes={false}
-              />
+        <div className="divide-y divide-border">
+          {familyMembers.map((member) => (
+            <div key={member.id} className="py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Avatar>
+                  <AvatarImage src={member.avatar_url} />
+                  <AvatarFallback>{member.name.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{member.name}</p>
+                  <p className="text-sm text-gray-500">{member.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                {currentUserId !== member.id && (
+                  <Label htmlFor={`admin-switch-${member.id}`} className="mr-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed">
+                    Admin
+                  </Label>
+                )}
+                {currentUserId !== member.id && (
+                  <Switch 
+                    id={`admin-switch-${member.id}`} 
+                    checked={!!member.is_admin} 
+                    onCheckedChange={() => handleToggleAdmin(member)}
+                    disabled={isLoading}
+                  />
+                )}
+                {currentUserId !== member.id && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleRemoveMember(member)}>
+                        Remove from Family
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                {currentUserId === member.id && member.is_admin && (
+                  <div className="flex items-center gap-2 text-green-500">
+                    <CheckCheck className="h-4 w-4" />
+                    <span className="text-sm">You</span>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </CardContent>
     </Card>

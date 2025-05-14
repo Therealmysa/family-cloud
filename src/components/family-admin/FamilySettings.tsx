@@ -59,10 +59,10 @@ export function FamilySettings({
       const { error } = await supabase
         .from("families")
         .update(asUpdateType('families', {
-          name: data.familyName,
+          name: data.familyName.trim(),
           settings: {
             publicGallery: data.publicGallery,
-            commentNotifications: data.commentNotifications,
+            commentNotifications: data.commentNotifications
           },
         }))
         .eq("id", asUUID(profile.family_id));
