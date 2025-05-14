@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { asUUID, isError, safeExtractData } from "@/utils/supabaseHelpers";
+import { asUUID, isError, isSafeData } from "@/utils/supabaseHelpers";
 
 type LastMessageType = {
   content: string;
@@ -68,7 +69,13 @@ export const LastMessageWidget = () => {
 
         const message = messagesResponse.data[0];
         
-        // Extract sender data safely
+        // Safely extract sender data
+        if (!message) {
+          setLoading(false);
+          return;
+        }
+
+        // Safely check if sender property exists and use it
         const senderData = message.sender && 
           (Array.isArray(message.sender) 
             ? message.sender[0] 

@@ -8,7 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { asUpdateType } from "@/utils/supabaseHelpers";
+import { safeTypeCast } from "@/utils/supabaseHelpers";
 
 const familySchema = z.object({
   name: z.string().min(1, "Family name is required"),
@@ -31,7 +31,7 @@ const FamilySettings = ({ family }) => {
       
       const { error } = await supabase
         .from('families')
-        .update(asUpdateType('families', {
+        .update(safeTypeCast('families', {
           name: values.name,
           theme_color: values.theme_color
         }))

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/profile";
-import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
+import { asUUID, safeTypeCast } from "@/utils/supabaseHelpers";
 
 interface MemberManagementProps {
   members: Profile[];
@@ -18,7 +18,7 @@ export const MemberManagement = ({ members, setMembers }: MemberManagementProps)
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(asUpdateType('profiles', {
+        .update(safeTypeCast('profiles', {
           is_admin: isAdmin
         }))
         .eq('id', asUUID(user.id));
@@ -46,7 +46,7 @@ export const MemberManagement = ({ members, setMembers }: MemberManagementProps)
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(asUpdateType('profiles', {
+        .update(safeTypeCast('profiles', {
           family_id: null,
           is_admin: false
         }))

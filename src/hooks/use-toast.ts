@@ -1,3 +1,3 @@
 
-// Re-export the toast hook from the UI component
-export { toast, useToast } from "@/components/ui/use-toast";
+// Import directly from the @radix-ui source to avoid circular dependencies
+export { toast, useToast } from "@/components/ui/toast";

@@ -93,3 +93,17 @@ export function createSafeResolver<T, R>(resolver: (data: T) => R, fallback: R) 
     return fallback;
   };
 }
+
+/**
+ * Enhanced safety check for Supabase query results
+ */
+export function isSafeData<T>(data: T | SelectQueryError): data is T {
+  return data && typeof data === 'object' && !('error' in data);
+}
+
+/**
+ * Safe type assertion for database operations
+ */
+export function safeTypeCast<T extends keyof Tables>(tableName: T, data: Record<string, unknown>): Tables[T]['Insert'] | Tables[T]['Update'] {
+  return data as any;
+}

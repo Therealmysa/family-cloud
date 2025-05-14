@@ -38,9 +38,7 @@ const AppContent = () => {
   return (
     <ThemeProvider>
       <TooltipProvider>
-        {/* Shadcn Toaster - now configured to not render */}
-        <Toaster />
-        {/* Sonner - now our only toast system for all devices */}
+        {/* Use only one toast provider to avoid conflicts */}
         <Sonner position={isMobile ? "top-center" : "bottom-right"} />
         {/* Cookie Consent Banner */}
         <CookieConsent />

@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { asUpdateType, asUUID } from "@/utils/supabaseHelpers";
+import { asUpdateType, asUUID, safeTypeCast } from "@/utils/supabaseHelpers";
 
 export const DangerZone = () => {
   const { user, profile } = useAuth();
@@ -37,7 +37,7 @@ export const DangerZone = () => {
       // Also set family_id to null for all users in the family
       const { error: updateError } = await supabase
         .from('profiles')
-        .update(asUpdateType('profiles', {
+        .update(safeTypeCast('profiles', {
           family_id: null,
           is_admin: false
         }))
@@ -79,7 +79,7 @@ export const DangerZone = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(asUpdateType('profiles', {
+        .update(safeTypeCast('profiles', {
           family_id: null,
           is_admin: false
         }))
