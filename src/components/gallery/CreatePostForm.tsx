@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -39,6 +40,7 @@ interface CreatePostFormProps {
 export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: CreatePostFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
@@ -80,6 +82,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
     
     try {
       const file = values.media[0];
@@ -96,11 +99,24 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
         upsert: false
       };
       
+      // Create a progress tracker
+      let uploadStartTime = Date.now();
+      const progressInterval = setInterval(() => {
+        // Simulate progress based on time elapsed (not actual upload progress)
+        const elapsedTime = Date.now() - uploadStartTime;
+        const estimatedTotalTime = file.size > 10000000 ? 10000 : 5000; // Estimate based on file size
+        const calculatedProgress = Math.min(95, (elapsedTime / estimatedTotalTime) * 100);
+        setUploadProgress(calculatedProgress);
+      }, 200);
+      
       // Upload media to storage
       const { data, error: uploadError } = await supabase
         .storage
         .from('family-media')
         .upload(filePath, file, uploadOptions);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
       
       if (uploadError) {
         console.error("Upload error:", uploadError);
@@ -171,6 +187,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -265,6 +282,16 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
                 )}
               />
               
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                  <p className="text-xs text-gray-500 mt-1 text-right">{Math.round(uploadProgress)}%</p>
+                </div>
+              )}
+              
               <Button
                 type="submit"
                 className="w-full"
@@ -273,7 +300,7 @@ export const CreatePostForm = ({ userId, familyId, onSuccess, onCancel }: Create
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    {uploadProgress > 0 ? 'Uploading...' : 'Processing...'}
                   </>
                 ) : (
                   <>

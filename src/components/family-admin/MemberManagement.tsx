@@ -1,157 +1,102 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreVertical, CheckCheck } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
-import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
+import { Profile } from "@/types/profile";
+import { asUpdateType } from "@/utils/supabaseHelpers";
 
 interface MemberManagementProps {
-  familyMembers: any[];
-  currentUserId: string | undefined;
-  familyId: string | null;
-  refreshFamilyMembers: (familyId: string) => void;
+  members: Profile[];
+  setMembers: React.Dispatch<React.SetStateAction<Profile[]>>;
 }
 
-export function MemberManagement({ 
-  familyMembers, 
-  currentUserId, 
-  familyId,
-  refreshFamilyMembers
-}: MemberManagementProps) {
-  const { profile } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+export const MemberManagement = ({ members, setMembers }: MemberManagementProps) => {
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
-  const handleRemoveMember = async (member: any) => {
-    if (!familyId) return;
-
-    setIsLoading(true);
+  const updateMemberRole = async (user: Profile, isAdmin: boolean) => {
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
+        .update(asUpdateType('profiles', {
+          is_admin: isAdmin
+        }))
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setMembers((prev) => prev.map((m) => 
+        m.id === user.id ? { ...m, is_admin: isAdmin } : m
+      ));
+      
+      toast({
+        description: `${user.name} is now ${isAdmin ? 'an admin' : 'a member'}`,
+      });
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      toast({
+        variant: "destructive",
+        description: "Failed to update member role",
+      });
+    }
+  };
+
+  const removeMember = async (user: Profile) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
         .update(asUpdateType('profiles', {
           family_id: null,
           is_admin: false
         }))
-        .eq("id", asUUID(member.id));
+        .eq('id', user.id);
 
       if (error) throw error;
-
-      toast({
-        description: `${member.name} has been removed from the family.`,
-      });
       
-      refreshFamilyMembers(familyId);
-    } catch (error: any) {
+      // Update local state
+      setMembers((prev) => prev.filter((m) => m.id !== user.id));
+      
       toast({
-        description: error.message,
+        description: `${user.name} has been removed from the family`,
+      });
+    } catch (error) {
+      console.error("Error removing member:", error);
+      toast({
         variant: "destructive",
+        description: "Failed to remove member",
       });
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleToggleAdmin = async (member: any) => {
-    if (!familyId) return;
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update(asUpdateType('profiles', {
-          is_admin: !member.is_admin
-        }))
-        .eq("id", asUUID(member.id));
-
-      if (error) throw error;
-
-      toast({
-        description: `${member.name}'s admin status has been updated.`,
-      });
-      
-      refreshFamilyMembers(familyId);
-    } catch (error: any) {
-      toast({
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      setConfirmRemoveId(null);
     }
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="px-4 sm:px-6">
-        <CardTitle>Member Management</CardTitle>
-        <CardDescription>Manage members of your family</CardDescription>
-      </CardHeader>
-      <CardContent className="px-4 sm:px-6">
-        <div className="divide-y divide-border">
-          {familyMembers.map((member) => (
-            <div key={member.id} className="py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src={member.avatar_url} />
-                  <AvatarFallback>{member.name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{member.name}</p>
-                  <p className="text-sm text-gray-500">{member.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                {currentUserId !== member.id && (
-                  <Label htmlFor={`admin-switch-${member.id}`} className="mr-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed">
-                    Admin
-                  </Label>
-                )}
-                {currentUserId !== member.id && (
-                  <Switch 
-                    id={`admin-switch-${member.id}`} 
-                    checked={!!member.is_admin} 
-                    onCheckedChange={() => handleToggleAdmin(member)}
-                    disabled={isLoading}
-                  />
-                )}
-                {currentUserId !== member.id && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleRemoveMember(member)}>
-                        Remove from Family
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                {currentUserId === member.id && member.is_admin && (
-                  <div className="flex items-center gap-2 text-green-500">
-                    <CheckCheck className="h-4 w-4" />
-                    <span className="text-sm">You</span>
-                  </div>
-                )}
-              </div>
+    <div>
+      <h2 className="text-lg font-bold">Member Management</h2>
+      <ul>
+        {members.map((member) => (
+          <li key={member.id} className="flex justify-between items-center">
+            <span>{member.name}</span>
+            <div>
+              <Button onClick={() => updateMemberRole(member, !member.is_admin)}>
+                {member.is_admin ? "Remove Admin" : "Make Admin"}
+              </Button>
+              <Button onClick={() => setConfirmRemoveId(member.id)}>
+                Remove
+              </Button>
             </div>
-          ))}
+          </li>
+        ))}
+      </ul>
+      {confirmRemoveId && (
+        <div>
+          <p>Are you sure you want to remove this member?</p>
+          <Button onClick={() => removeMember(members.find(m => m.id === confirmRemoveId)!)}>
+            Yes
+          </Button>
+          <Button onClick={() => setConfirmRemoveId(null)}>Cancel</Button>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
-}
+};

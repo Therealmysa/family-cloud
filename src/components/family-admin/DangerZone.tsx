@@ -1,107 +1,153 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { asUUID, asUpdateType } from "@/utils/supabaseHelpers";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { asUpdateType } from "@/utils/supabaseHelpers";
 
-export function DangerZone() {
-  const { user, profile, signOut } = useAuth();
+export const DangerZone = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleLeaveFamily = async () => {
-    if (!user || !profile?.family_id) return;
-
-    setIsProcessing(true);
+  const deleteFamily = async () => {
+    setIsDeleting(true);
     try {
-      // Update profile to remove family association and admin status
       const { error } = await supabase
-        .from("profiles")
+        .from('families')
+        .delete()
+        .eq('id', user?.profile?.family_id);
+
+      if (error) throw error;
+
+      // Also set family_id to null for all users in the family
+      const { error: updateError } = await supabase
+        .from('profiles')
         .update(asUpdateType('profiles', {
           family_id: null,
           is_admin: false
         }))
-        .eq("id", asUUID(user.id));
+        .eq('family_id', user?.profile?.family_id);
 
-      if (error) throw error;
-
+      if (updateError) throw updateError;
+      
       toast({
-        description: "You have left the family.",
+        title: "Success",
+        description: "Your family has been deleted. You'll be redirected to create or join a new family.",
       });
 
       setTimeout(() => {
         navigate("/setup-family");
-      }, 1000);
-    } catch (error: any) {
+      }, 1500);
+    } catch (error) {
+      console.error('Error deleting family:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to leave family. Please try again.",
+        description: "Failed to delete family. Please try again.",
         variant: "destructive",
       });
-      setIsProcessing(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  if (!profile?.is_admin) {
-    return null;
-  }
+  const removeFamilyForUser = async (userId: string) => {
+    setIsRemoving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(asUpdateType('profiles', {
+          family_id: null,
+          is_admin: false
+        }))
+        .eq('id', userId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "You have left the family. You'll be redirected to create or join a new family.",
+      });
+
+      setTimeout(() => {
+        navigate("/setup-family");
+      }, 1500);
+    } catch (error) {
+      console.error('Error removing user from family:', error);
+      toast({
+        title: "Error",
+        description: "Failed to leave family. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   return (
-    <>
-      <Card className="border-red-200 dark:border-red-900">
-        <CardHeader className="px-4 sm:px-6">
-          <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
-          <CardDescription>Actions that require extra caution</CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 sm:px-6">
-          <div>
-            <h4 className="text-sm font-semibold mb-2">Leave Family</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              If you leave the family, you will lose access to all family data. If you are the only admin, consider making someone else an admin first.
-            </p>
-            <Button 
-              variant="destructive" 
-              onClick={() => setShowLeaveDialog(true)}
-              disabled={isProcessing}
-            >
-              Leave Family
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Leave Family Confirmation Dialog */}
-      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Leave Family?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to leave this family? You will lose access to all family data and memories.
-              {profile?.is_admin && (
-                <p className="mt-2 font-semibold">
-                  As an admin, consider making someone else an admin before leaving.
-                </p>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleLeaveFamily}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isProcessing}
-            >
-              {isProcessing ? "Processing..." : "Leave Family"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
+      <CardHeader className="pb-2 border-b border-border">
+        <CardTitle className="text-lg">Danger Zone</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="space-y-4">
+          {user?.profile?.is_admin ? (
+            <div className="space-y-2">
+              <h3 className="text-base font-medium text-red-500">Delete Family</h3>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete this family and all of its data. This action cannot be undone.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={deleteFamily}
+                disabled={isDeleting}
+                className="w-full sm:w-auto"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Delete Family
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <h3 className="text-base font-medium text-orange-500">Leave Family</h3>
+              <p className="text-sm text-muted-foreground">
+                Leave this family. You will no longer have access to family features.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => removeFamilyForUser(user?.id || "")}
+                disabled={isRemoving}
+                className="w-full sm:w-auto"
+              >
+                {isRemoving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Leaving...
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Leave Family
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};

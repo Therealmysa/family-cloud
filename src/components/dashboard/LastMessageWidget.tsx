@@ -9,18 +9,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { asUUID, isError, safeAccess } from "@/utils/supabaseHelpers";
+import { asUUID, isError } from "@/utils/supabaseHelpers";
+
+type LastMessageType = {
+  content: string;
+  timestamp: string;
+  sender_name: string;
+  sender_avatar: string | null;
+  sender_id: string;
+  chat_id: string;
+} | null;
 
 export const LastMessageWidget = () => {
   const { profile } = useAuth();
-  const [lastMessage, setLastMessage] = useState<{
-    content: string;
-    timestamp: string;
-    sender_name: string;
-    sender_avatar: string | null;
-    sender_id: string;
-    chat_id: string;
-  } | null>(null);
+  const [lastMessage, setLastMessage] = useState<LastMessageType>(null);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
 
@@ -35,7 +37,9 @@ export const LastMessageWidget = () => {
           .select("id")
           .eq("family_id", asUUID(profile.family_id));
 
-        if (chatError || !chats || chats.length === 0) {
+        if (chatError) throw chatError;
+        
+        if (!chats || chats.length === 0) {
           setLoading(false);
           return;
         }
@@ -57,7 +61,9 @@ export const LastMessageWidget = () => {
           .order("timestamp", { ascending: false })
           .limit(1);
 
-        if (messageError || !messages || messages.length === 0) {
+        if (messageError) throw messageError;
+        
+        if (!messages || messages.length === 0) {
           setLoading(false);
           return;
         }
@@ -65,10 +71,12 @@ export const LastMessageWidget = () => {
         const message = messages[0];
         
         if (message && !isError(message)) {
-          // Safely handle the response data
+          // Extract sender data safely
           const senderData = message.sender && 
-            Array.isArray(message.sender) && 
-            message.sender.length > 0 ? message.sender[0] : null;
+            Array.isArray(message.sender) ? 
+            message.sender[0] : 
+            typeof message.sender === 'object' ? 
+            message.sender : null;
           
           setLastMessage({
             content: message.content || "",
