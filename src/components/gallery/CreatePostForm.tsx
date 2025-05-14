@@ -97,88 +97,60 @@ export const CreatePostForm = ({
 
     setIsSubmitting(true);
 
-    try {
-      // Récupère le fichier comme tableau
-      const files = values.media as File[];
-      const file = files[0];
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `media/${fileName}`;
+  try {
+    const files = values.media as File[];
+    const file = files[0];
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `media/${fileName}`;
+    const uploadOptions = { contentType: file.type, cacheControl: "3600", upsert: false };
 
-      const uploadOptions = {
-        contentType: file.type,
-        cacheControl: "3600",
-        upsert: false,
-      };
+    // 1) Upload
+    const { error: uploadError } = await supabase
+      .storage
+      .from("family-media")
+      .upload(filePath, file, uploadOptions);
+    if (uploadError) throw uploadError;
 
-      // 1) Upload
-      const { error: uploadError } = await supabase.storage
-        .from("family-media")
-        .upload(filePath, file, uploadOptions);
+    // 2) Génère l'URL signée (ou, si tu préfères, getPublicUrl pour un bucket public)
+    const { data: signedData, error: signedError } = await supabase
+      .storage
+      .from("family-media")
+      .createSignedUrl(filePath, 3600);
+    if (signedError || !signedData?.signedUrl) throw signedError;
+    const publicUrl = signedData.signedUrl;
 
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
+    // 3) Calcule le thumbnail si vidéo
+    const isVideo = file.type.startsWith("video/");
+    const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
 
-      // 2) Génère l'URL signée
-      const { data: signedData, error: signedError } = await supabase
-        .storage
-        .from("family-media")
-        .createSignedUrl(filePath, 3600);
+    // 4) Date
+    const dateUploaded = new Date().toISOString().split("T")[0];
 
-      if (signedError || !signedData?.signedUrl) {
-        throw new Error(`Signed URL error: ${signedError?.message}`);
-      }
-      const publicUrl = signedData.signedUrl;
-
-      // 3) Calcule le thumbnail si c'est une vidéo
-      const isVideo = file.type.startsWith("video/");
-      const thumbnailUrl = isVideo ? `${publicUrl}#t=0.1` : null;
-
-      // 4) Prépare la date
-      const today = new Date();
-      const dateUploaded = today.toISOString().split("T")[0];
-
-      // 5) Insert en base
-      const { error: mediaError } = await supabase
-        .from("media")
-        .insert({
-          title: values.title,
-          description: values.description || null,
-          url: publicUrl,
-          user_id: userId,
-          family_id: familyId,
-          thumbnail_url: thumbnailUrl,
-          date_uploaded: dateUploaded,
-        });
-
-      if (mediaError) {
-        throw new Error(`Database error: ${mediaError.message}`);
-      }
-
-      // Nettoyage
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-
-      toast({
-        title: "Success!",
-        description: "Your moment has been shared with your family.",
+    // 5) **Insert le media en base avec son URL**
+    const { error: mediaError } = await supabase
+      .from("media")
+      .insert({
+        title: values.title,
+        description: values.description || null,
+        url: publicUrl,            // <-- ici
+        user_id: userId,
+        family_id: familyId,
+        thumbnail_url: thumbnailUrl,
+        date_uploaded: dateUploaded,
       });
+    if (mediaError) throw mediaError;
 
-      form.reset();
-      setPreviewUrl(null);
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: "Error sharing moment",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    toast({ title: "Success!", description: "Shared with family." });
+    form.reset();
+    setPreviewUrl(null);
+    onSuccess();
+  } catch (error: any) {
+    toast({ title: "Error", description: error.message, variant: "destructive" });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="mb-6">
