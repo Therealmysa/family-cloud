@@ -1,256 +1,178 @@
-
-import { useState } from 'react';
-import { Heart, MessageCircle, Pencil, Trash, FileDown, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Media } from '@/types/media';
-import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Media, isVideoFile, isVideoUrl } from "@/types/media";
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from 'date-fns';
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MediaContentProps {
   media: Media;
-  canEdit: boolean;
-  canDelete: boolean;
-  onEditClick: () => void;
-  onDeleteClick: () => void;
-  onFullscreenClick: () => void;
-  user: any; // Using any for simplicity, ideally should be properly typed
+  onMediaUpdated: () => void;
+  onMediaDeleted: () => void;
+  familyId: string | undefined;
 }
 
 export function MediaContent({
   media,
-  canEdit,
-  canDelete,
-  onEditClick,
-  onDeleteClick,
-  onFullscreenClick,
-  user
+  onMediaUpdated,
+  onMediaDeleted,
+  familyId,
 }: MediaContentProps) {
-  const queryClient = useQueryClient();
-  
-  // Check if media is a video
-  const isVideo = media?.url?.match(/\.(mp4|webm|ogg)$/i);
-  
-  // Handle like/unlike
-  const likeMutation = useMutation({
-    mutationFn: async ({ mediaId, isLiked }: { mediaId: string, isLiked: boolean }) => {
-      if (isLiked) {
-        // Unlike - delete the like
-        const { error } = await supabase
-          .from('likes')
-          .delete()
-          .match({ 
-            user_id: user?.id, 
-            media_id: mediaId 
-          });
-        
-        if (error) throw error;
-      } else {
-        // Like - insert new like
-        const { error } = await supabase
-          .from('likes')
-          .insert({
-            user_id: user?.id,
-            media_id: mediaId
-          });
-        
-        if (error) throw error;
-      }
-    },
-    onSuccess: (_, variables) => {
-      // Update the cache optimistically for both feed and gallery
-      ["feed", "gallery"].forEach(cacheKey => {
-        queryClient.setQueryData<Media[]>([cacheKey, media.profile?.family_id], (oldData) => {
-          if (!oldData) return [];
-          
-          return oldData.map(item => {
-            if (item.id === variables.mediaId) {
-              const likeDelta = variables.isLiked ? -1 : 1;
-              return {
-                ...item,
-                likes_count: (item.likes_count || 0) + likeDelta,
-                is_liked: !variables.isLiked
-              };
-            }
-            return item;
-          });
-        });
-      });
-    },
-    onError: (error) => {
-      toast({
-        description: "Failed to update like status",
-        variant: "destructive",
-      });
-    }
-  });
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const isMobile = useIsMobile();
 
-  // Handle like/unlike button click
-  const handleLikeToggle = (mediaId: string, isLiked: boolean) => {
-    if (!user) {
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  useEffect(() => {
+    setIsPlaying(false);
+  }, [media.url]);
+
+  const handleDeleteMedia = async () => {
+    if (!media.id) {
       toast({
-        description: "Please sign in to like posts",
+        title: "Error",
+        description: "Media ID is missing.",
+        variant: "destructive",
       });
       return;
     }
-    
-    likeMutation.mutate({ mediaId, isLiked });
-  };
 
-  // Handle download
-  const handleDownload = () => {
-    if (!media) return;
-    
-    // Create a temporary anchor element
-    const link = document.createElement('a');
-    link.href = media.url;
-    
-    // Set the download attribute with a filename
-    // Extract the filename from the URL or use the title/default
-    const filename = media.title || 
-                     media.url.split('/').pop() || 
-                     'download' + (isVideo ? '.mp4' : '.jpg');
-    
-    link.setAttribute('download', filename);
-    
-    // Append to the document temporarily
-    document.body.appendChild(link);
-    
-    // Trigger the download
-    link.click();
-    
-    // Clean up
-    document.body.removeChild(link);
-    
-    toast({
-      description: "Download started",
-    });
+    try {
+      // Delete the media item from the database
+      const { error: deleteError } = await supabase
+        .from("media")
+        .delete()
+        .eq("id", media.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Delete the image from storage
+      const imageUrlParts = media.url.split('/');
+      const imagePath = imageUrlParts.slice(3).join('/');
+
+      const { error: storageError } = await supabase.storage
+        .from('images')
+        .remove([imagePath]);
+
+      if (storageError) {
+        console.error("Error deleting image from storage:", storageError);
+        toast({
+          title: "Warning",
+          description: "Media deleted from database, but could not be deleted from storage. Please contact support.",
+          variant: "warning",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Media deleted successfully.",
+        });
+      }
+
+      onMediaDeleted();
+    } catch (error: any) {
+      console.error("Error deleting media:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete media.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-5">
-      {/* Image column */}
-      <div className="md:col-span-3 relative">
-        {isVideo ? (
-          <video 
-            src={media.url} 
-            controls
-            className="w-full h-auto rounded-md object-contain max-h-[500px]"
-          />
-        ) : (
-          <div className="relative group">
-            <img 
-              src={media.url} 
-              alt={media.title} 
-              className="w-full h-auto rounded-md object-contain max-h-[500px] cursor-pointer" 
-              onClick={onFullscreenClick}
+    <div className="space-y-4">
+      <div className="relative">
+        <AspectRatio ratio={16 / 9}>
+          {isVideoFile(new File([], media.url)) || isVideoUrl(media.url) ? (
+            <video
+              ref={videoRef}
+              src={media.url}
+              controls
+              className="w-full h-full object-cover rounded-md"
+              onClick={togglePlay}
             />
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button 
-                size="sm" 
-                variant="secondary" 
-                className="rounded-full p-2 h-8 w-8"
-                onClick={onFullscreenClick}
-              >
-                <Maximize className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {/* Media action buttons */}
-        <div className="flex justify-end mt-2 space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-            className="flex items-center gap-1"
-          >
-            <FileDown className="h-4 w-4" />
-            <span>Download</span>
-          </Button>
-        </div>
-      </div>
-      
-      {/* Info and comments column */}
-      <div className="md:col-span-2 space-y-4 max-h-[500px] overflow-y-auto">
-        {/* Post info */}
-        <div className="flex items-center gap-3">
-          <ProfileAvatar profile={media.profile} />
-          <div>
-            <p className="font-medium">{media.profile?.name}</p>
-            <p className="text-xs text-gray-500">
-              {new Date(media.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-        
-        {/* Description */}
-        {media.description && (
-          <p className="text-gray-700 dark:text-gray-300">{media.description}</p>
-        )}
-        
-        {/* Action buttons */}
-        <div className="flex justify-between">
-          <div className="flex gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`flex items-center gap-1 ${media.is_liked ? 'text-red-500' : ''}`}
-              onClick={() => handleLikeToggle(media.id, !!media.is_liked)}
-              disabled={likeMutation.isPending}
-            >
-              <Heart className={`h-4 w-4 ${media.is_liked ? 'fill-current' : ''}`} />
-              <span>{media.likes_count || 0} {media.likes_count === 1 ? 'Like' : 'Likes'}</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1"
-              // Comment functionality is disabled
-              disabled={true}
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>Comments</span>
-            </Button>
-          </div>
+          ) : (
+            <img
+              src={media.url}
+              alt={media.title}
+              className="w-full h-full object-cover rounded-md"
+            />
+          )}
+        </AspectRatio>
 
-          {/* Edit/Delete buttons */}
-          <div className="flex gap-2">
-            {canEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={onEditClick}
-              >
-                <Pencil className="h-4 w-4" />
-                <span className="hidden sm:inline">Edit</span>
+        <div className="absolute top-2 right-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
               </Button>
-            )}
-            
-            {canDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                onClick={onDeleteClick}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {user?.id === media.user_id && (
+                <>
+                  <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      handleDeleteMedia();
+                    }}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <Trash className="mr-2 h-4 w-4" /> Delete
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(media.url);
+                  toast({
+                    description: "Media URL copied to clipboard.",
+                  });
+                }}
               >
-                <Trash className="h-4 w-4" />
-                <span className="hidden sm:inline">Delete</span>
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {/* Comments Section Placeholder - disabled */}
-        <div className="mt-4 p-4 border border-dashed rounded-md bg-gray-50 dark:bg-gray-900">
-          <p className="text-center text-gray-500 dark:text-gray-400">
-            Comments are temporarily disabled
-          </p>
+                Copy media URL
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+        {media.title}
+      </h3>
+      <p className="text-sm text-muted-foreground">
+        Uploaded on {format(new Date(media.date_uploaded), 'PPP')} by {media?.profile?.name}
+      </p>
+      <p className="text-muted-foreground">{media.description}</p>
     </div>
   );
 }
