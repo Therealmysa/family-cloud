@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,7 +25,6 @@ export default function FamilyAdmin() {
     
     if (!profile.is_admin) {
       toast({
-        title: "Access denied",
         description: "You need to be a family admin to view this page.",
         variant: "destructive",
       });
@@ -45,7 +43,7 @@ export default function FamilyAdmin() {
       const { data, error } = await supabase
         .from("families")
         .select("*")
-        .eq("id", familyId)
+        .eq("id", familyId as any) // Type cast for UUID compatibility
         .single();
 
       if (error) throw error;
@@ -54,7 +52,7 @@ export default function FamilyAdmin() {
       const { count } = await supabase
         .from("profiles")
         .select("*", { count: 'exact', head: true })
-        .eq("family_id", familyId);
+        .eq("family_id", familyId as any); // Type cast for UUID compatibility
 
       setFamilyData({
         ...data,
@@ -65,7 +63,6 @@ export default function FamilyAdmin() {
     } catch (error) {
       console.error("Error fetching family data:", error);
       toast({
-        title: "Error",
         description: "Failed to load family data. Please try again.",
         variant: "destructive",
       });
@@ -78,7 +75,7 @@ export default function FamilyAdmin() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("family_id", familyId);
+        .eq("family_id", familyId as any); // Type cast for UUID compatibility
 
       if (error) throw error;
       setFamilyMembers(data);

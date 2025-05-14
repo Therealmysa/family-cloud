@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,12 +49,12 @@ export function CommentSection({ mediaId }: { mediaId: string }) {
     if (!user || !newComment.trim()) return;
 
     try {
-      // Insert directly into the comments table
+      // Insert directly into the comments table with explicit type casting
       const { error } = await supabase
         .from('comments')
         .insert({
-          media_id: mediaId,
-          user_id: user.id,
+          media_id: mediaId as unknown as any, // Type cast to handle UUID conversion
+          user_id: user.id as unknown as any,  // Type cast to handle UUID conversion 
           content: newComment.trim()
         });
 

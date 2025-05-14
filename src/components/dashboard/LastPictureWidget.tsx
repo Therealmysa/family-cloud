@@ -24,7 +24,7 @@ export const LastPictureWidget = () => {
 
       try {
         // Get the last picture uploaded to the family
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("media")
           .select(`
             id, 
@@ -36,10 +36,12 @@ export const LastPictureWidget = () => {
             user_id,
             profile:profiles(id, name, avatar_url, family_id)
           `)
-          .eq("family_id", profile.family_id)
+          .eq("family_id", profile.family_id as any) // Type cast for UUID compatibility
           .order("date_uploaded", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(1);
+
+        if (error) throw error;
 
         if (data && data.length > 0) {
           // Ensure we have all the required fields for the Media type

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,12 +29,12 @@ export const LastMessageWidget = () => {
 
       try {
         // Get all chats for the family
-        const { data: chats } = await supabase
+        const { data: chats, error: chatError } = await supabase
           .from("chats")
           .select("id")
-          .eq("family_id", profile.family_id);
+          .eq("family_id", profile.family_id as any); // Type cast for UUID compatibility
 
-        if (!chats || chats.length === 0) {
+        if (chatError || !chats || chats.length === 0) {
           setLoading(false);
           return;
         }
@@ -41,7 +42,7 @@ export const LastMessageWidget = () => {
         const chatIds = chats.map(chat => chat.id);
 
         // Get the last message from any chat
-        const { data: messages } = await supabase
+        const { data: messages, error: messageError } = await supabase
           .from("messages")
           .select(`
             id, 
@@ -55,8 +56,13 @@ export const LastMessageWidget = () => {
           .order("timestamp", { ascending: false })
           .limit(1);
 
-        if (messages && messages.length > 0) {
-          const message = messages[0];
+        if (messageError || !messages || messages.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        const message = messages[0];
+        if (message) {
           setLastMessage({
             content: message.content,
             timestamp: message.timestamp,

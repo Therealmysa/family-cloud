@@ -26,7 +26,6 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
 
       if (error) {
         toast({
-          title: "Error",
           description: "Failed to load messages",
           variant: "destructive",
         });
@@ -43,7 +42,6 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     } catch (error) {
       console.error("Error fetching messages:", error);
       toast({
-        title: "Error",
         description: "Failed to load messages",
         variant: "destructive",
       });
@@ -64,7 +62,7 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
       const { data: profilesData } = await supabase
         .from("profiles")
         .select("id, name, avatar_url, family_id")
-        .in("id", missingIds);
+        .in("id", missingIds as any[]); // Type cast for UUID compatibility
 
       if (profilesData) {
         const newProfiles = { ...profiles };
@@ -91,7 +89,7 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
         .from("messages")
         .insert({
           chat_id: selectedChat.id,
-          sender_id: userId,
+          sender_id: userId as any, // Type cast for UUID compatibility
           content,
         });
 
@@ -105,7 +103,6 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({
-        title: "Error",
         description: "Failed to send message",
         variant: "destructive",
       });

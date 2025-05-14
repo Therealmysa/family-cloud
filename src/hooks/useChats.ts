@@ -27,7 +27,6 @@ export function useChats(userId: string | undefined) {
       if (error) {
         console.error("Error fetching chats:", error);
         toast({
-          title: "Error",
           description: "Failed to load chats",
           variant: "destructive",
         });
@@ -48,13 +47,13 @@ export function useChats(userId: string | undefined) {
           if (typedChat.type === "private") {
             const otherMemberId = typedChat.members.find(id => id !== userId);
             if (otherMemberId) {
-              const { data: profileData } = await supabase
+              const { data: profileData, error: profileError } = await supabase
                 .from("profiles")
                 .select("id, name, avatar_url")
-                .eq("id", otherMemberId)
+                .eq("id", otherMemberId as any) // Type cast for UUID compatibility
                 .single();
 
-              if (profileData) {
+              if (profileData && !profileError) {
                 return {
                   ...typedChat,
                   otherMember: profileData

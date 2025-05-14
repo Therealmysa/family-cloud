@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,10 +24,10 @@ export function DangerZone() {
       const { error: profilesError } = await supabase
         .from("profiles")
         .update({
-          family_id: null,
+          family_id: null as any, // Type cast for UUID compatibility
           is_admin: false,
         })
-        .eq("family_id", profile.family_id);
+        .eq("family_id", profile.family_id as any); // Type cast for UUID compatibility
 
       if (profilesError) throw profilesError;
 
@@ -34,7 +35,7 @@ export function DangerZone() {
       const { error: familyError } = await supabase
         .from("families")
         .delete()
-        .eq("id", profile.family_id);
+        .eq("id", profile.family_id as any); // Type cast for UUID compatibility
 
       if (familyError) throw familyError;
 

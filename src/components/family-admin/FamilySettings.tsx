@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,14 +62,13 @@ export function FamilySettings({
           settings: {
             publicGallery: data.publicGallery,
             commentNotifications: data.commentNotifications,
-          },
+          } as any, // Type cast for settings compatibility
         })
-        .eq("id", profile.family_id);
+        .eq("id", profile.family_id as any); // Type cast for UUID compatibility
 
       if (error) throw error;
 
       toast({
-        title: "Settings updated",
         description: "Your family settings have been successfully updated.",
       });
       
@@ -78,7 +76,6 @@ export function FamilySettings({
       refreshFamilyData(profile.family_id);
     } catch (error: any) {
       toast({
-        title: "Error",
         description: error.message,
         variant: "destructive",
       });

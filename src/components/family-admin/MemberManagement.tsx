@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -36,10 +37,10 @@ export function MemberManagement({
       const { error } = await supabase
         .from("profiles")
         .update({
-          family_id: null,
+          family_id: null as any, // Type cast for UUID compatibility
           is_admin: false,
         })
-        .eq("id", memberId);
+        .eq("id", memberId as any); // Type cast for UUID compatibility
 
       if (error) throw error;
 
@@ -68,8 +69,8 @@ export function MemberManagement({
         .from("profiles")
         .update({
           is_admin: true,
-        })
-        .eq("id", memberId);
+        } as any) // Type cast for compatibility
+        .eq("id", memberId as any); // Type cast for UUID compatibility
 
       if (error) throw error;
 
@@ -98,8 +99,8 @@ export function MemberManagement({
         .from("profiles")
         .update({
           is_admin: false,
-        })
-        .eq("id", memberId);
+        } as any) // Type cast for compatibility
+        .eq("id", memberId as any); // Type cast for UUID compatibility
 
       if (error) throw error;
 
