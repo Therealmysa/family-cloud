@@ -33,63 +33,23 @@ export default function CreateFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Create new family - generate invite code directly here to avoid RLS issues
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
+      // Appeler la RPC pour créer la famille et lier l'utilisateur à la famille
       const { data: family, error: familyError } = await supabase
-        .from('families')
-        .insert({
-          name: data.name,
-          invite_code: inviteCode,
-        })
-        .select('id')
-        .single();
+        .rpc('create_family_and_link_profile', {
+          _invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          _name: data.name,
+        });
 
       if (familyError) throw familyError;
 
-      // Update user profile with family_id and admin status
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          family_id: family.id,
-          is_admin: true,
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-
       toast({
         title: "Family created!",
-        description: "Your family has been successfully created.",
+        description: "Your family has been successfully created and linked.",
         variant: "success",
       });
 
-      // Create the default family group chat
-      const { error: chatError } = await supabase
-        .from('chats')
-        .insert({
-          family_id: family.id,
-          type: 'group',
-          members: [user.id],
-        });
-
-      if (chatError) {
-        console.error("Error creating family chat:", chatError);
-        toast({
-          title: "Warning",
-          description: "Family created, but group chat creation failed.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Chat created",
-          description: "Family group chat has been created.",
-          variant: "success",
-        });
-      }
-
-      // Redirect to the home page
-      navigate('/');
+      // Rediriger vers le dashboard après le succès
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error creating family",
