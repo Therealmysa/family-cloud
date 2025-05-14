@@ -89,7 +89,7 @@ export default function CreateFamilyForm() {
       }
 
       // Redirect to the home page
-     setTimeout(() => {
+      setTimeout(() => {
         navigate('/dashboard');
         window.location.reload();
       }, 1000);
