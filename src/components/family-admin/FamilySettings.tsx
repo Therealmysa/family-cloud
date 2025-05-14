@@ -1,82 +1,123 @@
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
 
-import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { safeTypeCast } from "@/utils/supabaseHelpers";
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
+import { useEffect } from "react"
+import { useAuth } from "@/hooks/useAuth"
+import { ColorPicker } from "@/components/ui/color-picker"
+import { supabase } from "@/integrations/supabase/client"
+import { asFamilyUpdate } from "@/utils/supabaseHelpers"
 
-const familySchema = z.object({
-  name: z.string().min(1, "Family name is required"),
-  theme_color: z.string().optional(),
-});
+const familySettingsSchema = z.object({
+  familyName: z.string().min(2, {
+    message: "Family name must be at least 2 characters.",
+  }),
+  primaryColor: z.string().optional(),
+})
 
-const FamilySettings = ({ family }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const form = useForm({
-    resolver: zodResolver(familySchema),
+export function FamilySettings() {
+  const { toast } = useToast()
+  const { profile, family } = useAuth()
+
+  const form = useForm<z.infer<typeof familySettingsSchema>>({
+    resolver: zodResolver(familySettingsSchema),
     defaultValues: {
-      name: family.name,
-      theme_color: family.theme_color,
+      familyName: family?.name || "",
+      primaryColor: family?.theme_color || "#000000",
     },
-  });
+  })
 
-  const updateFamilySettings = async (values) => {
+  useEffect(() => {
+    if (family) {
+      form.reset({
+        familyName: family.name || "",
+        primaryColor: family.theme_color || "#000000",
+      })
+    }
+  }, [family, form])
+
+  const handleSubmit = async (values: z.infer<typeof familySettingsSchema>) => {
+    if (!profile?.family_id) {
+      toast({
+        title: "Not a member of a family",
+        description: "You must be a member of a family to change settings.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
-      setIsSubmitting(true);
-      
       const { error } = await supabase
         .from('families')
-        .update(safeTypeCast('families', {
-          name: values.name,
-          theme_color: values.theme_color
+        .update(asFamilyUpdate({
+          name: values.familyName,
+          theme_color: values.primaryColor
         }))
         .eq('id', family.id);
-
-      if (error) throw error;
-      
-      toast({
-        description: "Family settings updated successfully",
-      });
-      
-      // Optionally, you can invalidate queries or update local state here
+        
+      if (error) {
+        toast({
+          title: "Error updating family settings",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Success",
+          description: "Family settings updated successfully.",
+        })
+      }
     } catch (error) {
-      console.error(error);
       toast({
+        title: "Something went wrong",
+        description: "Failed to update family settings. Please try again.",
         variant: "destructive",
-        description: `Error updating family: ${error.message}`,
-      });
-    } finally {
-      setIsSubmitting(false);
+      })
     }
-  };
+  }
 
   return (
-    <Card>
-      <CardContent>
-        <h2 className="text-2xl font-bold">Family Settings</h2>
-        <form onSubmit={form.handleSubmit(updateFamilySettings)} className="space-y-4">
-          <Input
-            {...form.register("name")}
-            placeholder="Family Name"
-            className="w-full"
-          />
-          <Input
-            {...form.register("theme_color")}
-            placeholder="Theme Color (optional)"
-            className="w-full"
-          />
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Updating..." : "Update Family Settings"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default FamilySettings;
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="familyName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Family name</FormLabel>
+              <FormControl>
+                <Input placeholder="Family name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="primaryColor"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primary Color</FormLabel>
+              <FormControl>
+                <ColorPicker value={field.value} onChange={field.onChange} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Update family settings</Button>
+      </form>
+    </Form>
+  )
+}

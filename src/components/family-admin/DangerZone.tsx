@@ -1,172 +1,226 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { asUpdateType, asUUID, safeTypeCast } from "@/utils/supabaseHelpers";
+import { useNavigate } from "react-router-dom";
+import {
+  asProfileUpdate
+} from "@/utils/supabaseHelpers";
 
-export const DangerZone = () => {
+interface DangerZoneProps {
+  onFamilyDeleted?: () => void;
+}
+
+// Update the specific type casting sections
+export function DangerZone({ onFamilyDeleted }: DangerZoneProps) {
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
 
-  const deleteFamily = async () => {
-    if (!profile?.family_id) {
+  const handleLeaveFamilyClick = async () => {
+    if (!user || !profile) {
       toast({
-        title: "Error",
-        description: "No family to delete.",
+        title: "Not authenticated",
+        description: "You must be logged in to perform this action.",
         variant: "destructive",
       });
+      return;
+    }
+
+    const confirmLeave = window.confirm(
+      "Are you sure you want to leave your family? This action cannot be undone."
+    );
+
+    if (!confirmLeave) {
+      return;
+    }
+
+    setIsLeaving(true);
+    try {
+      // Update profile with proper type casting
+      const { error } = await supabase
+        .from('profiles')
+        .update(asProfileUpdate({
+          family_id: null
+        }))
+        .eq('id', user.id);
+
+      if (error) {
+        toast({
+          title: "Error leaving family",
+          description: error.message,
+          variant: "destructive",
+        });
+        console.error("Error leaving family:", error);
+      } else {
+        toast({
+          title: "Family left",
+          description: "You have successfully left the family.",
+        });
+        navigate("/setup-family");
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Failed to leave the family. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error leaving family:", error);
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  const handleDeleteFamily = async () => {
+    if (!user || !profile) {
+      toast({
+        title: "Not authenticated",
+        description: "You must be logged in to perform this action.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!profile.is_admin) {
+      toast({
+        title: "Unauthorized",
+        description: "You must be an admin to delete the family.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete your family? This action cannot be undone. All family data will be permanently lost."
+    );
+
+    if (!confirmDelete) {
       return;
     }
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('families')
-        .delete()
-        .eq('id', asUUID(profile.family_id));
-
-      if (error) throw error;
-
-      // Also set family_id to null for all users in the family
-      const { error: updateError } = await supabase
+      // Update all family members with proper type casting
+      const { error: profilesError } = await supabase
         .from('profiles')
-        .update(safeTypeCast('profiles', {
+        .update(asProfileUpdate({
           family_id: null,
           is_admin: false
         }))
-        .eq('family_id', asUUID(profile.family_id));
+        .eq('family_id', profile.family_id);
 
-      if (updateError) throw updateError;
-      
+      if (profilesError) {
+        toast({
+          title: "Error updating family members",
+          description: profilesError.message,
+          variant: "destructive",
+        });
+        console.error("Error updating family members:", profilesError);
+        return;
+      }
+
+      const { error: deleteFamilyError } = await supabase
+        .from('families')
+        .delete()
+        .eq('id', profile.family_id);
+
+      if (deleteFamilyError) {
+        toast({
+          title: "Error deleting family",
+          description: deleteFamilyError.message,
+          variant: "destructive",
+        });
+        console.error("Error deleting family:", deleteFamilyError);
+        return;
+      }
+
       toast({
-        title: "Success",
-        description: "Your family has been deleted. You'll be redirected to create or join a new family.",
+        title: "Family deleted",
+        description: "Your family has been successfully deleted.",
       });
-
-      setTimeout(() => {
-        navigate("/setup-family");
-      }, 1500);
+      navigate("/setup-family");
+      onFamilyDeleted?.();
     } catch (error) {
-      console.error('Error deleting family:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete family. Please try again.",
+        title: "An error occurred",
+        description: "Failed to delete the family. Please try again.",
         variant: "destructive",
       });
+      console.error("Error deleting family:", error);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const removeFamilyForUser = async (userId: string) => {
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "User ID is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsRemoving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(safeTypeCast('profiles', {
-          family_id: null,
-          is_admin: false
-        }))
-        .eq('id', asUUID(userId));
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "You have left the family. You'll be redirected to create or join a new family.",
-      });
-
-      setTimeout(() => {
-        navigate("/setup-family");
-      }, 1500);
-    } catch (error) {
-      console.error('Error removing user from family:', error);
-      toast({
-        title: "Error",
-        description: "Failed to leave family. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRemoving(false);
-    }
-  };
-
   return (
-    <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden">
-      <CardHeader className="pb-2 border-b border-border">
-        <CardTitle className="text-lg">Danger Zone</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-4">
-        <div className="space-y-4">
-          {profile?.is_admin ? (
-            <div className="space-y-2">
-              <h3 className="text-base font-medium text-red-500">Delete Family</h3>
-              <p className="text-sm text-muted-foreground">
-                Permanently delete this family and all of its data. This action cannot be undone.
-              </p>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Danger Zone</h3>
+      <div className="rounded-md border p-4">
+        <h4 className="text-sm font-semibold">Leave Family</h4>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Remove yourself from the current family.
+        </p>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="mt-2"
+          onClick={handleLeaveFamilyClick}
+          disabled={isLeaving}
+        >
+          Leave Family
+        </Button>
+      </div>
+
+      {profile?.is_admin && (
+        <div className="rounded-md border p-4">
+          <h4 className="text-sm font-semibold">Delete Family</h4>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Permanently delete this family and all associated data. This action
+            cannot be undone.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
               <Button
                 variant="destructive"
-                onClick={deleteFamily}
+                size="sm"
+                className="mt-2"
                 disabled={isDeleting}
-                className="w-full sm:w-auto"
               >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="mr-2 h-4 w-4" />
-                    Delete Family
-                  </>
-                )}
+                Delete Family
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <h3 className="text-base font-medium text-orange-500">Leave Family</h3>
-              <p className="text-sm text-muted-foreground">
-                Leave this family. You will no longer have access to family features.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => user?.id && removeFamilyForUser(user.id)}
-                disabled={isRemoving}
-                className="w-full sm:w-auto"
-              >
-                {isRemoving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Leaving...
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="mr-2 h-4 w-4" />
-                    Leave Family
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your family and remove all members.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteFamily}>
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
-};
+}

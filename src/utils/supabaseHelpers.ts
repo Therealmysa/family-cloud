@@ -107,3 +107,56 @@ export function isSafeData<T>(data: T | SelectQueryError): data is T {
 export function safeTypeCast<T extends keyof Tables>(tableName: T, data: Record<string, unknown>): Tables[T]['Insert'] | Tables[T]['Update'] {
   return data as any;
 }
+
+/**
+ * Helper specifically for inserting comments
+ * @param data Comment data to insert
+ */
+export function asCommentInsert(data: {
+  content: string;
+  media_id: string;
+  user_id: string;
+}): Tables['comments']['Insert'] {
+  return {
+    content: data.content,
+    media_id: data.media_id,
+    user_id: data.user_id
+  } as Tables['comments']['Insert'];
+}
+
+/**
+ * Helper specifically for updating profiles
+ */
+export function asProfileUpdate(data: Record<string, unknown>): Tables['profiles']['Update'] {
+  return data as Tables['profiles']['Update'];
+}
+
+/**
+ * Helper specifically for updating families
+ */
+export function asFamilyUpdate(data: Record<string, unknown>): Tables['families']['Update'] {
+  return data as Tables['families']['Update'];
+}
+
+/**
+ * Helper for using with safeData checks
+ */
+export function ensureSafeData<T>(data: T | SelectQueryError): T {
+  if (isSafeData(data)) {
+    return data;
+  }
+  throw new Error(data?.error?.message || 'Unknown error');
+}
+
+/**
+ * Safe accessor for messages with sender property
+ */
+export function safeMessageAccess<T extends { id?: any; sender?: any; content?: any; timestamp?: any; chat_id?: any; sender_id?: any }>(
+  message: T | SelectQueryError | null | undefined,
+  fallback: any
+): T {
+  if (!message || isError(message)) {
+    return fallback as T;
+  }
+  return message as T;
+}
