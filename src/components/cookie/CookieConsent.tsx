@@ -12,7 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Cookie } from "lucide-react";
+import { X } from "lucide-react";
 
 interface CookieSettings {
   analytics: boolean;
@@ -158,16 +158,15 @@ export default function CookieConsent() {
         </DialogContent>
       </Dialog>
 
-      {/* Minimized floating button to reopen cookie settings */}
+      {/* Floating button to reopen cookie settings */}
       <div className="fixed bottom-4 right-4 z-50">
         <Button 
-          variant="outline" 
-          size="icon" 
+          variant="secondary" 
+          size="sm" 
           onClick={handleReopen}
-          className="shadow-sm rounded-full h-8 w-8 p-0"
-          title="Cookie Settings"
+          className="shadow-lg flex items-center gap-2"
         >
-          <Cookie className="h-4 w-4" />
+          <span className="text-xs">Cookie Settings</span>
         </Button>
       </div>
     </>
