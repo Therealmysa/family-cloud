@@ -78,6 +78,9 @@ export const useAuthMethods = () => {
       localStorage.setItem(loginAttemptKey, (loginAttempts + 1).toString());
       localStorage.setItem(`${loginAttemptKey}_time`, now.toString());
       
+      // Add some delay to ensure Supabase API is responsive (helps with connection issues)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Attempt sign in
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

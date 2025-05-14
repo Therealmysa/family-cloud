@@ -15,7 +15,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storage: typeof window !== 'undefined' ? localStorage : undefined,
     detectSessionInUrl: true,
-    flowType: 'pkce' // More secure authentication flow
+    flowType: 'pkce', // More secure authentication flow
+    debug: true // Enable debug logs
   },
   global: {
     headers: {
@@ -30,6 +31,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   db: {
     schema: 'public'
+  },
+  // Add connection parameters to help with flaky connections
+  fetch: (url, options) => {
+    const fetchOptions = {
+      ...options,
+      headers: {
+        ...options?.headers,
+      },
+      // Increase timeout for better reliability on slow connections
+      signal: AbortSignal.timeout(30000), // 30 seconds timeout
+    };
+    return fetch(url, fetchOptions);
   }
 });
 
