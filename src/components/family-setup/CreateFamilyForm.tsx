@@ -17,6 +17,12 @@ const createFamilySchema = z.object({
 
 type CreateFamilyFormValues = z.infer<typeof createFamilySchema>;
 
+// Define a type for the response from create_family function
+interface CreateFamilyResponse {
+  family_id: string;
+  invite_code: string;
+}
+
 export default function CreateFamilyForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,12 +40,14 @@ export default function CreateFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Create new family using RPC function instead of direct insert
-      // This bypasses RLS issues by using a server-side function
-      const { data: result, error } = await supabase.rpc('create_family', {
-        family_name: data.name,
-        user_id: user.id
-      });
+      // Create new family using RPC function with proper type casting
+      const { data: result, error } = await supabase.rpc<CreateFamilyResponse>(
+        'create_family',
+        {
+          family_name: data.name,
+          user_id: user.id
+        }
+      );
 
       if (error) throw error;
       

@@ -17,6 +17,13 @@ const joinFamilySchema = z.object({
 
 type JoinFamilyFormValues = z.infer<typeof joinFamilySchema>;
 
+// Define a type for the response from join_family_by_invite function
+interface JoinFamilyResponse {
+  success: boolean;
+  message: string;
+  family_id?: string;
+}
+
 export default function JoinFamilyForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,11 +41,14 @@ export default function JoinFamilyForm() {
     
     setIsSubmitting(true);
     try {
-      // Use a server-side RPC function to join family instead of direct queries
-      const { data: result, error } = await supabase.rpc('join_family_by_invite', {
-        invite_code: data.inviteCode.toUpperCase(),
-        user_id: user.id
-      });
+      // Use a server-side RPC function with proper type casting
+      const { data: result, error } = await supabase.rpc<JoinFamilyResponse>(
+        'join_family_by_invite',
+        {
+          invite_code: data.inviteCode.toUpperCase(),
+          user_id: user.id
+        }
+      );
 
       if (error) throw error;
 

@@ -277,6 +277,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_family: {
+        Args: { family_name: string; user_id: string }
+        Returns: Json
+      }
       generate_unique_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -303,6 +307,10 @@ export type Database = {
       get_user_family_id: {
         Args: { user_id: string }
         Returns: string
+      }
+      join_family_by_invite: {
+        Args: { invite_code: string; user_id: string }
+        Returns: Json
       }
     }
     Enums: {
