@@ -277,6 +277,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_family: {
+        Args: { family_name: string; user_id: string }
+        Returns: Json
+      }
+      create_family_and_link_profile: {
+        Args: { _invite_code: string; _name: string }
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          invite_code: string
+          name: string
+          settings: Json | null
+          theme_color: string | null
+        }
+      }
       generate_unique_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -303,6 +319,10 @@ export type Database = {
       get_user_family_id: {
         Args: { user_id: string }
         Returns: string
+      }
+      join_family_by_invite: {
+        Args: { invite_code: string; user_id: string }
+        Returns: Json
       }
     }
     Enums: {

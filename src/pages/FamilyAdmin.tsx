@@ -8,17 +8,23 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { FamilySettings } from "@/components/family-admin/FamilySettings";
-import { MemberManagement } from "@/components/family-admin/MemberManagement";
 import { DangerZone } from "@/components/family-admin/DangerZone";
 import { InviteDialog } from "@/components/family-admin/InviteDialog";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { MemberActions } from "@/components/family/MemberActions";
+import { Profile } from "@/types/profile";
+import { Search } from "lucide-react";
 
 export default function FamilyAdmin() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [familyData, setFamilyData] = useState<any>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState<any[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Redirect if user not logged in or not an admin
   useEffect(() => {
@@ -87,6 +93,10 @@ export default function FamilyAdmin() {
     }
   };
 
+  const filteredMembers = familyMembers.filter(member => 
+    member.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <MainLayout title="Family Administration" requireAuth={true}>
@@ -118,12 +128,67 @@ export default function FamilyAdmin() {
             refreshFamilyData={fetchFamilyData}
           />
           
-          <MemberManagement 
-            familyMembers={familyMembers} 
-            currentUserId={user?.id} 
-            familyId={profile?.family_id}
-            refreshFamilyMembers={fetchFamilyMembers}
-          />
+          {/* Member Management Card */}
+          <Card className="overflow-hidden">
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle>Family Members</CardTitle>
+              <CardDescription>
+                Manage your family members and their permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6">
+              {/* Search input */}
+              <div className="relative mb-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search members..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              {/* Members list */}
+              {filteredMembers.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">No family members found</p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredMembers.map((member) => (
+                    <div 
+                      key={member.id}
+                      className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          {member.avatar_url ? (
+                            <AvatarImage src={member.avatar_url} alt={member.name} />
+                          ) : (
+                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">
+                            {member.name}
+                            {member.id === user?.id && <span className="text-sm text-gray-500 ml-2">(You)</span>}
+                          </p>
+                          {member.is_admin && (
+                            <span className="text-xs text-purple-600 font-medium">Administrator</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <MemberActions 
+                        member={member}
+                        currentUserId={user?.id || ""}
+                        onActionComplete={() => fetchFamilyMembers(profile.family_id || "")}
+                        isAdmin={profile?.is_admin || false}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
           
           <DangerZone />
         </div>

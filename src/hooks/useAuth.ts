@@ -8,3 +8,10 @@ export const useAuth = useAuthContext;
 
 // Export default for components that use default import
 export default useAuth;
+
+// Extending the AuthContextType (this will be used by TypeScript)
+declare module "@/contexts/AuthContext" {
+  interface AuthContextType {
+    refreshProfile?: () => Promise<void>;
+  }
+}
