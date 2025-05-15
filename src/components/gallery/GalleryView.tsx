@@ -1,4 +1,3 @@
-
 import { Calendar, User } from "lucide-react";
 import { Media } from "@/types/media";
 import { MediaItem } from "./MediaItem";
@@ -12,36 +11,41 @@ interface GalleryViewProps {
   onViewModeChange: (mode: "all" | "byDate" | "byMember") => void;
 }
 
-export const GalleryView = ({ 
-  isLoading, 
-  filteredMedia, 
-  onMediaClick, 
-  viewMode, 
-  onViewModeChange 
+export const GalleryView = ({
+  isLoading,
+  filteredMedia,
+  onMediaClick,
+  viewMode,
+  onViewModeChange,
 }: GalleryViewProps) => {
   // Group images by date
   const groupByDate = (images: Media[]) => {
     const grouped: Record<string, Media[]> = {};
-    images.forEach(img => {
+    images.forEach((img) => {
       const date = img.date_uploaded;
       if (!grouped[date]) grouped[date] = [];
       grouped[date].push(img);
     });
-    return Object.entries(grouped)
-      .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime());
+    return Object.entries(grouped).sort(
+      ([dateA], [dateB]) =>
+        new Date(dateB).getTime() - new Date(dateA).getTime()
+    );
   };
 
   // Group images by family member
   const groupByMember = (images: Media[]) => {
-    const grouped: Record<string, { name: string, avatar: string | null, images: Media[] }> = {};
-    images.forEach(img => {
+    const grouped: Record<
+      string,
+      { name: string; avatar: string | null; images: Media[] }
+    > = {};
+    images.forEach((img) => {
       if (img.profile) {
         const userId = img.user_id;
         if (!grouped[userId]) {
           grouped[userId] = {
             name: img.profile.name,
             avatar: img.profile.avatar_url,
-            images: []
+            images: [],
           };
         }
         grouped[userId].images.push(img);
@@ -54,10 +58,10 @@ export const GalleryView = ({
   const groupedByMember = groupByMember(filteredMedia);
 
   return (
-    <Tabs 
-      defaultValue="all" 
+    <Tabs
+      defaultValue="all"
       value={viewMode}
-      onValueChange={(value) => onViewModeChange(value as any)} 
+      onValueChange={(value) => onViewModeChange(value as any)}
       className="mb-6"
     >
       <TabsList className="mb-4">
@@ -69,7 +73,10 @@ export const GalleryView = ({
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+            <div
+              key={i}
+              className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"
+            />
           ))}
         </div>
       ) : (
@@ -95,16 +102,20 @@ export const GalleryView = ({
                   <div className="flex items-center gap-2">
                     <Calendar size={18} className="text-purple-500" />
                     <h3 className="font-semibold">
-                      {new Date(date).toLocaleDateString(undefined, { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                      {new Date(date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
                       })}
                     </h3>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {images.map((item) => (
-                      <MediaItem key={item.id} item={item} onClick={onMediaClick} />
+                      <MediaItem
+                        key={item.id}
+                        item={item}
+                        onClick={onMediaClick}
+                      />
                     ))}
                   </div>
                 </div>
@@ -126,7 +137,11 @@ export const GalleryView = ({
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {member.images.map((item) => (
-                      <MediaItem key={item.id} item={item} onClick={onMediaClick} />
+                      <MediaItem
+                        key={item.id}
+                        item={item}
+                        onClick={onMediaClick}
+                      />
                     ))}
                   </div>
                 </div>

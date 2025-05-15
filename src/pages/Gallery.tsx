@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +9,7 @@ import { Media } from "@/types/media";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import our new components
-import { CreatePostForm } from "@/components/gallery/CreatePostForm";
+import { MediaUploader } from "@/components/gallery/MediaUploader";
 import { SearchBar } from "@/components/gallery/SearchBar";
 import { GalleryView } from "@/components/gallery/GalleryView";
 
@@ -19,11 +18,17 @@ const Gallery = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedImage, setSelectedImage] = useState<Media | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">("all");
+  const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">(
+    "all"
+  );
   const [showCreatePost, setShowCreatePost] = useState(false);
   const isMobile = useIsMobile();
 
-  const { data: mediaItems, isLoading, refetch } = useQuery({
+  const {
+    data: mediaItems,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["gallery", profile?.family_id],
     queryFn: async () => {
       if (!profile?.family_id || !user?.id) return [];
@@ -31,10 +36,12 @@ const Gallery = () => {
       // Query media items for the family, including likes information
       const { data, error } = await supabase
         .from("media")
-        .select(`
+        .select(
+          `
           *,
           profile:profiles(id, name, avatar_url, family_id)
-        `)
+        `
+        )
         .eq("family_id", profile.family_id)
         .order("date_uploaded", { ascending: false })
         .order("created_at", { ascending: false });
@@ -46,27 +53,30 @@ const Gallery = () => {
       if (data.length === 0) return [];
 
       // Get likes for all media items using our RPC function
-      const mediaIds = data.map(item => item.id);
-      const { data: likesData, error: likesError } = await supabase
-        .rpc('get_likes_for_media', { 
+      const mediaIds = data.map((item) => item.id);
+      const { data: likesData, error: likesError } = await supabase.rpc(
+        "get_likes_for_media",
+        {
           media_ids: mediaIds,
-          current_user_id: user.id
-        });
+          current_user_id: user.id,
+        }
+      );
 
       if (likesError) {
         console.error("Error fetching likes:", likesError);
       }
 
       // Process media items to add like information
-      const processedData = data.map(item => {
-        const likeInfo = likesData && Array.isArray(likesData) 
-          ? likesData.find(like => like.media_id === item.id) 
-          : undefined;
-          
+      const processedData = data.map((item) => {
+        const likeInfo =
+          likesData && Array.isArray(likesData)
+            ? likesData.find((like) => like.media_id === item.id)
+            : undefined;
+
         return {
           ...item,
           likes_count: likeInfo?.likes_count || 0,
-          is_liked: likeInfo?.is_liked || false
+          is_liked: likeInfo?.is_liked || false,
         };
       });
 
@@ -76,10 +86,13 @@ const Gallery = () => {
   });
 
   // Filter media items based on search term
-  const filteredMedia = mediaItems?.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) || [];
+  const filteredMedia =
+    mediaItems?.filter(
+      (item) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description &&
+          item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    ) || [];
 
   // Handle opening the media dialog
   const handleOpenMedia = (media: Media) => {
@@ -107,8 +120,8 @@ const Gallery = () => {
     <MainLayout title="Gallery" requireAuth={true}>
       <div className="container max-w-6xl mx-auto px-4 py-6">
         {showCreatePost ? (
-          <CreatePostForm 
-            userId={user?.id || ""} 
+          <MediaUploader
+            userId={user?.id || ""}
             familyId={profile?.family_id || ""}
             onSuccess={() => {
               setShowCreatePost(false);
@@ -117,7 +130,7 @@ const Gallery = () => {
             onCancel={() => setShowCreatePost(false)}
           />
         ) : (
-          <SearchBar 
+          <SearchBar
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             onAddClick={() => setShowCreatePost(true)}
@@ -136,9 +149,9 @@ const Gallery = () => {
         )}
 
         {selectedImage && (
-          <MediaDialog 
-            media={selectedImage} 
-            open={dialogOpen} 
+          <MediaDialog
+            media={selectedImage}
+            open={dialogOpen}
             onOpenChange={(open) => {
               if (!open) handleDialogClose(false);
             }}

@@ -1,4 +1,3 @@
-
 import { Play } from "lucide-react";
 import { Media } from "@/types/media";
 
@@ -12,16 +11,16 @@ export const MediaItem = ({ item, onClick }: MediaItemProps) => {
   const isVideo = (url: string) => {
     return url.match(/\.(mp4|webm|ogg)$/i) !== null;
   };
-
+  console.log(item.url);
   return (
-    <div 
+    <div
       className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity relative"
       onClick={() => onClick(item)}
     >
       {isVideo(item.url) ? (
         <div className="relative h-full w-full">
-          <video 
-            src={item.url} 
+          <video
+            src={item.url}
             className="w-full h-full object-cover"
             poster={item.thumbnail_url}
             preload="metadata"
@@ -31,8 +30,8 @@ export const MediaItem = ({ item, onClick }: MediaItemProps) => {
           </div>
         </div>
       ) : (
-        <img 
-          src={item.url} 
+        <img
+          src={item.url}
           alt={item.title}
           className="w-full h-full object-cover"
           loading="lazy"

@@ -1,32 +1,33 @@
-
 import { useState, useCallback } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, X, ImagePlus, FileVideo } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import axios from "axios";
 import { asMediaInsert } from "@/utils/supabaseHelpers";
+import { supabase } from "@/integrations/supabase/client";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  description: z.string().max(500, "Description is too long").optional()
+  description: z.string().max(500, "Description is too long").optional(),
 });
 
-// Helper functions to check file types
-const isImageFile = (file: File): boolean => {
-  return file.type.startsWith('image/');
-};
-
-const isVideoFile = (file: File): boolean => {
-  return file.type.startsWith('video/');
-};
+const isImageFile = (file) => file.type.startsWith("image/");
+const isVideoFile = (file) => file.type.startsWith("video/");
 
 export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,11 +38,10 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
     resolver: zodResolver(postSchema),
     defaultValues: {
       title: "",
-      description: ""
-    }
+      description: "",
+    },
   });
 
-  // Setup dropzone for file uploads
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
@@ -49,12 +49,11 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
         toast({
           title: "Invalid file type",
           description: "Please upload a valid image or video file",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
       setMediaFile(file);
-      // Create preview
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -63,115 +62,88 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.webp'],
-      'video/*': ['.mp4', '.webm', '.ogg']
+      "image/*": [".jpg", ".jpeg", ".png", ".webp"],
+      "video/*": [".mp4", ".webm", ".ogg"],
     },
     maxSize: 50 * 1024 * 1024,
-    maxFiles: 1
+    maxFiles: 1,
   });
 
-  // Clear selected media
   const clearMedia = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setMediaFile(null);
     setPreviewUrl(null);
   };
 
-  // Reset the form
   const resetForm = () => {
     form.reset();
     clearMedia();
     onCancel();
   };
 
-  // Handle form submission
+  const folderPath = `families/${familyId}`;
+  const CLOUDINARY_UPLOAD_PRESET = "family_uploads";
+  const CLOUDINARY_CLOUD_NAME = "ddgxymljp";
+
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", mediaFile);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    formData.append("folder", folderPath);
+
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+      formData
+    );
+    return response.data.secure_url;
+  };
+
   const onSubmit = async (values) => {
     if (!userId || !familyId || !mediaFile) {
       toast({
         title: "Error",
         description: "Missing required information. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Create a unique filename with a UUID
-      const fileExt = mediaFile.name.split('.').pop() || '';
-      const fileName = `${crypto.randomUUID()}-${Date.now()}.${fileExt}`;
-      const filePath = `media/${fileName}`;
+      const cloudinaryUrl = await uploadToCloudinary(mediaFile);
 
-      // Explicitly set content type and cache control
-      const uploadOptions = {
-        contentType: mediaFile.type,
-        cacheControl: '3600',
-        upsert: false
-      };
-
-      // Upload media to storage - make sure the bucket name is correct
-      const { error: uploadError } = await supabase.storage
-        .from('family-media')
-        .upload(filePath, mediaFile, uploadOptions);
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      // Get public URL for the uploaded media
-      const { data: { publicUrl } } = supabase.storage
-        .from('family-media')
-        .getPublicUrl(filePath);
-
-      // Check if media is a video and create a thumbnail
       const isVideo = isVideoFile(mediaFile);
-      let thumbnailUrl = null;
-      
-      if (isVideo) {
-        // For videos, we'll use a timestamp URL parameter as a simple way to ensure the video loads a poster frame
-        thumbnailUrl = `${publicUrl}#t=0.1`;
-      }
+      const thumbnailUrl = isVideo ? `${cloudinaryUrl}#t=0.1` : null;
 
-      // Create media record
-      const { error: mediaError } = await supabase
-        .from('media')
-        .insert(asMediaInsert({
+      const { error: mediaError } = await supabase.from("media").insert(
+        asMediaInsert({
           title: values.title,
           description: values.description || null,
-          url: publicUrl,
+          url: cloudinaryUrl,
           user_id: userId,
           family_id: familyId,
-          thumbnail_url: thumbnailUrl
-        }));
+          thumbnail_url: thumbnailUrl,
+        })
+      );
 
-      if (mediaError) {
-        console.error("Media record error:", mediaError);
-        throw new Error(`Database error: ${mediaError.message}`);
-      }
+      if (mediaError) throw new Error(`Database error: ${mediaError.message}`);
 
-      // Clean up the preview URL
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
 
       toast({
         title: "Success!",
         description: "Your moment has been shared with your family.",
-        variant: "default"
+        variant: "default",
       });
 
       form.reset();
       clearMedia();
       onSuccess();
     } catch (error) {
-      console.error("Error in form submission:", error);
       toast({
         title: "Error sharing moment",
         description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -192,12 +164,10 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
           <span>Cancel</span>
         </Button>
       </div>
-
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Title Field */}
               <FormField
                 control={form.control}
                 name="title"
@@ -212,7 +182,6 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
                 )}
               />
 
-              {/* Description Field */}
               <FormField
                 control={form.control}
                 name="description"
@@ -232,7 +201,6 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
                 )}
               />
 
-              {/* Media Upload */}
               <FormItem>
                 <FormLabel>Media (Image or Video)</FormLabel>
                 <FormControl>
@@ -298,7 +266,6 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
                 <FormMessage />
               </FormItem>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
