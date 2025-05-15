@@ -6,16 +6,16 @@ export type InsertTables<T extends keyof Database['public']['Tables']> = Databas
 export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
 // Helper functions for type safety with Supabase
-export function asProfileUpdate(data: Partial<Tables['profiles']>): UpdateTables['profiles'] {
-  return data as UpdateTables['profiles'];
+export function asProfileUpdate(data: Partial<Tables<'profiles'>>): UpdateTables<'profiles'> {
+  return data as UpdateTables<'profiles'>;
 }
 
-export function asFamilyUpdate(data: Partial<Tables['families']>): UpdateTables['families'] {
-  return data as UpdateTables['families'];
+export function asFamilyUpdate(data: Partial<Tables<'families'>>): UpdateTables<'families'> {
+  return data as UpdateTables<'families'>;
 }
 
-export function asMediaInsert(data: Partial<Tables['media']>): InsertTables['media'] {
-  return data as InsertTables['media'];
+export function asMediaInsert(data: Partial<Tables<'media'>>): InsertTables<'media'> {
+  return data as InsertTables<'media'>;
 }
 
 // Function to get the file extension

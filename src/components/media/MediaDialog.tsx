@@ -29,15 +29,15 @@ import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { MediaEditForm } from './MediaEditForm';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
-interface MediaDialogProps {
+export interface MediaDialogProps {
   media: Media | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   familyId: string | null | undefined;
   onMediaUpdated?: () => void;
   onMediaDeleted?: () => void;
-  onMediaUpdate: (updated: Media) => void;
-  onClose: () => void;
+  onMediaUpdate?: (updated: Media) => void;
+  onClose?: () => void;
 }
 
 export function MediaDialog({ 
@@ -46,7 +46,9 @@ export function MediaDialog({
   onOpenChange,
   familyId,
   onMediaUpdated,
-  onMediaDeleted
+  onMediaDeleted,
+  onMediaUpdate = () => {},
+  onClose = () => {}
 }: MediaDialogProps) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();

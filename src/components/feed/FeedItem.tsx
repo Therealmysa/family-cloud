@@ -21,9 +21,20 @@ export const FeedItem = ({
 }: FeedItemProps) => {
   const { profile } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentMedia, setCurrentMedia] = useState<Media>(item);
   
   // Check if item is a video
   const isVideo = item.url.match(/\.(mp4|webm|ogg)$/i);
+
+  // Handler for media updates
+  const handleMediaUpdate = (updatedMedia: Media) => {
+    setCurrentMedia(updatedMedia);
+  };
+
+  // Handler for dialog close
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
 
   return (
     <>
@@ -89,10 +100,12 @@ export const FeedItem = ({
       </Card>
 
       <MediaDialog 
-        media={dialogOpen ? item : null} 
+        media={dialogOpen ? currentMedia : null} 
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
-        familyId={profile?.family_id} 
+        familyId={profile?.family_id}
+        onMediaUpdate={handleMediaUpdate}
+        onClose={handleDialogClose}
       />
     </>
   );

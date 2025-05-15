@@ -88,11 +88,18 @@ const Gallery = () => {
   };
 
   // Handle dialog close and refresh data if needed
-  const handleDialogClose = (needsRefresh: boolean) => {
+  const handleDialogClose = (needsRefresh: boolean = false) => {
     setDialogOpen(false);
     setSelectedImage(null);
     if (needsRefresh) {
       refetch();
+    }
+  };
+
+  // Handle media update
+  const handleMediaUpdate = (updatedMedia: Media) => {
+    if (selectedImage) {
+      setSelectedImage(updatedMedia);
     }
   };
 
@@ -139,7 +146,9 @@ const Gallery = () => {
             onMediaDeleted={() => {
               handleDialogClose(true);
             }}
-            familyId={profile?.family_id} 
+            familyId={profile?.family_id}
+            onMediaUpdate={handleMediaUpdate}
+            onClose={() => handleDialogClose()}
           />
         )}
       </div>

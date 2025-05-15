@@ -16,6 +16,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  refreshProfile?: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +26,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Function to refresh user profile data
+  const refreshProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const profileData = await fetchUserProfile(user.id);
+      setProfile(profileData);
+    } catch (err) {
+      console.error("Error refreshing profile:", err);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST (to prevent deadlocks)
@@ -87,6 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signOut,
     resetPassword,
+    refreshProfile,
   };
 
   return (
