@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, X, ImagePlus, FileVideo } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { asMediaInsert } from "@/utils/supabaseHelpers";
+import { v4 as uuidv4 } from "uuid";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -30,8 +31,8 @@ const isVideoFile = (file: File): boolean => {
 
 export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mediaFile, setMediaFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm({
     resolver: zodResolver(postSchema),
@@ -42,7 +43,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
   });
 
   // Setup dropzone for file uploads
-  const onDrop = useCallback((acceptedFiles) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       if (!isImageFile(file) && !isVideoFile(file)) {
@@ -87,7 +88,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
   };
 
   // Handle form submission
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: any) => {
     if (!userId || !familyId || !mediaFile) {
       toast({
         title: "Error",
@@ -99,10 +100,13 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
 
     setIsSubmitting(true);
     try {
-      // Create a unique filename with a UUID
+      // Generate a unique filename using UUID
       const fileExt = mediaFile.name.split('.').pop() || '';
-      const fileName = `${crypto.randomUUID()}-${Date.now()}.${fileExt}`;
+      const fileName = `${uuidv4()}-${Date.now()}.${fileExt}`;
       const filePath = `media/${fileName}`;
+
+      console.log("Uploading file:", filePath);
+      console.log("File type:", mediaFile.type);
 
       // Explicitly set content type and cache control
       const uploadOptions = {
@@ -111,8 +115,8 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
         upsert: false
       };
 
-      // Upload media to storage - make sure the bucket name is correct
-      const { error: uploadError } = await supabase.storage
+      // Upload media to storage bucket
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('family-media')
         .upload(filePath, mediaFile, uploadOptions);
 
@@ -121,10 +125,14 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      // Get public URL for the uploaded media
-      const { data: { publicUrl } } = supabase.storage
+      console.log("Upload successful:", uploadData);
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
         .from('family-media')
         .getPublicUrl(filePath);
+
+      console.log("Public URL:", publicUrlData.publicUrl);
 
       // Check if media is a video and create a thumbnail
       const isVideo = isVideoFile(mediaFile);
@@ -132,7 +140,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
       
       if (isVideo) {
         // For videos, we'll use a timestamp URL parameter as a simple way to ensure the video loads a poster frame
-        thumbnailUrl = `${publicUrl}#t=0.1`;
+        thumbnailUrl = `${publicUrlData.publicUrl}#t=0.1`;
       }
 
       // Create media record
@@ -141,7 +149,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
         .insert(asMediaInsert({
           title: values.title,
           description: values.description || null,
-          url: publicUrl,
+          url: publicUrlData.publicUrl,
           user_id: userId,
           family_id: familyId,
           thumbnail_url: thumbnailUrl
@@ -166,7 +174,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
       form.reset();
       clearMedia();
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in form submission:", error);
       toast({
         title: "Error sharing moment",

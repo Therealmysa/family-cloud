@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, Loader2, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Home, Loader2, Users, Camera, X } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 // Define the shape of the family settings object
 interface FamilySettings {
@@ -41,6 +42,9 @@ export function FamilySettings({
   refreshFamilyData 
 }: FamilySettingsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(familyData?.avatar_url);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -50,6 +54,12 @@ export function FamilySettings({
       commentNotifications: familyData?.settings?.commentNotifications ?? true,
     },
   });
+
+  useEffect(() => {
+    if (familyData?.avatar_url) {
+      setAvatarUrl(familyData.avatar_url);
+    }
+  }, [familyData]);
 
   const onSubmit = async (data: AdminFormValues) => {
     if (!profile?.family_id) return;
@@ -87,6 +97,93 @@ export function FamilySettings({
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.family_id) return;
+
+    // Create preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    setIsUploadingAvatar(true);
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `family-${profile.family_id}/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('family-avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('family-avatars')
+        .getPublicUrl(filePath);
+
+      // Update family record with new avatar URL
+      const { error: updateError } = await supabase
+        .from('families')
+        .update({ avatar_url: publicUrl })
+        .eq('id', profile.family_id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast({
+        title: "Avatar updated",
+        description: "Your family avatar has been successfully updated.",
+      });
+
+      // Refresh family data
+      refreshFamilyData(profile.family_id);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update avatar",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (!profile?.family_id) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const { error } = await supabase
+        .from('families')
+        .update({ avatar_url: null })
+        .eq('id', profile.family_id);
+
+      if (error) throw error;
+
+      setAvatarUrl(null);
+      setPreviewUrl(null);
+      
+      toast({
+        title: "Avatar removed",
+        description: "Your family avatar has been removed.",
+      });
+
+      // Refresh family data
+      refreshFamilyData(profile.family_id);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 sm:px-6">
@@ -96,17 +193,62 @@ export function FamilySettings({
         </CardDescription>
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
-            <AvatarFallback className="bg-purple-100 text-purple-800">
-              <Home className="h-5 w-5 sm:h-6 sm:w-6" />
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <div className="relative">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
+              {previewUrl ? (
+                <AvatarImage src={previewUrl} alt="Preview" />
+              ) : avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt="Family Avatar" />
+              ) : (
+                <AvatarFallback className="bg-purple-100 text-purple-800">
+                  <Home className="h-8 w-8" />
+                </AvatarFallback>
+              )}
+            </Avatar>
+            
+            <div className="absolute bottom-0 right-0 flex space-x-1">
+              <label 
+                htmlFor="avatar-upload" 
+                className={`flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white cursor-pointer ${isUploadingAvatar ? 'opacity-50' : ''}`}
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isUploadingAvatar}
+                  onChange={handleAvatarChange}
+                />
+              </label>
+              
+              {(avatarUrl || previewUrl) && (
+                <button 
+                  type="button" 
+                  onClick={removeAvatar}
+                  disabled={isUploadingAvatar}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
           <div>
             <h3 className="font-medium text-lg sm:text-xl">{familyData?.name}</h3>
             <p className="text-sm text-gray-500">
               {familyData?.memberCount || 0} {(familyData?.memberCount || 0) === 1 ? 'member' : 'members'}
             </p>
+            {familyData?.owner_id === profile?.id && (
+              <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium mt-1 inline-block">
+                Owner
+              </span>
+            )}
           </div>
         </div>
 

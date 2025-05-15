@@ -1,61 +1,58 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Copy, CheckCircle, Home, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Copy, CheckCircle, Home, Users, Crown } from "lucide-react";
 import { LeaveFamilyButton } from "./LeaveFamilyButton";
+import { FamilyMembers } from "./FamilyMembers";
 
 export function FamilyInfoCard() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [familyData, setFamilyData] = useState<any>(null);
-  const [memberCount, setMemberCount] = useState<number | null>(null);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [inviteCodeCopied, setInviteCodeCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
 
-  // Function to load family data
-  const fetchFamilyData = async () => {
-    if (!profile?.family_id) return;
-    
-    setLoading(true);
+  useEffect(() => {
+    if (profile?.family_id) {
+      fetchFamilyData(profile.family_id);
+    } else {
+      setIsLoading(false);
+    }
+  }, [profile]);
+
+  const fetchFamilyData = async (familyId: string) => {
     try {
-      // Get family data
-      const { data: family, error: familyError } = await supabase
+      const { data, error } = await supabase
         .from("families")
         .select("*")
-        .eq("id", profile.family_id)
+        .eq("id", familyId)
         .single();
 
-      if (familyError) throw familyError;
-      
-      // Count members
-      const { count, error: countError } = await supabase
+      if (error) throw error;
+
+      // Get member count
+      const { count } = await supabase
         .from("profiles")
         .select("*", { count: 'exact', head: true })
-        .eq("family_id", profile.family_id);
-      
-      if (countError) throw countError;
+        .eq("family_id", familyId);
 
-      setFamilyData(family);
-      setMemberCount(count || 0);
+      setFamilyData({
+        ...data,
+        memberCount: count || 0
+      });
     } catch (error) {
       console.error("Error fetching family data:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
-  // Load family data when component is mounted and when profile changes
-  useState(() => {
-    if (profile?.family_id) {
-      fetchFamilyData();
-    }
-  });
 
   const copyInviteCode = () => {
     if (!familyData?.invite_code) return;
@@ -68,88 +65,143 @@ export function FamilyInfoCard() {
     }, 3000);
   };
 
-  // If user has no family, don't render anything
-  if (!profile?.family_id) return null;
+  // If no profile or no family_id
+  if (!profile || !profile.family_id) {
+    return null;
+  }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-purple-100 text-purple-800">
-              <Home className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <CardTitle className="text-xl">My Family</CardTitle>
-            <CardDescription>
-              {familyData?.name || "Loading..."}
-            </CardDescription>
-          </div>
-          {profile?.is_admin && (
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-              Admin
-            </Badge>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-lg font-medium">Family Information</CardTitle>
+          {profile.is_admin && (
+            <Button variant="outline" size="sm" asChild>
+              <a href="/family-admin">Manage</a>
+            </Button>
           )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500 flex items-center">
-              <Users className="h-4 w-4 mr-1.5 text-gray-400" />
-              {memberCount !== null ? `${memberCount} members` : "Loading members..."}
-            </span>
-            <LeaveFamilyButton />
-          </div>
-          
-          <Button
-            variant="outline" 
-            className="w-full mt-3"
-            onClick={() => setShowInviteDialog(true)}
-          >
-            View Invite Code
-          </Button>
-        </div>
-
-        {/* Invite Code Dialog */}
-        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Family Invite Code</DialogTitle>
-              <DialogDescription>
-                Share this code with people you want to join your family
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
-              <h3 className="text-2xl font-mono tracking-wider font-bold mb-3">
-                {familyData?.invite_code || "------"}
-              </h3>
-              <p className="text-sm text-gray-500 mb-4">
-                This code can be used to join your family from the setup screen
-              </p>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={copyInviteCode}
-              >
-                {inviteCodeCopied ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    Copy Code
-                  </>
-                )}
-              </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-14 w-14 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
             </div>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14">
+                  {familyData?.avatar_url ? (
+                    <AvatarImage src={familyData.avatar_url} alt={familyData.name} />
+                  ) : (
+                    <AvatarFallback className="bg-purple-100 text-purple-800">
+                      <Home className="h-6 w-6" />
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold">{familyData?.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {familyData?.memberCount || 0} member{familyData?.memberCount === 1 ? '' : 's'}
+                    </p>
+                    {user?.id === familyData?.owner_id && (
+                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
+                        Owner
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowMembersDialog(true)}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  View Family Members
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowInviteDialog(true)}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Family Invite Code
+                </Button>
+              </div>
+
+              {!profile.is_admin && (
+                <div className="pt-2">
+                  <LeaveFamilyButton />
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invite Code Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Family Invite Code</DialogTitle>
+            <DialogDescription>
+              Share this code with people you want to join your family
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
+            <h3 className="text-2xl font-mono tracking-wider font-bold mb-3">
+              {familyData?.invite_code || "------"}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              This code can be used to join your family from the setup screen
+            </p>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={copyInviteCode}
+            >
+              {inviteCodeCopied ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  Copy Code
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Members Dialog */}
+      <Dialog open={showMembersDialog} onOpenChange={setShowMembersDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Family Members</DialogTitle>
+            <DialogDescription>
+              All members of your family
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <FamilyMembers familyId={profile.family_id} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

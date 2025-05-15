@@ -16,6 +16,7 @@ import { MemberActions } from "@/components/family/MemberActions";
 import { Profile } from "@/types/profile";
 import { Search } from "lucide-react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { FamilyMembers } from "@/components/family/FamilyMembers";
 
 export default function FamilyAdmin() {
   const { user, profile } = useAuth();
@@ -168,6 +169,11 @@ export default function FamilyAdmin() {
                           {member.is_admin && (
                             <span className="text-xs text-purple-600 font-medium">Administrator</span>
                           )}
+                          {member.id === familyData?.owner_id && (
+                            <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium ml-2">
+                              Owner
+                            </span>
+                          )}
                         </div>
                       </div>
                       
@@ -176,6 +182,7 @@ export default function FamilyAdmin() {
                         currentUserId={user?.id || ""}
                         onActionComplete={() => fetchFamilyMembers(profile.family_id || "")}
                         isAdmin={profile?.is_admin || false}
+                        familyOwnerId={familyData?.owner_id}
                       />
                     </div>
                   ))}
