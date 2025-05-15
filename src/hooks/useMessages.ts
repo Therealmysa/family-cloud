@@ -63,11 +63,11 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     if (missingIds.length > 0) {
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("id, name, avatar_url, family_id, email, is_admin")
+        .select("id, name, avatar_url, family_id")
         .in("id", missingIds);
 
       if (profilesData) {
-        const newProfiles: Record<string, Profile> = { ...profiles };
+        const newProfiles = { ...profiles };
         profilesData.forEach(profile => {
           newProfiles[profile.id] = profile;
         });
@@ -150,14 +150,14 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
           if (!profiles[newMessage.sender_id]) {
             const { data } = await supabase
               .from("profiles")
-              .select("id, name, avatar_url, family_id, email, is_admin")
+              .select("id, name, avatar_url, family_id")
               .eq("id", newMessage.sender_id)
               .single();
               
             if (data) {
               setProfiles(current => ({
                 ...current,
-                [data.id]: data as Profile
+                [data.id]: data
               }));
             }
           }

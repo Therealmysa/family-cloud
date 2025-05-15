@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Shield, ShieldOff, UserX, Crown } from "lucide-react";
+import { MoreHorizontal, Shield, ShieldOff, UserX } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { asProfileUpdate } from "@/utils/supabaseHelpers";
 import { Profile } from "@/types/profile";
@@ -19,21 +19,14 @@ interface MemberActionsProps {
   currentUserId: string;
   onActionComplete: () => void;
   isAdmin: boolean;
-  familyOwnerId?: string;
 }
 
-export function MemberActions({ member, currentUserId, onActionComplete, isAdmin, familyOwnerId }: MemberActionsProps) {
+export function MemberActions({ member, currentUserId, onActionComplete, isAdmin }: MemberActionsProps) {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  const isOwner = familyOwnerId === currentUserId;
-  const memberIsOwner = member.id === familyOwnerId;
 
   // Don't show actions if not an admin or if it's the current user
   if (!isAdmin || member.id === currentUserId) return null;
-
-  // If the member is the owner, only the owner can modify them
-  if (memberIsOwner && !isOwner) return null;
 
   const makeAdmin = async () => {
     setIsProcessing(true);
@@ -63,16 +56,6 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
   };
 
   const removeAdminRole = async () => {
-    // Prevent removing admin from owner
-    if (memberIsOwner) {
-      toast({
-        title: "Not allowed",
-        description: "Cannot remove admin status from the family owner.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsProcessing(true);
     try {
       const { error } = await supabase
@@ -100,16 +83,6 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
   };
 
   const removeMember = async () => {
-    // Prevent removing the owner
-    if (memberIsOwner) {
-      toast({
-        title: "Not allowed",
-        description: "Cannot remove the family owner.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsProcessing(true);
     try {
       const { error } = await supabase
@@ -150,12 +123,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {memberIsOwner ? (
-            <DropdownMenuItem disabled className="opacity-50">
-              <Crown className="h-4 w-4 mr-2 text-amber-500" />
-              <span>Family Owner</span>
-            </DropdownMenuItem>
-          ) : !member.is_admin ? (
+          {!member.is_admin ? (
             <DropdownMenuItem onClick={makeAdmin} disabled={isProcessing}>
               <Shield className="h-4 w-4 mr-2 text-blue-500" />
               <span>Make Admin</span>
@@ -167,16 +135,14 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
             </DropdownMenuItem>
           )}
           
-          {!memberIsOwner && (
-            <DropdownMenuItem 
-              onClick={() => setShowRemoveDialog(true)}
-              disabled={isProcessing} 
-              className="text-red-500 focus:text-red-500 focus:bg-red-50"
-            >
-              <UserX className="h-4 w-4 mr-2" />
-              <span>Remove from Family</span>
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem 
+            onClick={() => setShowRemoveDialog(true)}
+            disabled={isProcessing} 
+            className="text-red-500 focus:text-red-500 focus:bg-red-50"
+          >
+            <UserX className="h-4 w-4 mr-2" />
+            <span>Remove from Family</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

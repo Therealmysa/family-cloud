@@ -80,7 +80,6 @@ export type Database = {
           id: string
           invite_code: string
           name: string
-          owner_id: string | null
           settings: Json | null
           theme_color: string | null
         }
@@ -90,7 +89,6 @@ export type Database = {
           id?: string
           invite_code: string
           name: string
-          owner_id?: string | null
           settings?: Json | null
           theme_color?: string | null
         }
@@ -100,7 +98,6 @@ export type Database = {
           id?: string
           invite_code?: string
           name?: string
-          owner_id?: string | null
           settings?: Json | null
           theme_color?: string | null
         }
@@ -292,7 +289,6 @@ export type Database = {
           id: string
           invite_code: string
           name: string
-          owner_id: string | null
           settings: Json | null
           theme_color: string | null
         }
