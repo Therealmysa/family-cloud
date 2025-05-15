@@ -123,14 +123,12 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {!member.is_admin && (
+          {!member.is_admin ? (
             <DropdownMenuItem onClick={makeAdmin} disabled={isProcessing}>
               <Shield className="h-4 w-4 mr-2 text-blue-500" />
               <span>Make Admin</span>
             </DropdownMenuItem>
-          )}
-          
-          {member.is_admin && (
+          ) : (
             <DropdownMenuItem onClick={removeAdminRole} disabled={isProcessing}>
               <ShieldOff className="h-4 w-4 mr-2 text-orange-500" />
               <span>Remove Admin Role</span>

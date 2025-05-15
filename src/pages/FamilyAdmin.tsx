@@ -11,11 +11,11 @@ import { FamilySettings } from "@/components/family-admin/FamilySettings";
 import { DangerZone } from "@/components/family-admin/DangerZone";
 import { InviteDialog } from "@/components/family-admin/InviteDialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { MemberActions } from "@/components/family/MemberActions";
 import { Profile } from "@/types/profile";
 import { Search } from "lucide-react";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 
 export default function FamilyAdmin() {
   const { user, profile } = useAuth();
@@ -159,13 +159,7 @@ export default function FamilyAdmin() {
                       className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          {member.avatar_url ? (
-                            <AvatarImage src={member.avatar_url} alt={member.name} />
-                          ) : (
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                          )}
-                        </Avatar>
+                        <ProfileAvatar profile={member} size="md" />
                         <div>
                           <p className="font-medium">
                             {member.name}
