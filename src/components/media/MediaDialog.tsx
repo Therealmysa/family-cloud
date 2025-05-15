@@ -1,12 +1,11 @@
-
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { 
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -16,18 +15,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Heart, MessageCircle, Pencil, Trash, FileDown, X, Play, Maximize } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CommentSection } from '../comments/CommentSection';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/components/ui/use-toast';
-import { Media } from '@/types/media';
-import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
-import { MediaEditForm } from './MediaEditForm';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import {
+  Heart,
+  MessageCircle,
+  Pencil,
+  Trash,
+  FileDown,
+  X,
+  Play,
+  Maximize,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CommentSection } from "../comments/CommentSection";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/components/ui/use-toast";
+import { Media } from "@/types/media";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { MediaEditForm } from "./MediaEditForm";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import axios from "axios";
 
 export interface MediaDialogProps {
   media: Media | null;
@@ -40,19 +50,19 @@ export interface MediaDialogProps {
   onClose?: () => void;
 }
 
-export function MediaDialog({ 
-  media, 
-  open, 
+export function MediaDialog({
+  media,
+  open,
   onOpenChange,
   familyId,
   onMediaUpdated,
   onMediaDeleted,
   onMediaUpdate = () => {},
-  onClose = () => {}
+  onClose = () => {},
 }: MediaDialogProps) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'comments'>('comments');
+  const [activeTab, setActiveTab] = useState<"comments">("comments");
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [fullscreenView, setFullscreenView] = useState(false);
@@ -62,27 +72,33 @@ export function MediaDialog({
 
   // Check if user can edit the media (only the creator can edit)
   const canEdit = media?.user_id === user?.id;
-  
+
   // Check if user can delete the media (creator or admin can delete)
   const canDelete = media?.user_id === user?.id || profile?.is_admin === true;
 
   // Handle like/unlike
   const likeMutation = useMutation({
-    mutationFn: async ({ mediaId, isLiked }: { mediaId: string, isLiked: boolean }) => {
+    mutationFn: async ({
+      mediaId,
+      isLiked,
+    }: {
+      mediaId: string;
+      isLiked: boolean;
+    }) => {
       if (isLiked) {
         // Unlike - delete the like
         const { error } = await supabase
-          .from('likes')
+          .from("likes")
           .delete()
           .match({ user_id: user?.id, media_id: mediaId });
-        
+
         if (error) throw error;
       } else {
         // Like - insert new like
         const { error } = await supabase
-          .from('likes')
+          .from("likes")
           .insert({ user_id: user?.id, media_id: mediaId });
-        
+
         if (error) throw error;
       }
     },
@@ -90,14 +106,14 @@ export function MediaDialog({
       // Update the cache optimistically
       queryClient.setQueryData<Media[]>(["feed", familyId], (oldData) => {
         if (!oldData) return [];
-        
-        return oldData.map(item => {
+
+        return oldData.map((item) => {
           if (item.id === variables.mediaId) {
             const likeDelta = variables.isLiked ? -1 : 1;
             return {
               ...item,
               likes_count: (item.likes_count || 0) + likeDelta,
-              is_liked: !variables.isLiked
+              is_liked: !variables.isLiked,
             };
           }
           return item;
@@ -107,14 +123,14 @@ export function MediaDialog({
       // Also update the gallery data if it exists
       queryClient.setQueryData<Media[]>(["gallery", familyId], (oldData) => {
         if (!oldData) return [];
-        
-        return oldData.map(item => {
+
+        return oldData.map((item) => {
           if (item.id === variables.mediaId) {
             const likeDelta = variables.isLiked ? -1 : 1;
             return {
               ...item,
               likes_count: (item.likes_count || 0) + likeDelta,
-              is_liked: !variables.isLiked
+              is_liked: !variables.isLiked,
             };
           }
           return item;
@@ -127,47 +143,96 @@ export function MediaDialog({
         description: "Failed to update like status",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Handle delete media
   const deleteMutation = useMutation({
     mutationFn: async (mediaId: string) => {
-      const { error } = await supabase
-        .from('media')
-        .delete()
-        .eq('id', mediaId);
-        
+      // 1. Récupérer l'URL Cloudinary dans Supabase
+      const { data, error: fetchError } = await supabase
+        .from("media")
+        .select("url")
+        .eq("id", mediaId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const fileUrl = data.url;
+      const extractCloudinaryPublicId = (url: string): string | null => {
+        const matches = url.match(/\/upload\/(?:v\d+\/)?(.+?)(\.[a-z]+)?$/i);
+        return matches ? matches[1] : null;
+      };
+
+      const publicId = extractCloudinaryPublicId(fileUrl);
+      if (!publicId) throw new Error("Cloudinary public_id not found");
+
+      // Appel de ta edge function Supabase pour obtenir signature & timestamp
+      const { data: signatureData, error: signatureError } =
+        await supabase.functions.invoke("generate-cloudinary-signature", {
+          body: {
+            public_id: publicId,
+            folder: "",
+          },
+        });
+
+      if (signatureError) {
+        throw new Error(signatureError.message || "Echec signature Cloudinary");
+      }
+
+      const { signature, timestamp, api_key, cloud_name } = signatureData;
+
+      const formData = new URLSearchParams();
+      formData.append("public_id", publicId);
+      formData.append("timestamp", String(timestamp));
+      formData.append("signature", signature);
+      formData.append("api_key", api_key);
+
+      const cloudinaryDeleteRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/destroy`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const result = await cloudinaryDeleteRes.json();
+
+      if (result.result !== "ok") {
+        throw new Error("Error! The file has not been deleted");
+      }
+
+      // 4. Supprimer le média de Supabase
+      const { error } = await supabase.from("media").delete().eq("id", mediaId);
       if (error) throw error;
 
       return mediaId;
     },
+
     onSuccess: (mediaId) => {
-      // Update cache by removing the deleted item
-      ["feed", "gallery"].forEach(cacheKey => {
+      ["feed", "gallery"].forEach((cacheKey) => {
         queryClient.setQueryData<Media[]>([cacheKey, familyId], (oldData) => {
           if (!oldData) return [];
-          return oldData.filter(item => item.id !== mediaId);
+          return oldData.filter((item) => item.id !== mediaId);
         });
       });
 
       toast({
         title: "Success",
-        description: "Photo has been deleted",
+        description: "File has been deleted",
         variant: "default",
       });
 
-      // Close dialog and notify parent
       onOpenChange(false);
-      if (onMediaDeleted) onMediaDeleted();
+      onMediaDeleted?.();
     },
+
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to delete photo",
+        description: "Failed to delete file",
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Handle like/unlike button click
@@ -180,7 +245,7 @@ export function MediaDialog({
       });
       return;
     }
-    
+
     likeMutation.mutate({ mediaId, isLiked });
   };
 
@@ -195,7 +260,7 @@ export function MediaDialog({
   const handleEditSuccess = () => {
     setIsEditing(false);
     if (onMediaUpdated) onMediaUpdated();
-    
+
     toast({
       title: "Success",
       description: "Photo details updated successfully",
@@ -205,28 +270,29 @@ export function MediaDialog({
   // Handle download - fixed to force download instead of opening in new tab
   const handleDownload = () => {
     if (!media) return;
-    
+
     // Create a temporary anchor element
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = media.url;
-    
+
     // Set the download attribute with a filename
     // Extract the filename from the URL or use the title/default
-    const filename = media.title || 
-                     media.url.split('/').pop() || 
-                     'download' + (isVideo ? '.mp4' : '.jpg');
-    
-    link.setAttribute('download', filename);
-    
+    const filename =
+      media.title ||
+      media.url.split("/").pop() ||
+      "download" + (isVideo ? ".mp4" : ".jpg");
+
+    link.setAttribute("download", filename);
+
     // Append to the document temporarily
     document.body.appendChild(link);
-    
+
     // Trigger the download
     link.click();
-    
+
     // Clean up
     document.body.removeChild(link);
-    
+
     toast({
       title: "Success",
       description: "Download started",
@@ -242,10 +308,10 @@ export function MediaDialog({
           <DialogHeader>
             <DialogTitle>{!isEditing && media.title}</DialogTitle>
           </DialogHeader>
-          
+
           {isEditing ? (
-            <MediaEditForm 
-              media={media} 
+            <MediaEditForm
+              media={media}
               onCancel={() => setIsEditing(false)}
               onSuccess={handleEditSuccess}
             />
@@ -254,23 +320,23 @@ export function MediaDialog({
               {/* Image column */}
               <div className="md:col-span-3 relative">
                 {isVideo ? (
-                  <video 
-                    src={media.url} 
+                  <video
+                    src={media.url}
                     controls
                     className="w-full h-auto rounded-md object-contain max-h-[500px]"
                   />
                 ) : (
                   <div className="relative group">
-                    <img 
-                      src={media.url} 
-                      alt={media.title} 
-                      className="w-full h-auto rounded-md object-contain max-h-[500px] cursor-pointer" 
+                    <img
+                      src={media.url}
+                      alt={media.title}
+                      className="w-full h-auto rounded-md object-contain max-h-[500px] cursor-pointer"
                       onClick={() => setFullscreenView(true)}
                     />
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
+                      <Button
+                        size="sm"
+                        variant="secondary"
                         className="rounded-full p-2 h-8 w-8"
                         onClick={() => setFullscreenView(true)}
                       >
@@ -279,7 +345,7 @@ export function MediaDialog({
                     </div>
                   </div>
                 )}
-                
+
                 {/* Media action buttons */}
                 <div className="flex justify-end mt-2 space-x-2">
                   <Button
@@ -293,7 +359,7 @@ export function MediaDialog({
                   </Button>
                 </div>
               </div>
-              
+
               {/* Info and comments column */}
               <div className="md:col-span-2 space-y-4 max-h-[500px] overflow-y-auto">
                 {/* Post info */}
@@ -306,30 +372,43 @@ export function MediaDialog({
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Description */}
                 {media.description && (
-                  <p className="text-gray-700 dark:text-gray-300">{media.description}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {media.description}
+                  </p>
                 )}
-                
+
                 {/* Action buttons */}
                 <div className="flex justify-between">
                   <div className="flex gap-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`flex items-center gap-1 ${media.is_liked ? 'text-red-500' : ''}`}
-                      onClick={() => handleLikeToggle(media.id, !!media.is_liked)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex items-center gap-1 ${
+                        media.is_liked ? "text-red-500" : ""
+                      }`}
+                      onClick={() =>
+                        handleLikeToggle(media.id, !!media.is_liked)
+                      }
                       disabled={likeMutation.isPending}
                     >
-                      <Heart className={`h-4 w-4 ${media.is_liked ? 'fill-current' : ''}`} />
-                      <span>{media.likes_count || 0} {media.likes_count === 1 ? 'Like' : 'Likes'}</span>
+                      <Heart
+                        className={`h-4 w-4 ${
+                          media.is_liked ? "fill-current" : ""
+                        }`}
+                      />
+                      <span>
+                        {media.likes_count || 0}{" "}
+                        {media.likes_count === 1 ? "Like" : "Likes"}
+                      </span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="flex items-center gap-1"
-                      onClick={() => setActiveTab('comments')}
+                      onClick={() => setActiveTab("comments")}
                     >
                       <MessageCircle className="h-4 w-4" />
                       <span>Comments</span>
@@ -349,7 +428,7 @@ export function MediaDialog({
                         <span className="hidden sm:inline">Edit</span>
                       </Button>
                     )}
-                    
+
                     {canDelete && (
                       <Button
                         variant="ghost"
@@ -364,7 +443,7 @@ export function MediaDialog({
                     )}
                   </div>
                 </div>
-                
+
                 {/* Comments */}
                 <CommentSection mediaId={media.id} />
               </div>
@@ -375,18 +454,21 @@ export function MediaDialog({
 
       {/* Fullscreen view with improved button visibility */}
       <Sheet open={fullscreenView} onOpenChange={setFullscreenView}>
-        <SheetContent side="bottom" className="h-screen p-0 max-w-full flex items-center justify-center bg-black/95">
+        <SheetContent
+          side="bottom"
+          className="h-screen p-0 max-w-full flex items-center justify-center bg-black/95"
+        >
           <div className="relative w-full h-full flex items-center justify-center overflow-auto p-4">
-            <img 
-              src={media.url} 
-              alt={media.title} 
+            <img
+              src={media.url}
+              alt={media.title}
               className="max-w-full max-h-full object-contain"
             />
-            
+
             {/* Improved visibility for buttons - semi-transparent background and better positioning */}
             <div className="absolute top-4 right-4 z-10 flex gap-2">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 size="icon"
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white border-none rounded-full w-10 h-10 shadow-md"
                 onClick={() => setFullscreenView(false)}
@@ -415,7 +497,8 @@ export function MediaDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete photo</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this photo? This action cannot be undone.
+              Are you sure you want to delete this photo? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

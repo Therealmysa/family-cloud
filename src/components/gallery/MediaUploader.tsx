@@ -65,7 +65,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
       "image/*": [".jpg", ".jpeg", ".png", ".webp"],
       "video/*": [".mp4", ".webm", ".ogg"],
     },
-    maxSize: 50 * 1024 * 1024,
+    maxSize: 500 * 1024 * 1024,
     maxFiles: 1,
   });
 
