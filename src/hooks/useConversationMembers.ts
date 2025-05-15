@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Profile } from "@/types/profile";
+import { Profile, ProfileSummary } from "@/types/profile";
 import { toast } from "@/components/ui/use-toast";
 
 export function useConversationMembers(familyId: string | null, userId: string | null, open: boolean) {
@@ -35,7 +35,7 @@ export function useConversationMembers(familyId: string | null, userId: string |
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name, avatar_url, family_id")
+        .select("id, name, avatar_url, family_id, email, is_admin")
         .eq("family_id", familyId)
         .neq("id", userId); // Exclude current user
       

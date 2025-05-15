@@ -11,6 +11,8 @@ export interface Profile {
   is_admin: boolean;
   created_at?: string;
   updated_at?: string;
+  theme?: string | null;
+  owner_id?: string | null;
 }
 
 export interface Family {
@@ -20,4 +22,12 @@ export interface Family {
   created_at: string;
   avatar_url?: string | null;
   owner_id?: string | null;
+}
+
+// Define a lightweight profile type for scenarios where we don't need all fields
+export interface ProfileSummary {
+  id: string;
+  name: string;
+  avatar_url?: string | null;
+  family_id?: string | null;
 }
