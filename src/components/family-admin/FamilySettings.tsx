@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, Loader2, Users, Camera, X } from "lucide-react";
+import { Home, Loader2, Users, Camera } from "lucide-react";
+import axios from "axios";
 
 // Define the shape of the family settings object
 interface FamilySettings {
@@ -101,7 +101,7 @@ export function FamilySettings({
     const file = e.target.files?.[0];
     if (!file || !profile.family_id) return;
     
-    // Vérifier le type de fichier
+    // Check file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
@@ -111,7 +111,7 @@ export function FamilySettings({
       return;
     }
 
-    // Vérifier la taille du fichier (max 5MB)
+    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -123,30 +123,27 @@ export function FamilySettings({
 
     setIsUploading(true);
     try {
-      // Générer un nom de fichier unique
-      const fileExt = file.name.split('.').pop();
-      const fileName = `family-${profile.family_id}-${Date.now()}.${fileExt}`;
-      const filePath = `family-avatars/${fileName}`;
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "family_uploads");
+      formData.append("folder", `family-avatars`);
 
-      // Uploader l'image
-      const { error: uploadError } = await supabase.storage
-        .from('family-media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/ddgxymljp/image/upload`,
+        formData
+      );
 
-      if (uploadError) throw uploadError;
+      if (!response.data || !response.data.secure_url) {
+        throw new Error("Failed to upload image to Cloudinary");
+      }
 
-      // Obtenir l'URL publique
-      const { data: publicUrlData } = supabase.storage
-        .from('family-media')
-        .getPublicUrl(filePath);
+      const cloudinaryUrl = response.data.secure_url;
 
-      // Mettre à jour la famille avec la nouvelle URL d'avatar
+      // Update family with new avatar URL
       const { error: updateError } = await supabase
         .from('families')
-        .update({ avatar_url: publicUrlData.publicUrl })
+        .update({ avatar_url: cloudinaryUrl })
         .eq('id', profile.family_id);
 
       if (updateError) throw updateError;
@@ -156,7 +153,7 @@ export function FamilySettings({
         description: "Family avatar has been successfully updated.",
       });
 
-      // Rafraîchir les données
+      // Refresh family data
       refreshFamilyData(profile.family_id);
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
@@ -167,7 +164,7 @@ export function FamilySettings({
       });
     } finally {
       setIsUploading(false);
-      // Réinitialiser l'input file
+      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

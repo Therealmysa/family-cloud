@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Profile } from "@/types/profile";
 import { useTheme } from "@/hooks/use-theme";
+import axios from "axios";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -89,31 +90,30 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       setUploadError(null);
 
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      
+      // Prepare the Cloudinary upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "family_uploads");
+      formData.append("folder", `profiles/${user.id}`);
 
-      // Upload avatar to storage
-      const { error: uploadError } = await supabase
-        .storage
-        .from('avatars')
-        .upload(filePath, file);
+      // Upload to Cloudinary
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/ddgxymljp/image/upload`,
+        formData
+      );
 
-      if (uploadError) {
-        throw uploadError;
+      if (!response.data || !response.data.secure_url) {
+        throw new Error("Failed to upload image to Cloudinary");
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const cloudinaryUrl = response.data.secure_url;
 
-      // Update profile
+      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
-          avatar_url: publicUrl,
+          avatar_url: cloudinaryUrl,
         })
         .eq("id", user.id);
 
@@ -121,7 +121,7 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
         throw updateError;
       }
 
-      setAvatarUrl(publicUrl);
+      setAvatarUrl(cloudinaryUrl);
       toast({
         title: "Avatar updated",
         description: "Your avatar has been successfully updated.",

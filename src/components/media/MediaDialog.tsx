@@ -148,60 +148,40 @@ export function MediaDialog({
 
   const deleteMutation = useMutation({
     mutationFn: async (mediaId: string) => {
-      // 1. Récupérer l'URL Cloudinary dans Supabase
-      const { data, error: fetchError } = await supabase
-        .from("media")
-        .select("url")
-        .eq("id", mediaId)
-        .single();
+      if (!media) throw new Error("No media to delete");
 
-      if (fetchError) throw fetchError;
-
-      const fileUrl = data.url;
-      const extractCloudinaryPublicId = (url: string): string | null => {
-        const matches = url.match(/\/upload\/(?:v\d+\/)?(.+?)(\.[a-z]+)?$/i);
-        return matches ? matches[1] : null;
-      };
-
-      const publicId = extractCloudinaryPublicId(fileUrl);
-      if (!publicId) throw new Error("Cloudinary public_id not found");
-
-      // Appel de ta edge function Supabase pour obtenir signature & timestamp
-      const { data: signatureData, error: signatureError } =
-        await supabase.functions.invoke("generate-cloudinary-signature", {
-          body: {
-            public_id: publicId,
-            folder: "",
-          },
-        });
-
-      if (signatureError) {
-        throw new Error(signatureError.message || "Echec signature Cloudinary");
-      }
-
-      const { signature, timestamp, api_key, cloud_name } = signatureData;
-
-      const formData = new URLSearchParams();
-      formData.append("public_id", publicId);
-      formData.append("timestamp", String(timestamp));
-      formData.append("signature", signature);
-      formData.append("api_key", api_key);
-
-      const cloudinaryDeleteRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/destroy`,
-        {
-          method: "POST",
-          body: formData,
+      // 1. Delete the file from Cloudinary using our edge function
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session?.session?.access_token) {
+          throw new Error("No access token found");
         }
-      );
-
-      const result = await cloudinaryDeleteRes.json();
-
-      if (result.result !== "ok") {
-        throw new Error("Error! The file has not been deleted");
+        
+        const response = await fetch(
+          `${window.location.origin}/functions/v1/delete-cloudinary-asset`, 
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session.session.access_token}`,
+            },
+            body: JSON.stringify({ url: media.url }),
+          }
+        );
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          console.error("Failed to delete from Cloudinary:", result);
+          // Continue with database deletion anyway
+        }
+      } catch (cloudinaryError) {
+        console.error("Error deleting from Cloudinary:", cloudinaryError);
+        // Continue with database deletion anyway
       }
 
-      // 4. Supprimer le média de Supabase
+      // 2. Delete the media from Supabase
       const { error } = await supabase.from("media").delete().eq("id", mediaId);
       if (error) throw error;
 
