@@ -56,10 +56,13 @@ serve(async (req) => {
 
   try {
     // Parse the request body
-    const body = await req.formData();
+    const formData = await req.formData().catch(error => {
+      console.error("Error parsing form data:", error);
+      throw new Error('Invalid form data: ' + error.message);
+    });
     
     // Get the file from the request
-    const file = body.get('file');
+    const file = formData.get('file');
     if (!file || !(file instanceof File)) {
       return new Response(
         JSON.stringify({ error: 'No file provided' }),
@@ -68,7 +71,7 @@ serve(async (req) => {
     }
     
     // Get the resource type from the request
-    const resourceType = body.get('resourceType');
+    const resourceType = formData.get('resourceType');
     if (!resourceType || typeof resourceType !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Resource type is required' }),
@@ -155,7 +158,7 @@ serve(async (req) => {
     }
 
     // Get the folder from the request or set a default
-    let folder = body.get('folder') || '';
+    let folder = formData.get('folder') || '';
     if (typeof folder !== 'string') folder = '';
     
     // Make sure folder paths are sanitized and appropriate for the resource type
@@ -182,38 +185,60 @@ serve(async (req) => {
     }
 
     // Read file data as array buffer
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await file.arrayBuffer().catch(error => {
+      console.error("Error reading file data:", error);
+      throw new Error('Failed to read file data: ' + error.message);
+    });
+    
     const uint8Array = new Uint8Array(arrayBuffer);
     
     // Convert Uint8Array to base64 string
     const base64Data = btoa(String.fromCharCode(...uint8Array));
     const dataURI = `data:${file.type};base64,${base64Data}`;
     
+    console.log(`Uploading file to Cloudinary: type=${file.type}, size=${file.size}, folder=${folder}`);
+    
     // Upload to Cloudinary with secure configuration
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: folder,
-      resource_type: 'auto',
-      allowed_formats: fileType.startsWith('image/') ? ['jpg', 'png', 'webp'] : ['mp4', 'webm', 'ogg'],
-      overwrite: true,
-      unique_filename: true,
-      invalidate: true, // Invalidates CDN cached copies if the same file name is uploaded
-      discard_original_filename: true, // Use Cloudinary generated names for security
-    });
+    try {
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: folder,
+        resource_type: 'auto',
+        allowed_formats: fileType.startsWith('image/') ? ['jpg', 'png', 'webp'] : ['mp4', 'webm', 'ogg'],
+        overwrite: true,
+        unique_filename: true,
+        invalidate: true, // Invalidates CDN cached copies if the same file name is uploaded
+        discard_original_filename: true, // Use Cloudinary generated names for security
+      });
 
+      console.log("Cloudinary upload successful:", result.secure_url);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          secure_url: result.secure_url,
+          public_id: result.public_id,
+          format: result.format,
+          resource_type: result.resource_type
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (cloudinaryError) {
+      console.error("Cloudinary upload error:", cloudinaryError);
+      return new Response(
+        JSON.stringify({ 
+          error: cloudinaryError.message || 'Error uploading to Cloudinary',
+          details: cloudinaryError
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error("General error in cloudinary upload:", error);
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        secure_url: result.secure_url,
-        public_id: result.public_id,
-        format: result.format,
-        resource_type: result.resource_type
+        error: error.message || 'Error uploading file to Cloudinary',
+        details: String(error) 
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error("Error in cloudinary upload:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Error uploading file to Cloudinary' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
