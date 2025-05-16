@@ -9,14 +9,25 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-export function DangerZone() {
+interface DangerZoneProps {
+  isOwner?: boolean;
+}
+
+export function DangerZone({ isOwner = false }: DangerZoneProps) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteFamily = async () => {
-    if (!profile?.family_id) return;
+    if (!profile?.family_id || !isOwner) {
+      toast({
+        title: "Not authorized",
+        description: "Only the family owner can delete the family.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsDeleting(true);
     try {
@@ -82,11 +93,17 @@ export function DangerZone() {
                   size="sm" 
                   className="self-start sm:self-center"
                   onClick={() => setShowDeleteDialog(true)}
+                  disabled={!isOwner}
                 >
                   <Trash className="h-4 w-4 mr-1" />
                   Delete Family
                 </Button>
               </div>
+              {!isOwner && (
+                <p className="text-sm text-amber-600 mt-2">
+                  Only the family owner can delete the family.
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

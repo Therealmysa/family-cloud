@@ -1,137 +1,113 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
-const createFamilySchema = z.object({
-  name: z.string().min(2, "Family name must be at least 2 characters"),
+const formSchema = z.object({
+  familyName: z.string()
+    .min(2, {
+      message: "Family name must be at least 2 characters.",
+    })
+    .max(50, {
+      message: "Family name must not exceed 50 characters.",
+    }),
 });
-
-type CreateFamilyFormValues = z.infer<typeof createFamilySchema>;
 
 export default function CreateFamilyForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<CreateFamilyFormValues>({
-    resolver: zodResolver(createFamilySchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      familyName: "",
     },
   });
 
-  const handleCreateFamily = async (data: CreateFamilyFormValues) => {
-    if (!user) return;
-    
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a family.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Create new family - generate invite code directly here to avoid RLS issues
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
-      const { data: family, error: familyError } = await supabase
-        .from('families')
-        .insert({
-          name: data.name,
-          invite_code: inviteCode,
-        })
-        .select('id')
-        .single();
+      // Utiliser la nouvelle fonction qui définit le propriétaire
+      const { data, error } = await supabase
+        .rpc('create_family_with_owner', {
+          family_name: values.familyName,
+          user_id: user.id,
+        });
 
-      if (familyError) throw familyError;
-
-      // Update user profile with family_id and admin status
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          family_id: family.id,
-          is_admin: true,
-        })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       toast({
         title: "Family created!",
         description: "Your family has been successfully created.",
-        variant: "success",
       });
 
-      // Create the default family group chat
-      const { error: chatError } = await supabase
-        .from('chats')
-        .insert({
-          family_id: family.id,
-          type: 'group',
-          members: [user.id],
-        });
-
-      if (chatError) {
-        console.error("Error creating family chat:", chatError);
-        toast({
-          title: "Warning",
-          description: "Family created, but group chat creation failed.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Chat created",
-          description: "Family group chat has been created.",
-          variant: "success",
-        });
-      }
-
-      // Redirect to the home page
-      setTimeout(() => {
-        navigate('/dashboard');
-        window.location.reload();
-      }, 1000);
-
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (error: any) {
+      console.error("Error creating family:", error);
       toast({
-        title: "Error creating family",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to create family. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleCreateFamily)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="name"
+          name="familyName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Family Name</FormLabel>
               <FormControl>
-                <Input placeholder="The Smiths" {...field} />
+                <Input placeholder="Enter your family name" {...field} />
               </FormControl>
+              <FormDescription>
+                Choose a name for your new family.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button 
-          type="submit" 
-          className="w-full" 
-          disabled={isSubmitting}
-        >
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
-            <div className="flex items-center">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Creating Family
-            </div>
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
           ) : (
             "Create Family"
           )}

@@ -26,7 +26,7 @@ export default function FamilyAdmin() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Redirect if user not logged in or not an admin
+  // Redirection si l'utilisateur n'est pas connecté ou n'est pas un admin
   useEffect(() => {
     if (!profile) return;
     
@@ -93,6 +93,8 @@ export default function FamilyAdmin() {
     }
   };
 
+  const isOwner = user && familyData?.owner_id === user.id;
+
   const filteredMembers = familyMembers.filter(member => 
     member.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -126,6 +128,7 @@ export default function FamilyAdmin() {
             profile={profile} 
             onOpenInviteDialog={() => setShowInviteDialog(true)} 
             refreshFamilyData={fetchFamilyData}
+            isOwner={isOwner}
           />
           
           {/* Member Management Card */}
@@ -165,9 +168,14 @@ export default function FamilyAdmin() {
                             {member.name}
                             {member.id === user?.id && <span className="text-sm text-gray-500 ml-2">(You)</span>}
                           </p>
-                          {member.is_admin && (
-                            <span className="text-xs text-purple-600 font-medium">Administrator</span>
-                          )}
+                          <div className="flex gap-2">
+                            {familyData?.owner_id === member.id && (
+                              <span className="text-xs text-yellow-600 font-medium">Owner</span>
+                            )}
+                            {member.is_admin && (
+                              <span className="text-xs text-purple-600 font-medium">Administrator</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
@@ -176,6 +184,8 @@ export default function FamilyAdmin() {
                         currentUserId={user?.id || ""}
                         onActionComplete={() => fetchFamilyMembers(profile.family_id || "")}
                         isAdmin={profile?.is_admin || false}
+                        familyId={profile?.family_id || null}
+                        isOwner={isOwner}
                       />
                     </div>
                   ))}
@@ -184,7 +194,7 @@ export default function FamilyAdmin() {
             </CardContent>
           </Card>
           
-          <DangerZone />
+          <DangerZone isOwner={isOwner} />
         </div>
 
         <InviteDialog 

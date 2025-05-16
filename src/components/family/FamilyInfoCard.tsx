@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,16 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Copy, CheckCircle, Home, Users } from "lucide-react";
+import { Copy, CheckCircle, Home, Users, Settings, Crown } from "lucide-react";
 import { LeaveFamilyButton } from "./LeaveFamilyButton";
 
 export function FamilyInfoCard() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [familyData, setFamilyData] = useState<any>(null);
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteCodeCopied, setInviteCodeCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Function to load family data
   const fetchFamilyData = async () => {
@@ -43,6 +46,7 @@ export function FamilyInfoCard() {
 
       setFamilyData(family);
       setMemberCount(count || 0);
+      setIsOwner(family.owner_id === profile.id);
     } catch (error) {
       console.error("Error fetching family data:", error);
     } finally {
@@ -51,11 +55,11 @@ export function FamilyInfoCard() {
   };
 
   // Load family data when component is mounted and when profile changes
-  useState(() => {
+  useEffect(() => {
     if (profile?.family_id) {
       fetchFamilyData();
     }
-  });
+  }, [profile]);
 
   const copyInviteCode = () => {
     if (!familyData?.invite_code) return;
@@ -76,9 +80,13 @@ export function FamilyInfoCard() {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-purple-100 text-purple-800">
-              <Home className="h-5 w-5" />
-            </AvatarFallback>
+            {familyData?.avatar_url ? (
+              <img src={familyData.avatar_url} alt="Family" className="h-full w-full object-cover" />
+            ) : (
+              <AvatarFallback className="bg-purple-100 text-purple-800">
+                <Home className="h-5 w-5" />
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex-1">
             <CardTitle className="text-xl">My Family</CardTitle>
@@ -86,30 +94,55 @@ export function FamilyInfoCard() {
               {familyData?.name || "Loading..."}
             </CardDescription>
           </div>
-          {profile?.is_admin && (
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-              Admin
-            </Badge>
-          )}
+          <div className="flex flex-col gap-1">
+            {isOwner && (
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                <Crown className="h-3 w-3 mr-1" /> Owner
+              </Badge>
+            )}
+            {profile?.is_admin && (
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                Admin
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500 flex items-center">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-sm text-gray-500 flex items-center pl-0 hover:pl-2 transition-all"
+              onClick={() => navigate("/family-members")}
+            >
               <Users className="h-4 w-4 mr-1.5 text-gray-400" />
               {memberCount !== null ? `${memberCount} members` : "Loading members..."}
-            </span>
+            </Button>
             <LeaveFamilyButton />
           </div>
           
-          <Button
-            variant="outline" 
-            className="w-full mt-3"
-            onClick={() => setShowInviteDialog(true)}
-          >
-            View Invite Code
-          </Button>
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <Button
+              variant="outline" 
+              onClick={() => setShowInviteDialog(true)}
+              className="w-full"
+            >
+              View Invite Code
+            </Button>
+            
+            {profile?.is_admin && (
+              <Button
+                variant="default"
+                className="w-full"
+                onClick={() => navigate("/family-admin")}
+              >
+                <Settings className="h-4 w-4 mr-1.5" />
+                Manage
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Invite Code Dialog */}

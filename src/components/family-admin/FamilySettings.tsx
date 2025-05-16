@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Home, Loader2, Users } from "lucide-react";
+import { Home, Loader2, Users, Camera, X } from "lucide-react";
 
 // Define the shape of the family settings object
 interface FamilySettings {
@@ -32,15 +32,19 @@ interface FamilySettingsProps {
   profile: any;
   onOpenInviteDialog: () => void;
   refreshFamilyData: (familyId: string) => void;
+  isOwner?: boolean;
 }
 
 export function FamilySettings({ 
   familyData, 
   profile, 
   onOpenInviteDialog, 
-  refreshFamilyData 
+  refreshFamilyData,
+  isOwner = false,
 }: FamilySettingsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -87,6 +91,91 @@ export function FamilySettings({
     }
   };
 
+  const handleAvatarClick = () => {
+    if (isOwner || profile.is_admin) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile.family_id) return;
+    
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Vérifier la taille du fichier (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Générer un nom de fichier unique
+      const fileExt = file.name.split('.').pop();
+      const fileName = `family-${profile.family_id}-${Date.now()}.${fileExt}`;
+      const filePath = `family-avatars/${fileName}`;
+
+      // Uploader l'image
+      const { error: uploadError } = await supabase.storage
+        .from('family-media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obtenir l'URL publique
+      const { data: publicUrlData } = supabase.storage
+        .from('family-media')
+        .getPublicUrl(filePath);
+
+      // Mettre à jour la famille avec la nouvelle URL d'avatar
+      const { error: updateError } = await supabase
+        .from('families')
+        .update({ avatar_url: publicUrlData.publicUrl })
+        .eq('id', profile.family_id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Avatar updated",
+        description: "Family avatar has been successfully updated.",
+      });
+
+      // Rafraîchir les données
+      refreshFamilyData(profile.family_id);
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      // Réinitialiser l'input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const isAvatarEditable = isOwner || profile?.is_admin;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 sm:px-6">
@@ -97,16 +186,48 @@ export function FamilySettings({
       </CardHeader>
       <CardContent className="px-4 sm:px-6">
         <div className="flex items-center gap-3 mb-6">
-          <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
-            <AvatarFallback className="bg-purple-100 text-purple-800">
-              <Home className="h-5 w-5 sm:h-6 sm:w-6" />
-            </AvatarFallback>
-          </Avatar>
+          <div 
+            className={`relative ${isAvatarEditable ? 'cursor-pointer group' : ''}`} 
+            onClick={handleAvatarClick}
+          >
+            <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
+              {familyData?.avatar_url ? (
+                <img src={familyData.avatar_url} alt="Family" className="h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback className="bg-purple-100 text-purple-800">
+                  <Home className="h-5 w-5 sm:h-6 sm:w-6" />
+                </AvatarFallback>
+              )}
+            </Avatar>
+            {isAvatarEditable && (
+              <>
+                {isUploading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </>
+            )}
+          </div>
           <div>
             <h3 className="font-medium text-lg sm:text-xl">{familyData?.name}</h3>
-            <p className="text-sm text-gray-500">
-              {familyData?.memberCount || 0} {(familyData?.memberCount || 0) === 1 ? 'member' : 'members'}
-            </p>
+            <div className="flex items-center gap-1">
+              {isOwner && <span className="text-xs text-yellow-600 font-medium mr-1">Owner</span>}
+              <p className="text-sm text-gray-500">
+                {familyData?.memberCount || 0} {(familyData?.memberCount || 0) === 1 ? 'member' : 'members'}
+              </p>
+            </div>
           </div>
         </div>
 
