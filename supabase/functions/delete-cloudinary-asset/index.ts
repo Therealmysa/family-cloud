@@ -24,10 +24,37 @@ cloudinary.config({
 const extractCloudinaryPublicId = (url: string): string | null => {
   if (!url) return null;
   
-  // Extract the public ID from the Cloudinary URL
-  const regex = /\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/;
-  const matches = url.match(regex);
-  return matches ? matches[1] : null;
+  try {
+    // Extract the public ID from the Cloudinary URL
+    const regex = /\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/;
+    const matches = url.match(regex);
+    
+    // Extra validation to ensure we're working with a Cloudinary URL
+    if (!url.includes('cloudinary.com') || !url.includes('/upload/')) {
+      console.error('Invalid Cloudinary URL format');
+      return null;
+    }
+    
+    return matches ? matches[1] : null;
+  } catch (error) {
+    console.error('Error extracting Cloudinary public ID:', error);
+    return null;
+  }
+};
+
+// Validate URL to prevent injection attacks
+const validateUrl = (url: string): boolean => {
+  if (!url) return false;
+  
+  try {
+    // Check if it's a valid URL
+    const parsedUrl = new URL(url);
+    
+    // Only allow cloudinary.com URLs
+    return parsedUrl.hostname.endsWith('cloudinary.com');
+  } catch (error) {
+    return false;
+  }
 };
 
 serve(async (req) => {
@@ -69,7 +96,8 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { url, resourceType } = await req.json();
+    const requestBody = await req.json();
+    const { url, resourceType } = requestBody;
     
     if (!url) {
       return new Response(
@@ -78,7 +106,15 @@ serve(async (req) => {
       );
     }
 
-    // Extract public ID from URL
+    // Validate URL to prevent injection attacks
+    if (!validateUrl(url)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid URL format' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Extract public ID from URL with enhanced security
     const publicId = extractCloudinaryPublicId(url);
     if (!publicId) {
       return new Response(
@@ -135,7 +171,7 @@ serve(async (req) => {
       // For media, check if the user owns the media or is a family admin
       const { data: media, error: mediaError } = await supabaseClient
         .from("media")
-        .select("user_id, family_id, url")
+        .select("user_id, family_id, url, thumbnail_url")
         .or(`url.eq.${url},thumbnail_url.eq.${url}`)
         .single();
 
@@ -171,23 +207,36 @@ serve(async (req) => {
       );
     }
 
-    // Delete from Cloudinary
-    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(`Deleting Cloudinary asset with public ID: ${publicId}`);
+    
+    // Delete from Cloudinary with extra validation
+    try {
+      const result = await cloudinary.uploader.destroy(publicId);
 
-    if (result.result !== 'ok') {
+      if (result.result !== 'ok') {
+        // Log the error but don't expose details to client
+        console.error('Cloudinary deletion error:', result);
+        return new Response(
+          JSON.stringify({ error: 'Failed to delete from Cloudinary' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Failed to delete from Cloudinary', details: result }),
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (cloudinaryError) {
+      console.error('Cloudinary API error:', cloudinaryError);
+      return new Response(
+        JSON.stringify({ error: 'Cloudinary API error' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
-
-    return new Response(
-      JSON.stringify({ success: true, result }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
+    console.error('General error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Server error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

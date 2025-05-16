@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -30,14 +31,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentSection } from "../comments/CommentSection";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { createClient } from "@supabase/supabase-js";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { Media } from "@/types/media";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { MediaEditForm } from "./MediaEditForm";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import axios from "axios";
 
 export interface MediaDialogProps {
   media: Media | null;
@@ -166,15 +165,39 @@ export function MediaDialog({
               "Content-Type": "application/json",
               "Authorization": `Bearer ${session.session.access_token}`,
             },
-            body: JSON.stringify({ url: media.url }),
+            body: JSON.stringify({ 
+              url: media.url,
+              resourceType: "media" 
+            }),
           }
         );
         
-        const result = await response.json();
-        
         if (!response.ok) {
-          console.error("Failed to delete from Cloudinary:", result);
+          const errorData = await response.json();
+          console.error("Failed to delete from Cloudinary:", errorData);
           // Continue with database deletion anyway
+        }
+        
+        // Also delete the thumbnail if it exists
+        if (media.thumbnail_url) {
+          const thumbnailResponse = await fetch(
+            `${window.location.origin}/functions/v1/delete-cloudinary-asset`, 
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.session.access_token}`,
+              },
+              body: JSON.stringify({ 
+                url: media.thumbnail_url,
+                resourceType: "media" 
+              }),
+            }
+          );
+          
+          if (!thumbnailResponse.ok) {
+            console.error("Failed to delete thumbnail from Cloudinary");
+          }
         }
       } catch (cloudinaryError) {
         console.error("Error deleting from Cloudinary:", cloudinaryError);
