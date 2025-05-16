@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import MainLayout from "@/components/layout/MainLayout";
@@ -14,6 +15,15 @@ const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("profile");
 
+  // Correction: Utiliser useEffect au lieu de useState pour cette logique
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'family' && profile?.family_id) {
+      setActiveTab('family');
+    }
+  }, [profile?.family_id]); // Dépendance pour recalculer si family_id change
+
   if (!user || !profile) {
     return (
       <MainLayout title="Profile" requireAuth={true}>
@@ -26,15 +36,6 @@ const Profile = () => {
       </MainLayout>
     );
   }
-
-  // Set family tab as active if URL has ?tab=family
-  useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    if (tab === 'family' && profile.family_id) {
-      setActiveTab('family');
-    }
-  });
 
   return (
     <MainLayout title="Profile" requireAuth={true}>
