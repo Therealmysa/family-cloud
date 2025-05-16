@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,6 +92,30 @@ export function FamilySettings({
     }
   };
 
+  const deleteOldAvatar = async (url: string) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+
+      await axios.post(
+        `https://zbhonwmadpxokkcbfpgp.supabase.co/functions/v1/delete-cloudinary-asset`,
+        { 
+          url: url,
+          resourceType: "family" 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error deleting old avatar:", error);
+      // Continue with the process even if deletion fails
+    }
+  };
+
   const handleAvatarClick = () => {
     if (isOwner || profile.is_admin) {
       fileInputRef.current?.click();
@@ -102,10 +127,10 @@ export function FamilySettings({
     if (!file || !profile.family_id) return;
     
     // Check file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
       toast({
         title: "Invalid file type",
-        description: "Please upload an image file (JPEG, PNG, etc.)",
+        description: "Please upload a JPEG, PNG or WebP image file",
         variant: "destructive",
       });
       return;
@@ -139,6 +164,11 @@ export function FamilySettings({
       }
 
       const cloudinaryUrl = response.data.secure_url;
+
+      // Delete old avatar if exists
+      if (familyData?.avatar_url) {
+        await deleteOldAvatar(familyData.avatar_url);
+      }
 
       // Update family with new avatar URL
       const { error: updateError } = await supabase

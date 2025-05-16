@@ -80,6 +80,30 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     }
   };
   
+  const deleteOldAvatar = async (url: string) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+
+      await axios.post(
+        `https://zbhonwmadpxokkcbfpgp.supabase.co/functions/v1/delete-cloudinary-asset`,
+        { 
+          url: url,
+          resourceType: "profile" 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error deleting old avatar:", error);
+      // Continue with the process even if deletion fails
+    }
+  };
+  
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !event.target.files || event.target.files.length === 0) {
       return;
@@ -90,6 +114,15 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       setUploadError(null);
 
       const file = event.target.files[0];
+      
+      // Security validation for file size and type
+      if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+        throw new Error("Only JPEG, PNG and WebP image files are allowed");
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Image size should be less than 5MB");
+      }
       
       // Prepare the Cloudinary upload
       const formData = new FormData();
@@ -108,6 +141,11 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       }
 
       const cloudinaryUrl = response.data.secure_url;
+
+      // Delete old avatar if exists
+      if (avatarUrl) {
+        await deleteOldAvatar(avatarUrl);
+      }
 
       // Update profile with new avatar URL
       const { error: updateError } = await supabase
