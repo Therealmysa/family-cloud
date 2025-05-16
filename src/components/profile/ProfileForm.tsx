@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Profile } from "@/types/profile";
 import { useTheme } from "@/hooks/use-theme";
+import axios from "axios";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -84,25 +85,19 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) return;
 
-      const response = await fetch(
-        `${window.location.origin}/functions/v1/delete-cloudinary-asset`,
+      await axios.post(
+        `https://zbhonwmadpxokkcbfpgp.supabase.co/functions/v1/delete-cloudinary-asset`,
+        { 
+          url: url,
+          resourceType: "profile" 
+        },
         {
-          method: "POST",
           headers: {
-            "Authorization": `Bearer ${sessionData.session.access_token}`,
+            Authorization: `Bearer ${sessionData.session.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
-            url: url,
-            resourceType: "profile" 
-          }),
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error deleting old avatar:", errorData);
-      }
     } catch (error) {
       console.error("Error deleting old avatar:", error);
       // Continue with the process even if deletion fails
@@ -120,37 +115,32 @@ const ProfileForm = ({ user, profile }: ProfileFormProps) => {
 
       const file = event.target.files[0];
       
-      // Get session for authorization
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.access_token) {
-        throw new Error("No access token found");
+      // Security validation for file size and type
+      if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+        throw new Error("Only JPEG, PNG and WebP image files are allowed");
       }
-
-      // Create form data for the secure upload
+      
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Image size should be less than 5MB");
+      }
+      
+      // Prepare the Cloudinary upload
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("resourceType", "profile");
-      
-      // Use the secure edge function for upload
-      const response = await fetch(
-        `${window.location.origin}/functions/v1/cloudinary-upload`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${session.session.access_token}`,
-          },
-          body: formData,
-        }
+      formData.append("upload_preset", "family_uploads");
+      formData.append("folder", `profiles/${user.id}`);
+
+      // Upload to Cloudinary
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/ddgxymljp/image/upload`,
+        formData
       );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
+
+      if (!response.data || !response.data.secure_url) {
+        throw new Error("Failed to upload image to Cloudinary");
       }
-      
-      const data = await response.json();
-      const cloudinaryUrl = data.secure_url;
+
+      const cloudinaryUrl = response.data.secure_url;
 
       // Delete old avatar if exists
       if (avatarUrl) {

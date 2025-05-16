@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -18,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, X, ImagePlus, FileVideo } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import axios from "axios";
 import { asMediaInsert } from "@/utils/supabaseHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -65,7 +65,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
       "image/*": [".jpg", ".jpeg", ".png", ".webp"],
       "video/*": [".mp4", ".webm", ".ogg"],
     },
-    maxSize: 50 * 1024 * 1024,
+    maxSize: 500 * 1024 * 1024,
     maxFiles: 1,
   });
 
@@ -81,6 +81,23 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
     onCancel();
   };
 
+  const folderPath = `families/${familyId}`;
+  const CLOUDINARY_UPLOAD_PRESET = "family_uploads";
+  const CLOUDINARY_CLOUD_NAME = "ddgxymljp";
+
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", mediaFile);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    formData.append("folder", folderPath);
+
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+      formData
+    );
+    return response.data.secure_url;
+  };
+
   const onSubmit = async (values) => {
     if (!userId || !familyId || !mediaFile) {
       toast({
@@ -93,37 +110,7 @@ export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
 
     setIsSubmitting(true);
     try {
-      // Get session for authorization
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.access_token) {
-        throw new Error("No access token found");
-      }
-
-      // Create form data for the secure upload
-      const formData = new FormData();
-      formData.append("file", mediaFile);
-      formData.append("resourceType", "media");
-      
-      // Use the secure edge function for upload
-      const response = await fetch(
-        `${window.location.origin}/functions/v1/cloudinary-upload`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${session.session.access_token}`,
-          },
-          body: formData,
-        }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
-      }
-      
-      const data = await response.json();
-      const cloudinaryUrl = data.secure_url;
+      const cloudinaryUrl = await uploadToCloudinary(mediaFile);
 
       const isVideo = isVideoFile(mediaFile);
       const thumbnailUrl = isVideo ? `${cloudinaryUrl}#t=0.1` : null;

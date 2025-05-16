@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Home, Loader2, Users, Camera } from "lucide-react";
+import axios from "axios";
 
 // Define the shape of the family settings object
 interface FamilySettings {
@@ -96,25 +97,19 @@ export function FamilySettings({
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) return;
 
-      const response = await fetch(
-        `${window.location.origin}/functions/v1/delete-cloudinary-asset`,
+      await axios.post(
+        `https://zbhonwmadpxokkcbfpgp.supabase.co/functions/v1/delete-cloudinary-asset`,
+        { 
+          url: url,
+          resourceType: "family" 
+        },
         {
-          method: "POST",
           headers: {
-            "Authorization": `Bearer ${sessionData.session.access_token}`,
+            Authorization: `Bearer ${sessionData.session.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
-            url: url,
-            resourceType: "family" 
-          }),
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error deleting old avatar:", errorData);
-      }
     } catch (error) {
       console.error("Error deleting old avatar:", error);
       // Continue with the process even if deletion fails
@@ -131,39 +126,44 @@ export function FamilySettings({
     const file = e.target.files?.[0];
     if (!file || !profile.family_id) return;
     
+    // Check file type
+    if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG or WebP image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      // Get session for authorization
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.access_token) {
-        throw new Error("No access token found");
-      }
-
-      // Create form data for the secure upload
+      // Upload to Cloudinary
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("resourceType", "family");
-      
-      // Use the secure edge function for upload
-      const response = await fetch(
-        `${window.location.origin}/functions/v1/cloudinary-upload`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${session.session.access_token}`,
-          },
-          body: formData,
-        }
+      formData.append("upload_preset", "family_uploads");
+      formData.append("folder", `family-avatars`);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/ddgxymljp/image/upload`,
+        formData
       );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
+
+      if (!response.data || !response.data.secure_url) {
+        throw new Error("Failed to upload image to Cloudinary");
       }
-      
-      const data = await response.json();
-      const cloudinaryUrl = data.secure_url;
+
+      const cloudinaryUrl = response.data.secure_url;
 
       // Delete old avatar if exists
       if (familyData?.avatar_url) {
