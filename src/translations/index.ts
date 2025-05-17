@@ -1,0 +1,227 @@
+
+export type Locale = 'en' | 'fr';
+
+export const defaultLocale: Locale = 'en';
+
+interface TranslationDictionary {
+  [key: string]: string;
+}
+
+interface Translations {
+  [key in Locale]: TranslationDictionary;
+}
+
+export const translations: Translations = {
+  en: {
+    // Common
+    'app.name': 'FamilyCloud',
+    'common.loading': 'Loading...',
+    'common.error': 'Error',
+    'common.success': 'Success',
+    'common.cancel': 'Cancel',
+    'common.save': 'Save',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete',
+    'common.back': 'Back',
+    'common.next': 'Next',
+    'common.search': 'Search',
+    'common.submit': 'Submit',
+    'common.confirm': 'Confirm',
+    'common.remove': 'Remove',
+    'common.continue': 'Continue',
+    'common.yes': 'Yes',
+    'common.no': 'No',
+    'common.or': 'Or',
+    'common.and': 'And',
+
+    // Authentication
+    'auth.sign_in': 'Sign In',
+    'auth.sign_up': 'Sign Up',
+    'auth.sign_out': 'Sign Out',
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.forgot_password': 'Forgot Password?',
+    'auth.reset_password': 'Reset Password',
+    'auth.confirm_password': 'Confirm Password',
+    'auth.already_have_account': 'Already have an account?',
+    'auth.dont_have_account': "Don't have an account?",
+    'auth.welcome_back': 'Welcome back',
+
+    // Navigation
+    'nav.home': 'Home',
+    'nav.dashboard': 'Dashboard',
+    'nav.feed': 'Feed',
+    'nav.gallery': 'Gallery',
+    'nav.messages': 'Messages',
+    'nav.profile': 'Profile',
+    'nav.settings': 'Settings',
+    'nav.family_members': 'Family Members',
+    'nav.family_admin': 'Family Administration',
+    'nav.create_post': 'Create Post',
+
+    // Profile
+    'profile.title': 'Profile Settings',
+    'profile.personal': 'Personal Profile',
+    'profile.family': 'Family Settings',
+    'profile.information': 'Your Profile',
+    'profile.update_info': 'Update your personal information and preferences',
+    'profile.account_settings': 'Account Settings',
+    'profile.manage_account': 'Manage your email and password',
+    'profile.name': 'Name',
+    'profile.bio': 'Bio',
+    'profile.theme': 'Theme',
+    'profile.save_changes': 'Save Changes',
+    'profile.email_change': 'Change Email',
+    'profile.password_change': 'Change Password',
+    'profile.avatar': 'Profile Picture',
+    'profile.change_avatar': 'Change Profile Picture',
+    'profile.current_password': 'Current Password',
+    'profile.new_password': 'New Password',
+    'profile.success_update': 'Profile updated successfully',
+
+    // Family
+    'family.members': 'Family Members',
+    'family.admin': 'Family Administration',
+    'family.settings': 'Family Settings',
+    'family.manage': 'Manage your family settings and members',
+    'family.invite': 'Invite Family Members',
+    'family.name': 'Family Name',
+    'family.theme': 'Family Theme',
+    'family.member_count': 'members',
+    'family.member_singular': 'member',
+    'family.search': 'Search members...',
+    'family.no_members': 'No family members found',
+    'family.admin_role': 'Administrator',
+    'family.owner_role': 'Owner',
+    'family.you': 'You',
+
+    // Member actions
+    'member.make_admin': 'Make Admin',
+    'member.remove_admin': 'Remove Admin Role',
+    'member.remove': 'Remove from Family',
+    'member.transfer_ownership': 'Transfer Ownership',
+    'member.confirm_make_admin': 'Make family admin?',
+    'member.confirm_remove_admin': 'Remove admin role?',
+    'member.confirm_make_admin_desc': 'This will give {name} administrative privileges including the ability to manage family members and settings.',
+    'member.confirm_remove_admin_desc': 'This will remove {name}\'s administrative privileges. They will no longer be able to manage family members or settings.',
+    'member.confirm_remove': 'Remove family member?',
+    'member.confirm_remove_desc': 'This will remove {name} from your family. They will no longer have access to family photos, messages, and other shared content. They can be re-invited later.',
+    'member.confirm_transfer': 'Transfer family ownership?',
+    'member.confirm_transfer_desc': 'This will make {name} the owner of your family. They will have full control over family settings. You will remain an administrator, but only the new owner will be able to delete the family or transfer ownership in the future.',
+    'member.processing': 'Processing...',
+    'member.transferring': 'Transferring...',
+    'member.removing': 'Removing...',
+
+    // Language
+    'language.title': 'Language',
+    'language.english': 'English',
+    'language.french': 'French',
+    'language.select': 'Select Language',
+  },
+  fr: {
+    // Common
+    'app.name': 'FamilleNuage',
+    'common.loading': 'Chargement...',
+    'common.error': 'Erreur',
+    'common.success': 'Succès',
+    'common.cancel': 'Annuler',
+    'common.save': 'Enregistrer',
+    'common.edit': 'Modifier',
+    'common.delete': 'Supprimer',
+    'common.back': 'Retour',
+    'common.next': 'Suivant',
+    'common.search': 'Rechercher',
+    'common.submit': 'Soumettre',
+    'common.confirm': 'Confirmer',
+    'common.remove': 'Supprimer',
+    'common.continue': 'Continuer',
+    'common.yes': 'Oui',
+    'common.no': 'Non',
+    'common.or': 'Ou',
+    'common.and': 'Et',
+
+    // Authentication
+    'auth.sign_in': 'Se connecter',
+    'auth.sign_up': "S'inscrire",
+    'auth.sign_out': 'Se déconnecter',
+    'auth.email': 'Email',
+    'auth.password': 'Mot de passe',
+    'auth.forgot_password': 'Mot de passe oublié ?',
+    'auth.reset_password': 'Réinitialiser le mot de passe',
+    'auth.confirm_password': 'Confirmer le mot de passe',
+    'auth.already_have_account': 'Vous avez déjà un compte ?',
+    'auth.dont_have_account': "Vous n'avez pas de compte ?",
+    'auth.welcome_back': 'Bienvenue',
+
+    // Navigation
+    'nav.home': 'Accueil',
+    'nav.dashboard': 'Tableau de bord',
+    'nav.feed': 'Fil d\'actualité',
+    'nav.gallery': 'Galerie',
+    'nav.messages': 'Messages',
+    'nav.profile': 'Profil',
+    'nav.settings': 'Paramètres',
+    'nav.family_members': 'Membres de la famille',
+    'nav.family_admin': 'Administration familiale',
+    'nav.create_post': 'Créer un post',
+
+    // Profile
+    'profile.title': 'Paramètres du profil',
+    'profile.personal': 'Profil personnel',
+    'profile.family': 'Paramètres familiaux',
+    'profile.information': 'Votre profil',
+    'profile.update_info': 'Mettre à jour vos informations personnelles et préférences',
+    'profile.account_settings': 'Paramètres du compte',
+    'profile.manage_account': 'Gérer votre email et mot de passe',
+    'profile.name': 'Nom',
+    'profile.bio': 'Bio',
+    'profile.theme': 'Thème',
+    'profile.save_changes': 'Enregistrer les modifications',
+    'profile.email_change': 'Changer d\'email',
+    'profile.password_change': 'Changer de mot de passe',
+    'profile.avatar': 'Photo de profil',
+    'profile.change_avatar': 'Changer la photo de profil',
+    'profile.current_password': 'Mot de passe actuel',
+    'profile.new_password': 'Nouveau mot de passe',
+    'profile.success_update': 'Profil mis à jour avec succès',
+
+    // Family
+    'family.members': 'Membres de la famille',
+    'family.admin': 'Administration familiale',
+    'family.settings': 'Paramètres familiaux',
+    'family.manage': 'Gérer les paramètres et les membres de votre famille',
+    'family.invite': 'Inviter des membres',
+    'family.name': 'Nom de famille',
+    'family.theme': 'Thème de la famille',
+    'family.member_count': 'membres',
+    'family.member_singular': 'membre',
+    'family.search': 'Rechercher des membres...',
+    'family.no_members': 'Aucun membre trouvé',
+    'family.admin_role': 'Administrateur',
+    'family.owner_role': 'Propriétaire',
+    'family.you': 'Vous',
+
+    // Member actions
+    'member.make_admin': 'Nommer administrateur',
+    'member.remove_admin': 'Retirer les droits d\'admin',
+    'member.remove': 'Retirer de la famille',
+    'member.transfer_ownership': 'Transférer la propriété',
+    'member.confirm_make_admin': 'Nommer administrateur familial ?',
+    'member.confirm_remove_admin': 'Retirer le rôle d\'administrateur ?',
+    'member.confirm_make_admin_desc': 'Cela donnera à {name} des privilèges administratifs, y compris la possibilité de gérer les membres et les paramètres de la famille.',
+    'member.confirm_remove_admin_desc': 'Cela supprimera les privilèges administratifs de {name}. Ils ne pourront plus gérer les membres ou les paramètres de la famille.',
+    'member.confirm_remove': 'Retirer le membre de la famille ?',
+    'member.confirm_remove_desc': 'Cela supprimera {name} de votre famille. Ils n\'auront plus accès aux photos de famille, messages et autres contenus partagés. Ils pourront être réinvités ultérieurement.',
+    'member.confirm_transfer': 'Transférer la propriété de la famille ?',
+    'member.confirm_transfer_desc': 'Cela fera de {name} le propriétaire de votre famille. Ils auront le contrôle total des paramètres familiaux. Vous resterez administrateur, mais seul le nouveau propriétaire pourra supprimer la famille ou transférer la propriété à l\'avenir.',
+    'member.processing': 'En cours...',
+    'member.transferring': 'Transfert en cours...',
+    'member.removing': 'Suppression en cours...',
+
+    // Language
+    'language.title': 'Langue',
+    'language.english': 'Anglais',
+    'language.french': 'Français',
+    'language.select': 'Sélectionner la langue',
+  }
+};
