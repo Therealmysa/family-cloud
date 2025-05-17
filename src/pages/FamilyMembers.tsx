@@ -39,13 +39,19 @@ export default function FamilyMembers() {
 
   const fetchFamilyData = async (familyId: string) => {
     try {
+      console.log("Fetching family data for ID:", familyId);
       const { data, error } = await supabase
         .from("families")
         .select("*")
         .eq("id", familyId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching family data:", error);
+        throw error;
+      }
+
+      console.log("Family data fetched:", data);
 
       // Get member count
       const { count } = await supabase
@@ -72,13 +78,19 @@ export default function FamilyMembers() {
 
   const fetchFamilyMembers = async (familyId: string) => {
     try {
+      console.log("Fetching family members for ID:", familyId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("family_id", familyId)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching family members:", error);
+        throw error;
+      }
+
+      console.log("Family members fetched:", data);
       setFamilyMembers(data);
     } catch (error) {
       console.error("Error fetching family members:", error);

@@ -1,299 +1,201 @@
 
-// Secure Cloudinary upload function with proper validation and error handling
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1"
-import { v2 as cloudinary } from "https://esm.sh/cloudinary@1.41.0";
+const CLOUDINARY_CLOUD_NAME = Deno.env.get("CLOUDINARY_CLOUD_NAME") || "";
+const CLOUDINARY_API_KEY = Deno.env.get("CLOUDINARY_API_KEY") || "";
+const CLOUDINARY_API_SECRET = Deno.env.get("CLOUDINARY_API_SECRET") || "";
 
-// CORS headers for browser requests
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// 100MB in bytes
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
-// Initialize Cloudinary
-cloudinary.config({
-  cloud_name: Deno.env.get("CLOUDINARY_CLOUD_NAME"),
-  api_key: Deno.env.get("CLOUDINARY_API_KEY"),
-  api_secret: Deno.env.get("CLOUDINARY_API_SECRET"),
-});
-
-// Validate file type
-const validateFileType = (fileType: string, resourceType: string): boolean => {
-  if (resourceType === 'profile' || resourceType === 'family') {
-    return /^image\/(jpeg|png|jpg|webp)$/.test(fileType);
-  } else if (resourceType === 'media') {
-    return /^(image\/(jpeg|png|jpg|webp)|video\/(mp4|webm|ogg))$/.test(fileType);
-  }
-  return false;
-};
-
-// Validate file size - 100MB max
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-const validateFileSize = (fileSize: number): boolean => {
-  return fileSize <= MAX_FILE_SIZE;
-};
-
-// Helper function for Blob handling
-async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  
-  // Concatenate chunks
-  let totalLength = chunks.reduce((acc, val) => acc + val.length, 0);
-  let result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-  
-  return result.buffer;
-}
+// Allowed file types
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+];
 
 serve(async (req) => {
-  console.log("Cloudinary upload function called");
-  
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders, status: 200 });
-  }
-
-  // Security checks
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    console.log("Missing Authorization header");
-    return new Response(
-      JSON.stringify({ error: 'Not authorized' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-    );
-  }
-
-  // Create Supabase client
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { 
-      global: { headers: { Authorization: authHeader } },
-      auth: { persistSession: false }
-    }
-  );
-
-  // Get user from request
-  const {
-    data: { user },
-    error: userError,
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    console.log("Authentication error:", userError);
-    return new Response(
-      JSON.stringify({ error: 'Not authorized', details: userError?.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-    );
+  // Handle CORS
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Parse the form data
-    const contentType = req.headers.get('content-type') || '';
-    if (!contentType.includes('multipart/form-data')) {
-      console.log("Invalid content type:", contentType);
+    console.log("Starting cloudinary upload function");
+
+    // Check authorization
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      console.error("Missing authorization header");
       return new Response(
-        JSON.stringify({ error: 'Content type must be multipart/form-data' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    try {
-      console.log("Parsing form data");
-      const formData = await req.formData();
-      
-      // Extract data from form
-      const file = formData.get('file') as File;
-      const resourceType = formData.get('resourceType') as string;
-      const folder = formData.get('folder') as string;
-      
-      console.log("Form data parsed:", { 
-        fileExists: !!file, 
-        fileType: file?.type, 
-        fileSize: file?.size,
-        resourceType, 
-        folder 
-      });
-      
-      // Validate inputs
-      if (!file) {
-        return new Response(
-          JSON.stringify({ error: 'File is required' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-      
-      if (!resourceType || !['profile', 'family', 'media'].includes(resourceType)) {
-        return new Response(
-          JSON.stringify({ error: 'Valid resourceType is required' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-
-      // Validate file type
-      if (!validateFileType(file.type, resourceType)) {
-        console.log("Invalid file type:", file.type);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Invalid file type',
-            details: `File type ${file.type} is not allowed for resource type ${resourceType}`
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-
-      // Validate file size
-      if (!validateFileSize(file.size)) {
-        console.log("File too large:", file.size);
-        return new Response(
-          JSON.stringify({ 
-            error: 'File too large',
-            details: `Maximum file size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-
-      // Check permission based on resource type
-      if (resourceType === 'family') {
-        // Check if user is a family admin
-        const { data: profile, error: profileError } = await supabaseClient
-          .from("profiles")
-          .select("family_id, is_admin")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) {
-          console.log("Error fetching profile:", profileError);
-        }
-
-        if (profileError || !profile || !profile.is_admin) {
-          return new Response(
-            JSON.stringify({ error: 'Not authorized to upload family assets' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-          );
-        }
-      } else if (resourceType === 'media') {
-        // Check if user has a family
-        const { data: profile, error: profileError } = await supabaseClient
-          .from("profiles")
-          .select("family_id")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) {
-          console.log("Error fetching profile:", profileError);
-        }
-
-        if (profileError || !profile || !profile.family_id) {
-          return new Response(
-            JSON.stringify({ error: 'Must be in a family to upload media' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
-          );
-        }
-      }
-
-      console.log("Reading file content");
-      
-      try {
-        // Read file content
-        const arrayBuffer = await file.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-
-        // Upload to Cloudinary
-        const uploadOptions = {
-          folder,
-          resource_type: file.type.startsWith('video/') ? 'video' : 'image',
-        };
-
-        console.log("Converting file to base64");
-        
-        try {
-          // Convert Uint8Array to base64 string
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-          const dataURI = `data:${file.type};base64,${base64}`;
-          
-          console.log("Uploading to Cloudinary");
-          
-          try {
-            const result = await cloudinary.uploader.upload(dataURI, uploadOptions);
-
-            if (!result || !result.secure_url) {
-              throw new Error('Failed to upload to Cloudinary');
-            }
-
-            console.log("Upload successful:", result.secure_url);
-            
-            // Return success with the secure URL
-            return new Response(
-              JSON.stringify({ 
-                url: result.secure_url,
-                public_id: result.public_id,
-                resource_type: result.resource_type
-              }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          } catch (cloudinaryError: any) {
-            console.error("Cloudinary upload error:", cloudinaryError);
-            return new Response(
-              JSON.stringify({ 
-                error: 'Cloudinary upload failed',
-                details: cloudinaryError.message || 'Unknown error during upload'
-              }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-            );
-          }
-        } catch (base64Error: any) {
-          console.error("Base64 conversion error:", base64Error);
-          return new Response(
-            JSON.stringify({ 
-              error: 'Failed to process image',
-              details: base64Error.message
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-          );
-        }
-      } catch (fileReadError: any) {
-        console.error("File reading error:", fileReadError);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Failed to read file',
-            details: fileReadError.message
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        );
-      }
-    } catch (formError: any) {
-      console.error('Form data parsing error:', formError);
+    // Check CloudinaryConfig
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+      console.error("Missing Cloudinary configuration");
       return new Response(
-        JSON.stringify({ 
-          error: 'Failed to parse form data',
-          details: formError.message
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ error: "Server configuration error" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
-  } catch (error: any) {
-    console.error('Server error:', error);
+
+    // Parse form data
+    const formData = await req.formData().catch((error) => {
+      console.error("Error parsing form data:", error);
+      throw new Error("Error parsing form data");
+    });
+
+    // Get file and validate
+    const file = formData.get("file");
+    if (!file || !(file instanceof File)) {
+      console.error("No file provided or invalid file");
+      return new Response(
+        JSON.stringify({ error: "No file provided or invalid file" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      console.error(`File too large: ${file.size} bytes (max: ${MAX_FILE_SIZE})`);
+      return new Response(
+        JSON.stringify({ error: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB` }),
+        {
+          status: 413,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Check file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      console.error(`Invalid file type: ${file.type}`);
+      return new Response(
+        JSON.stringify({ error: "Invalid file type", allowedTypes: ALLOWED_TYPES }),
+        {
+          status: 415,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log(`Processing ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
+
+    // Get resource_type based on file MIME type
+    const resourceType = file.type.startsWith("image/") ? "image" : "video";
+
+    // Create resource name (use a better naming strategy in production)
+    const resourceName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    
+    // Read file as ArrayBuffer
+    const fileBuffer = await file.arrayBuffer().catch((error) => {
+      console.error("Error reading file:", error);
+      throw new Error("Error reading file");
+    });
+
+    // Convert ArrayBuffer to base64
+    const fileBase64 = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+    
+    // Parameters for Cloudinary upload
+    const folder = formData.get("folder") || "uploads";
+    const parameters = {
+      file: `data:${file.type};base64,${fileBase64}`,
+      api_key: CLOUDINARY_API_KEY,
+      timestamp: Math.floor(Date.now() / 1000),
+      folder,
+    };
+
+    // Create signature
+    const paramToSign = Object.entries(parameters)
+      .filter(([key]) => key !== "file" && key !== "api_key")
+      .sort()
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
+    
+    const signature = await crypto.subtle.digest(
+      "SHA-1",
+      new TextEncoder().encode(paramToSign + CLOUDINARY_API_SECRET)
+    );
+    
+    // Convert signature to hex
+    const signatureHex = Array.from(new Uint8Array(signature))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    // Create form data for Cloudinary API
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", `data:${file.type};base64,${fileBase64}`);
+    uploadFormData.append("api_key", CLOUDINARY_API_KEY);
+    uploadFormData.append("timestamp", parameters.timestamp.toString());
+    uploadFormData.append("signature", signatureHex);
+    uploadFormData.append("folder", folder);
+    
+    // Upload to Cloudinary
+    console.log("Sending request to Cloudinary");
+    const cloudinaryResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+      {
+        method: "POST",
+        body: uploadFormData,
+      }
+    ).catch((error) => {
+      console.error("Error uploading to Cloudinary:", error);
+      throw new Error("Error uploading to Cloudinary");
+    });
+
+    if (!cloudinaryResponse.ok) {
+      const errorText = await cloudinaryResponse.text();
+      console.error(`Cloudinary error: ${cloudinaryResponse.status} ${errorText}`);
+      return new Response(
+        JSON.stringify({ error: `Upload failed: ${cloudinaryResponse.status}` }),
+        {
+          status: cloudinaryResponse.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const result = await cloudinaryResponse.json();
+    console.log("Upload successful:", result.secure_url);
+
+    // Return success response
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
+      JSON.stringify({
+        url: result.secure_url,
+        public_id: result.public_id,
+        resource_type: result.resource_type,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    console.error("Error in cloudinary-upload function:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Internal server error" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });

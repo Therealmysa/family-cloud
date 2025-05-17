@@ -48,13 +48,19 @@ export default function FamilyAdmin() {
 
   const fetchFamilyData = async (familyId: string) => {
     try {
+      console.log("Fetching family data for ID:", familyId);
       const { data, error } = await supabase
         .from("families")
         .select("*")
         .eq("id", familyId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching family data:", error);
+        throw error;
+      }
+
+      console.log("Family data fetched:", data);
 
       // Get member count
       const { count } = await supabase
@@ -81,15 +87,30 @@ export default function FamilyAdmin() {
 
   const fetchFamilyMembers = async (familyId: string) => {
     try {
+      console.log("Fetching family members for ID:", familyId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("family_id", familyId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching family members:", error);
+        throw error;
+      }
+
+      console.log("Family members fetched:", data);
       setFamilyMembers(data);
     } catch (error) {
       console.error("Error fetching family members:", error);
+    }
+  };
+
+  // This function will be used to refresh data after admin status or ownership changes
+  const handleMemberActionComplete = () => {
+    if (profile?.family_id) {
+      // Refresh both family data (for owner_id) and family members (for is_admin)
+      fetchFamilyData(profile.family_id);
+      fetchFamilyMembers(profile.family_id);
     }
   };
 
@@ -182,7 +203,7 @@ export default function FamilyAdmin() {
                       <MemberActions 
                         member={member}
                         currentUserId={user?.id || ""}
-                        onActionComplete={() => fetchFamilyMembers(profile.family_id || "")}
+                        onActionComplete={handleMemberActionComplete}
                         isAdmin={profile?.is_admin || false}
                         familyId={profile?.family_id || null}
                         isOwner={isOwner}

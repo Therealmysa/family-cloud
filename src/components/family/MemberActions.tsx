@@ -38,9 +38,10 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     
     setIsProcessing(true);
     try {
+      console.log("Making user admin:", member.id);
       const { error } = await supabase
         .from("profiles")
-        .update(asProfileUpdate({ is_admin: true }))
+        .update({ is_admin: true })
         .eq("id", member.id);
 
       if (error) throw error;
@@ -87,9 +88,10 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
         return;
       }
 
+      console.log("Removing admin role from user:", member.id);
       const { error } = await supabase
         .from("profiles")
-        .update(asProfileUpdate({ is_admin: false }))
+        .update({ is_admin: false })
         .eq("id", member.id);
 
       if (error) throw error;
@@ -117,22 +119,29 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     
     setIsProcessing(true);
     try {
+      console.log("Transferring ownership to:", member.id, "for family:", familyId);
       // Update the family owner
       const { error: ownerError } = await supabase
         .from("families")
         .update({ owner_id: member.id })
         .eq("id", familyId);
 
-      if (ownerError) throw ownerError;
+      if (ownerError) {
+        console.error("Error updating family owner:", ownerError);
+        throw ownerError;
+      }
 
       // Ensure the new owner is also an admin
       if (!member.is_admin) {
         const { error: adminError } = await supabase
           .from("profiles")
-          .update(asProfileUpdate({ is_admin: true }))
+          .update({ is_admin: true })
           .eq("id", member.id);
           
-        if (adminError) throw adminError;
+        if (adminError) {
+          console.error("Error making new owner admin:", adminError);
+          throw adminError;
+        }
       }
 
       toast({
@@ -143,6 +152,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       onActionComplete();
       setShowOwnershipDialog(false);
     } catch (error: any) {
+      console.error("Transfer ownership error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -178,10 +188,10 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
 
       const { error } = await supabase
         .from("profiles")
-        .update(asProfileUpdate({ 
+        .update({ 
           family_id: null,
           is_admin: false
-        }))
+        })
         .eq("id", member.id);
 
       if (error) throw error;
