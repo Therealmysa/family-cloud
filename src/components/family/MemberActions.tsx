@@ -25,9 +25,11 @@ interface MemberActionsProps {
 
 export function MemberActions({ member, currentUserId, onActionComplete, isAdmin, familyId, isOwner = false }: MemberActionsProps) {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [adminAction, setAdminAction] = useState<'add' | 'remove'>('add');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Ne pas montrer d'actions si l'utilisateur n'est pas un admin ou si c'est l'utilisateur actuel
+  // Don't show actions if the user isn't an admin or if it's the current user
   if (!isAdmin || member.id === currentUserId) return null;
 
   const makeAdmin = async () => {
@@ -48,6 +50,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       });
       
       onActionComplete();
+      setShowAdminDialog(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -65,7 +68,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     
     setIsProcessing(true);
     try {
-      // Vérifier si c'est le propriétaire
+      // Check if it's the owner
       const { data: familyData } = await supabase
         .from("families")
         .select("owner_id")
@@ -79,6 +82,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
           variant: "destructive",
         });
         setIsProcessing(false);
+        setShowAdminDialog(false);
         return;
       }
 
@@ -95,6 +99,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       });
       
       onActionComplete();
+      setShowAdminDialog(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -111,7 +116,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     
     setIsProcessing(true);
     try {
-      // Mettre à jour le propriétaire de la famille
+      // Update the family owner
       const { error } = await supabase
         .from("families")
         .update({ owner_id: member.id })
@@ -119,7 +124,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
 
       if (error) throw error;
 
-      // S'assurer que le nouveau propriétaire est aussi admin
+      // Ensure the new owner is also an admin
       if (!member.is_admin) {
         await supabase
           .from("profiles")
@@ -150,7 +155,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     
     setIsProcessing(true);
     try {
-      // Vérifier si c'est le propriétaire
+      // Check if it's the owner
       const { data: familyData } = await supabase
         .from("families")
         .select("owner_id")
@@ -196,6 +201,11 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     }
   };
 
+  const handleAdminAction = (action: 'add' | 'remove') => {
+    setAdminAction(action);
+    setShowAdminDialog(true);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -206,7 +216,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {/* Option pour transférer le rôle de propriétaire (uniquement pour le propriétaire actuel) */}
+          {/* Option to transfer ownership (only for the current owner) */}
           {isOwner && (
             <DropdownMenuItem onClick={transferOwnership} disabled={isProcessing}>
               <Crown className="h-4 w-4 mr-2 text-yellow-500" />
@@ -214,14 +224,14 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
             </DropdownMenuItem>
           )}
           
-          {/* Gérer le rôle d'admin */}
+          {/* Manage admin role */}
           {!member.is_admin ? (
-            <DropdownMenuItem onClick={makeAdmin} disabled={isProcessing}>
+            <DropdownMenuItem onClick={() => handleAdminAction('add')} disabled={isProcessing}>
               <Shield className="h-4 w-4 mr-2 text-blue-500" />
               <span>Make Admin</span>
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem onClick={removeAdminRole} disabled={isProcessing}>
+            <DropdownMenuItem onClick={() => handleAdminAction('remove')} disabled={isProcessing}>
               <ShieldOff className="h-4 w-4 mr-2 text-orange-500" />
               <span>Remove Admin Role</span>
             </DropdownMenuItem>
@@ -238,7 +248,33 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Dialogue de confirmation pour supprimer un membre */}
+      {/* Dialog for admin role changes */}
+      <AlertDialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {adminAction === 'add' ? "Make family admin?" : "Remove admin role?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {adminAction === 'add' 
+                ? `This will give ${member.name} administrative privileges including the ability to manage family members and settings.`
+                : `This will remove ${member.name}'s administrative privileges. They will no longer be able to manage family members or settings.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={adminAction === 'add' ? makeAdmin : removeAdminRole}
+              disabled={isProcessing}
+              className={adminAction === 'add' ? "bg-blue-600 hover:bg-blue-700" : "bg-orange-600 hover:bg-orange-700"}
+            >
+              {isProcessing ? "Processing..." : adminAction === 'add' ? "Make Admin" : "Remove Admin"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog to confirm removing a member */}
       <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
