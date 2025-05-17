@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Shield, ShieldOff, UserX, Crown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { asProfileUpdate } from "@/utils/supabaseHelpers";
 import { Profile } from "@/types/profile";
 
 interface MemberActionsProps {
@@ -39,10 +38,13 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     setIsProcessing(true);
     try {
       console.log("Making user admin:", member.id);
-      const { error } = await supabase
+      // Directly update the profiles table
+      const { data, error } = await supabase
         .from("profiles")
         .update({ is_admin: true })
         .eq("id", member.id);
+
+      console.log("Update response:", { data, error });
 
       if (error) throw error;
 
@@ -54,12 +56,12 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       onActionComplete();
       setShowAdminDialog(false);
     } catch (error: any) {
+      console.error("Error making admin:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to make user admin",
         variant: "destructive",
       });
-      console.error("Error making admin:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -71,11 +73,18 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     setIsProcessing(true);
     try {
       // Check if it's the owner
-      const { data: familyData } = await supabase
+      const { data: familyData, error: fetchError } = await supabase
         .from("families")
         .select("owner_id")
         .eq("id", familyId)
         .single();
+
+      if (fetchError) {
+        console.error("Error fetching family data:", fetchError);
+        throw fetchError;
+      }
+
+      console.log("Family data:", familyData);
 
       if (familyData && familyData.owner_id === member.id) {
         toast({
@@ -89,10 +98,12 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       }
 
       console.log("Removing admin role from user:", member.id);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({ is_admin: false })
         .eq("id", member.id);
+
+      console.log("Update response:", { data, error });
 
       if (error) throw error;
 
@@ -104,9 +115,10 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       onActionComplete();
       setShowAdminDialog(false);
     } catch (error: any) {
+      console.error("Error removing admin role:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to remove admin role",
         variant: "destructive",
       });
     } finally {
@@ -121,14 +133,16 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     try {
       console.log("Transferring ownership to:", member.id, "for family:", familyId);
       // Update the family owner
-      const { error: ownerError } = await supabase
+      const { data, error } = await supabase
         .from("families")
         .update({ owner_id: member.id })
         .eq("id", familyId);
 
-      if (ownerError) {
-        console.error("Error updating family owner:", ownerError);
-        throw ownerError;
+      console.log("Update response:", { data, error });
+
+      if (error) {
+        console.error("Error updating family owner:", error);
+        throw error;
       }
 
       // Ensure the new owner is also an admin
@@ -155,7 +169,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       console.error("Transfer ownership error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to transfer ownership",
         variant: "destructive",
       });
     } finally {
@@ -169,11 +183,13 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     setIsProcessing(true);
     try {
       // Check if it's the owner
-      const { data: familyData } = await supabase
+      const { data: familyData, error: fetchError } = await supabase
         .from("families")
         .select("owner_id")
         .eq("id", familyId)
         .single();
+
+      if (fetchError) throw fetchError;
 
       if (familyData && familyData.owner_id === member.id) {
         toast({
@@ -186,13 +202,15 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
         return;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({ 
           family_id: null,
           is_admin: false
         })
         .eq("id", member.id);
+
+      console.log("Update response:", { data, error });
 
       if (error) throw error;
 
@@ -204,9 +222,10 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
       setShowRemoveDialog(false);
       onActionComplete();
     } catch (error: any) {
+      console.error("Error removing member:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to remove member",
         variant: "destructive",
       });
     } finally {

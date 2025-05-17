@@ -1,71 +1,94 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { Menu, Heart } from "lucide-react";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-
-  const navigationItems = user ? [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Feed", path: "/feed" },
-    { name: "Gallery", path: "/gallery" },
-    { name: "Messages", path: "/messages" },
-  ] : [];
+  // Navigation items based on auth status
+  const navigationItems = user
+    ? [
+        { name: t('nav.dashboard'), path: "/dashboard" },
+        { name: t('nav.feed'), path: "/feed" },
+        { name: t('nav.gallery'), path: "/gallery" },
+        { name: t('nav.messages'), path: "/messages" },
+      ]
+    : [
+        { name: t('nav.home'), path: "/" },
+      ];
+  
+  // Don't show the header on the auth page
+  if (location.pathname === "/auth") {
+    return null;
+  }
 
   return (
-    <header className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
-                alt="FamilyCloud Logo" 
-                className="h-10 w-10 mr-2"
-              />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                FamilyCloud
-              </h1>
-            </Link>
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <Link to="/" className="flex items-center gap-2 mr-4">
+          <div className="inline-flex items-center justify-center rounded-full bg-white dark:bg-gray-800 p-2 shadow-sm">
+            <Heart size={20} className="text-purple-600 dark:text-purple-400" />
           </div>
+          <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
+          <span className="font-bold text-xl text-primary sm:hidden">FC</span>
+        </Link>
+        
+        {/* Desktop navigation */}
+        <div className="hidden md:flex md:flex-1">
+          <NavigationItems items={navigationItems} />
+        </div>
+        
+        {/* Actions group */}
+        <div className="flex items-center gap-2">
+          {/* Language Selector */}
+          <LanguageSelector />
           
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-4">
-            <NavigationItems items={navigationItems} />
-            <ThemeToggle />
-            <UserMenu />
-          </nav>
+          {/* Theme Toggle */}
+          <ThemeToggle />
           
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <ThemeToggle />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-              onClick={toggleMobileMenu}
-              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          {/* User Menu or Auth Button */}
+          {!loading && (
+            user ? (
+              <UserMenu />
+            ) : (
+              <Button asChild size="sm" className="ml-2">
+                <Link to="/auth">{t('auth.sign_in')}</Link>
+              </Button>
+            )
+          )}
+          
+          {/* Mobile menu button, shown on smaller screens */}
+          <div className="md:hidden">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 px-0" 
+              onClick={() => setMobileMenuOpen(true)}
             >
-              <span className="sr-only">{mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}</span>
-              <Menu className="block h-6 w-6" aria-hidden="true" />
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Open menu</span>
             </Button>
           </div>
+          
+          {/* Mobile menu, shown on smaller screens */}
+          <MobileMenu 
+            isOpen={mobileMenuOpen} 
+            onClose={() => setMobileMenuOpen(false)} 
+          />
         </div>
       </div>
-
-      {/* Mobile menu */}
-      <MobileMenu isOpen={mobileMenuOpen} onClose={toggleMobileMenu} />
     </header>
   );
 }
