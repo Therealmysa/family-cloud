@@ -38,7 +38,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link to="/" className="flex items-center gap-2 mr-4">
-          <div className="inline-flex items-center justify-center rounded-full bg-white dark:bg-gray-800 p-2 shadow-sm">
+          <div className="inline-flex items-center justify-center">
             <img 
                 src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
                 alt="FamilyCloud Logo" 
