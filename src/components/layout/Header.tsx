@@ -9,7 +9,7 @@ import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/ui/language-selector";
-import { Menu } from "lucide-react";
+import { Menu, Heart } from "lucide-react";
 
 export default function Header() {
   const { user, loading } = useAuth();
@@ -38,7 +38,10 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link to="/" className="flex items-center gap-2 mr-4">
-          <span className="font-bold text-xl text-primary hidden sm:inline-block">{t('app.name')}</span>
+          <div className="inline-flex items-center justify-center rounded-full bg-white dark:bg-gray-800 p-2 shadow-sm">
+            <Heart size={20} className="text-purple-600 dark:text-purple-400" />
+          </div>
+          <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
           <span className="font-bold text-xl text-primary sm:hidden">FC</span>
         </Link>
         

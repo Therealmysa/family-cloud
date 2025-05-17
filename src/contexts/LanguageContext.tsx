@@ -36,13 +36,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         
         if (data.country_code === 'FR') {
           setLocale('fr');
+          console.log('Setting language to French based on IP location');
         } else {
           setLocale('en');
+          console.log('Setting language to English based on IP location');
         }
       } catch (error) {
         console.error('Error detecting user language:', error);
-        // Default to English if detection fails
-        setLocale('en');
+        // Default to French if detection fails
+        setLocale('fr');
       }
     };
     
@@ -51,6 +53,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'fr')) {
       setLocale(savedLanguage);
+      console.log(`Using saved language preference: ${savedLanguage}`);
     } else {
       detectUserLanguage();
     }

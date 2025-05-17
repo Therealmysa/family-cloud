@@ -1,6 +1,7 @@
+
 export type Locale = 'en' | 'fr';
 
-export const defaultLocale: Locale = 'en';
+export const defaultLocale: Locale = 'fr'; // Changed default to French
 
 interface TranslationDictionary {
   [key: string]: string;
@@ -121,7 +122,7 @@ export const translations: Translations = {
   },
   fr: {
     // Common
-    'app.name': 'FamilleNuage',
+    'app.name': 'FamilyCloud',
     'common.loading': 'Chargement...',
     'common.error': 'Erreur',
     'common.success': 'Succès',
