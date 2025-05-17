@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,25 @@ import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { Menu } from "lucide-react";
 
 export default function Header() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const { t } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Navigation items based on auth status
+  const navigationItems = user
+    ? [
+        { name: t('nav.dashboard'), path: "/dashboard" },
+        { name: t('nav.feed'), path: "/feed" },
+        { name: t('nav.gallery'), path: "/gallery" },
+        { name: t('nav.messages'), path: "/messages" },
+      ]
+    : [
+        { name: t('nav.home'), path: "/" },
+      ];
   
   // Don't show the header on the auth page
   if (location.pathname === "/auth") {
@@ -29,7 +44,7 @@ export default function Header() {
         
         {/* Desktop navigation */}
         <div className="hidden md:flex md:flex-1">
-          <NavigationItems />
+          <NavigationItems items={navigationItems} />
         </div>
         
         {/* Actions group */}
@@ -51,8 +66,24 @@ export default function Header() {
             )
           )}
           
+          {/* Mobile menu button, shown on smaller screens */}
+          <div className="md:hidden">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 px-0" 
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </div>
+          
           {/* Mobile menu, shown on smaller screens */}
-          <MobileMenu />
+          <MobileMenu 
+            isOpen={mobileMenuOpen} 
+            onClose={() => setMobileMenuOpen(false)} 
+          />
         </div>
       </div>
     </header>

@@ -1,4 +1,3 @@
-
 export type Locale = 'en' | 'fr';
 
 export const defaultLocale: Locale = 'en';
@@ -7,7 +6,7 @@ interface TranslationDictionary {
   [key: string]: string;
 }
 
-interface Translations {
+type Translations = {
   [key in Locale]: TranslationDictionary;
 }
 
@@ -33,6 +32,7 @@ export const translations: Translations = {
     'common.no': 'No',
     'common.or': 'Or',
     'common.and': 'And',
+    'common.all_rights_reserved': 'All rights reserved',
 
     // Authentication
     'auth.sign_in': 'Sign In',
@@ -58,6 +58,7 @@ export const translations: Translations = {
     'nav.family_members': 'Family Members',
     'nav.family_admin': 'Family Administration',
     'nav.create_post': 'Create Post',
+    'nav.legal': 'Legal',
 
     // Profile
     'profile.title': 'Profile Settings',
@@ -139,6 +140,7 @@ export const translations: Translations = {
     'common.no': 'Non',
     'common.or': 'Ou',
     'common.and': 'Et',
+    'common.all_rights_reserved': 'Tous droits réservés',
 
     // Authentication
     'auth.sign_in': 'Se connecter',
@@ -164,6 +166,7 @@ export const translations: Translations = {
     'nav.family_members': 'Membres de la famille',
     'nav.family_admin': 'Administration familiale',
     'nav.create_post': 'Créer un post',
+    'nav.legal': 'Mentions légales',
 
     // Profile
     'profile.title': 'Paramètres du profil',
