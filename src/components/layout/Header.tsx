@@ -39,7 +39,11 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <Link to="/" className="flex items-center gap-2 mr-4">
           <div className="inline-flex items-center justify-center rounded-full bg-white dark:bg-gray-800 p-2 shadow-sm">
-            <Heart size={20} className="text-purple-600 dark:text-purple-400" />
+            <img 
+                src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
+                alt="FamilyCloud Logo" 
+                className="h-10 w-10 mr-2"
+              />
           </div>
           <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
           <span className="font-bold text-xl text-primary sm:hidden">FC</span>
