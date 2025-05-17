@@ -59,6 +59,8 @@ async function streamToArrayBuffer(stream: ReadableStream): Promise<ArrayBuffer>
 }
 
 serve(async (req) => {
+  console.log("Cloudinary upload function called");
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders, status: 200 });
@@ -67,6 +69,7 @@ serve(async (req) => {
   // Security checks
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
+    console.log("Missing Authorization header");
     return new Response(
       JSON.stringify({ error: 'Not authorized' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -86,11 +89,13 @@ serve(async (req) => {
   // Get user from request
   const {
     data: { user },
+    error: userError,
   } = await supabaseClient.auth.getUser();
 
-  if (!user) {
+  if (userError || !user) {
+    console.log("Authentication error:", userError);
     return new Response(
-      JSON.stringify({ error: 'Not authorized' }),
+      JSON.stringify({ error: 'Not authorized', details: userError?.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
     );
   }
@@ -99,6 +104,7 @@ serve(async (req) => {
     // Parse the form data
     const contentType = req.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
+      console.log("Invalid content type:", contentType);
       return new Response(
         JSON.stringify({ error: 'Content type must be multipart/form-data' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -106,12 +112,21 @@ serve(async (req) => {
     }
 
     try {
+      console.log("Parsing form data");
       const formData = await req.formData();
       
       // Extract data from form
       const file = formData.get('file') as File;
       const resourceType = formData.get('resourceType') as string;
       const folder = formData.get('folder') as string;
+      
+      console.log("Form data parsed:", { 
+        fileExists: !!file, 
+        fileType: file?.type, 
+        fileSize: file?.size,
+        resourceType, 
+        folder 
+      });
       
       // Validate inputs
       if (!file) {
@@ -130,6 +145,7 @@ serve(async (req) => {
 
       // Validate file type
       if (!validateFileType(file.type, resourceType)) {
+        console.log("Invalid file type:", file.type);
         return new Response(
           JSON.stringify({ 
             error: 'Invalid file type',
@@ -141,6 +157,7 @@ serve(async (req) => {
 
       // Validate file size
       if (!validateFileSize(file.size)) {
+        console.log("File too large:", file.size);
         return new Response(
           JSON.stringify({ 
             error: 'File too large',
@@ -159,6 +176,10 @@ serve(async (req) => {
           .eq("id", user.id)
           .single();
 
+        if (profileError) {
+          console.log("Error fetching profile:", profileError);
+        }
+
         if (profileError || !profile || !profile.is_admin) {
           return new Response(
             JSON.stringify({ error: 'Not authorized to upload family assets' }),
@@ -173,6 +194,10 @@ serve(async (req) => {
           .eq("id", user.id)
           .single();
 
+        if (profileError) {
+          console.log("Error fetching profile:", profileError);
+        }
+
         if (profileError || !profile || !profile.family_id) {
           return new Response(
             JSON.stringify({ error: 'Must be in a family to upload media' }),
@@ -181,36 +206,77 @@ serve(async (req) => {
         }
       }
 
-      // Read file content
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-
-      // Upload to Cloudinary
-      const uploadOptions = {
-        folder,
-        resource_type: file.type.startsWith('video/') ? 'video' : 'image',
-      };
-
-      // Convert Uint8Array to base64 string
-      const base64 = btoa(String.fromCharCode.apply(null, uint8Array));
-      const dataURI = `data:${file.type};base64,${base64}`;
+      console.log("Reading file content");
       
-      const result = await cloudinary.uploader.upload(dataURI, uploadOptions);
+      try {
+        // Read file content
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
 
-      if (!result || !result.secure_url) {
-        throw new Error('Failed to upload to Cloudinary');
+        // Upload to Cloudinary
+        const uploadOptions = {
+          folder,
+          resource_type: file.type.startsWith('video/') ? 'video' : 'image',
+        };
+
+        console.log("Converting file to base64");
+        
+        try {
+          // Convert Uint8Array to base64 string
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          const dataURI = `data:${file.type};base64,${base64}`;
+          
+          console.log("Uploading to Cloudinary");
+          
+          try {
+            const result = await cloudinary.uploader.upload(dataURI, uploadOptions);
+
+            if (!result || !result.secure_url) {
+              throw new Error('Failed to upload to Cloudinary');
+            }
+
+            console.log("Upload successful:", result.secure_url);
+            
+            // Return success with the secure URL
+            return new Response(
+              JSON.stringify({ 
+                url: result.secure_url,
+                public_id: result.public_id,
+                resource_type: result.resource_type
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } catch (cloudinaryError: any) {
+            console.error("Cloudinary upload error:", cloudinaryError);
+            return new Response(
+              JSON.stringify({ 
+                error: 'Cloudinary upload failed',
+                details: cloudinaryError.message || 'Unknown error during upload'
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+            );
+          }
+        } catch (base64Error: any) {
+          console.error("Base64 conversion error:", base64Error);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Failed to process image',
+              details: base64Error.message
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+      } catch (fileReadError: any) {
+        console.error("File reading error:", fileReadError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to read file',
+            details: fileReadError.message
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
       }
-
-      // Return success with the secure URL
-      return new Response(
-        JSON.stringify({ 
-          url: result.secure_url,
-          public_id: result.public_id,
-          resource_type: result.resource_type
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } catch (formError) {
+    } catch (formError: any) {
       console.error('Form data parsing error:', formError);
       return new Response(
         JSON.stringify({ 
@@ -220,7 +286,7 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Server error:', error);
     return new Response(
       JSON.stringify({ 

@@ -26,6 +26,7 @@ interface MemberActionsProps {
 export function MemberActions({ member, currentUserId, onActionComplete, isAdmin, familyId, isOwner = false }: MemberActionsProps) {
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [showOwnershipDialog, setShowOwnershipDialog] = useState(false);
   const [adminAction, setAdminAction] = useState<'add' | 'remove'>('add');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -117,28 +118,30 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
     setIsProcessing(true);
     try {
       // Update the family owner
-      const { error } = await supabase
+      const { error: ownerError } = await supabase
         .from("families")
         .update({ owner_id: member.id })
         .eq("id", familyId);
 
-      if (error) throw error;
+      if (ownerError) throw ownerError;
 
       // Ensure the new owner is also an admin
       if (!member.is_admin) {
-        await supabase
+        const { error: adminError } = await supabase
           .from("profiles")
           .update(asProfileUpdate({ is_admin: true }))
           .eq("id", member.id);
+          
+        if (adminError) throw adminError;
       }
 
       toast({
         title: "Ownership transferred",
         description: `${member.name} is now the family owner.`,
-        variant: "success",
       });
       
       onActionComplete();
+      setShowOwnershipDialog(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -218,7 +221,7 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
         <DropdownMenuContent align="end">
           {/* Option to transfer ownership (only for the current owner) */}
           {isOwner && (
-            <DropdownMenuItem onClick={transferOwnership} disabled={isProcessing}>
+            <DropdownMenuItem onClick={() => setShowOwnershipDialog(true)} disabled={isProcessing}>
               <Crown className="h-4 w-4 mr-2 text-yellow-500" />
               <span>Transfer Ownership</span>
             </DropdownMenuItem>
@@ -269,6 +272,30 @@ export function MemberActions({ member, currentUserId, onActionComplete, isAdmin
               className={adminAction === 'add' ? "bg-blue-600 hover:bg-blue-700" : "bg-orange-600 hover:bg-orange-700"}
             >
               {isProcessing ? "Processing..." : adminAction === 'add' ? "Make Admin" : "Remove Admin"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog to confirm transferring ownership */}
+      <AlertDialog open={showOwnershipDialog} onOpenChange={setShowOwnershipDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Transfer family ownership?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will make {member.name} the owner of your family. They will have full control over family settings.
+              You will remain an administrator, but only the new owner will be able to delete the family or transfer
+              ownership in the future.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={transferOwnership}
+              disabled={isProcessing}
+              className="bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-600"
+            >
+              {isProcessing ? "Transferring..." : "Transfer Ownership"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
