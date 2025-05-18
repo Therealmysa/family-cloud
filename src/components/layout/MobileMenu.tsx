@@ -21,17 +21,19 @@ interface MobileMenuProps {
 }
 
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { theme, setTheme } = useTheme();
   const { t, locale, setLocale } = useLanguage();
 
+  // Define navigation items based on authentication status
   const navigationItems = user
     ? [
         { name: t('nav.dashboard'), path: `/${locale}/dashboard` },
         { name: t('nav.feed'), path: `/${locale}/feed` },
         { name: t('nav.gallery'), path: `/${locale}/gallery` },
         { name: t('nav.messages'), path: `/${locale}/messages` },
-        { name: t('nav.family_admin'), path: `/${locale}/family-admin` },
+        // Removed the duplicate family admin item here
+        { name: t('nav.family_members'), path: `/${locale}/family-members` },
       ]
     : [
         { name: t('nav.home'), path: `/${locale}/` },

@@ -31,6 +31,8 @@ export const translations: Translations = {
     'common.no': 'No',
     'common.or': 'Or',
     'common.and': 'And',
+    'common.today': 'Today',
+    'common.yesterday': 'Yesterday',
     'common.all_rights_reserved': 'All rights reserved',
     'light': 'Light',
     'dark': 'Dark',
@@ -148,6 +150,8 @@ export const translations: Translations = {
     'dashboard.profile_desc': 'View your profile and settings',
     'dashboard.my_profile': 'My Profile',
     'dashboard.share_moment': 'Share Today\'s Moment',
+    'dashboard.last_picture': 'Last Picture',
+    'dashboard.last_message': 'Last Message',
     
     // Feed
     'feed.title': 'Daily Moments',
@@ -170,6 +174,7 @@ export const translations: Translations = {
     'gallery.empty': 'No media found',
     'gallery.empty_search': 'No results found for your search',
     'gallery.try_different': 'Try different search terms',
+    'gallery.no_pictures': 'No pictures uploaded yet.',
     
     // Family Admin
     'familyAdmin.title': 'Family Administration',
@@ -222,6 +227,8 @@ export const translations: Translations = {
     'common.no': 'Non',
     'common.or': 'Ou',
     'common.and': 'Et',
+    'common.today': 'Aujourd\'hui',
+    'common.yesterday': 'Hier',
     'common.all_rights_reserved': 'Tous droits réservés',
     'light': 'Clair',
     'dark': 'Sombre',
@@ -339,6 +346,8 @@ export const translations: Translations = {
     'dashboard.profile_desc': 'Consultez votre profil et vos paramètres',
     'dashboard.my_profile': 'Mon profil',
     'dashboard.share_moment': 'Partager un moment',
+    'dashboard.last_picture': 'Dernière image',
+    'dashboard.last_message': 'Dernier message',
     
     // Feed
     'feed.title': 'Moments quotidiens',
@@ -361,6 +370,7 @@ export const translations: Translations = {
     'gallery.empty': 'Aucun média trouvé',
     'gallery.empty_search': 'Aucun résultat trouvé pour votre recherche',
     'gallery.try_different': 'Essayez des termes de recherche différents',
+    'gallery.no_pictures': 'Aucune image téléchargée pour le moment.',
     
     // Family Admin
     'familyAdmin.title': 'Administration familiale',
@@ -393,4 +403,3 @@ export const translations: Translations = {
     'landing.features.gallery_desc': 'De belles collections organisées des souvenirs de votre famille que tout le monde peut apprécier et revisiter à tout moment',
   }
 };
-
