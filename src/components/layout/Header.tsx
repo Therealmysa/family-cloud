@@ -37,7 +37,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        {/* Logo Section */}
+        {/* Logo Section with FamilyCloud text */}
         <Link to={`/${locale}/`} className="flex items-center gap-3 mr-6">
           <div className="inline-flex items-center justify-center">
             <img 
@@ -46,7 +46,7 @@ export default function Header() {
                 className="h-9 w-9"
               />
           </div>
-          <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
+          <span className="font-bold text-xl text-primary">FamilyCloud</span>
         </Link>
         
         {/* Desktop navigation */}
@@ -60,11 +60,6 @@ export default function Header() {
           <div className="hidden md:flex md:items-center md:gap-3">
             <LanguageSelector />
             <ThemeToggle />
-          </div>
-          
-          {/* Mobile: FamilyCloud text */}
-          <div className="md:hidden">
-            <span className="font-bold text-primary">FamilyCloud</span>
           </div>
           
           {/* User Menu or Auth Button */}

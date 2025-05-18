@@ -8,6 +8,7 @@ import { EmptyFeed } from "@/components/feed/EmptyFeed";
 import { FeedSkeleton } from "@/components/feed/FeedSkeleton";
 import { useFeed } from "@/hooks/useFeed";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Feed = () => {
   const navigate = useNavigate();
@@ -19,17 +20,18 @@ const Feed = () => {
     likeMutation
   } = useFeed();
   const isMobile = useIsMobile();
+  const { t, locale } = useLanguage();
 
   // Handle navigation to post creation
   const handleCreatePost = () => {
-    navigate("/create-post");
+    navigate(`/${locale}/create-post`);
   };
 
   return (
-    <MainLayout title="Feed" requireAuth={true}>
+    <MainLayout title={t('nav.feed')} requireAuth={true}>
       <div className="container max-w-3xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Daily Moments</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('feed.title')}</h1>
           <Button 
             onClick={handleCreatePost} 
             disabled={hasPostedToday}
@@ -38,7 +40,7 @@ const Feed = () => {
             size={isMobile ? "default" : "default"}
           >
             <PlusCircle className="h-4 w-4" />
-            {hasPostedToday ? "Posted Today" : "Share Moment"}
+            {hasPostedToday ? t('feed.posted_today') : t('feed.share_moment')}
           </Button>
         </div>
 

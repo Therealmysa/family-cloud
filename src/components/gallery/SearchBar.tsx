@@ -1,7 +1,8 @@
 
-import { Search, PlusCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchBarProps {
   searchTerm: string;
@@ -16,31 +17,28 @@ export const SearchBar = ({
   onAddClick,
   isMobile
 }: SearchBarProps) => {
+  const { t } = useLanguage();
+  
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Family Gallery</h1>
-      
-      <div className="flex gap-4 w-full md:w-auto">
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            placeholder="Search memories..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
-        
-        <Button 
-          onClick={onAddClick}
-          className={`flex items-center gap-2 shrink-0 ${isMobile ? 'py-5' : ''}`}
-          variant="primary"
-          size={isMobile ? "default" : "default"}
-        >
-          <PlusCircle className="h-4 w-4" />
-          <span className={isMobile ? "hidden" : "inline"}>Add Media</span>
-        </Button>
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+        <Input
+          type="text"
+          placeholder={t('gallery.search')}
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-10 w-full"
+        />
       </div>
+      <Button
+        onClick={onAddClick}
+        className="flex items-center gap-2"
+        size={isMobile ? "default" : "default"}
+      >
+        <Plus size={18} />
+        <span>{t('gallery.add_photo')}</span>
+      </Button>
     </div>
   );
 };

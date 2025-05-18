@@ -1,292 +1,292 @@
-import { useState, useCallback } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "@/components/ui/use-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Upload, X, ImagePlus, FileVideo } from "lucide-react";
-import { useDropzone } from "react-dropzone";
-import axios from "axios";
-import { asMediaInsert } from "@/utils/supabaseHelpers";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, X } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const postSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  description: z.string().max(500, "Description is too long").optional(),
-});
+interface MediaUploaderProps {
+  userId: string;
+  familyId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
 
-const isImageFile = (file) => file.type.startsWith("image/");
-const isVideoFile = (file) => file.type.startsWith("video/");
+export const MediaUploader = ({
+  userId,
+  familyId,
+  onSuccess,
+  onCancel,
+}: MediaUploaderProps) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { t } = useLanguage();
 
-export function MediaUploader({ userId, familyId, onSuccess, onCancel }) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mediaFile, setMediaFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
-  const form = useForm({
-    resolver: zodResolver(postSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
-
-  const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      if (!isImageFile(file) && !isVideoFile(file)) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a valid image or video file",
-          variant: "destructive",
-        });
-        return;
-      }
-      setMediaFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+  // Handle file drop
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const selectedFile = e.dataTransfer.files[0];
+      handleFileSelected(selectedFile);
     }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpg", ".jpeg", ".png", ".webp"],
-      "video/*": [".mp4", ".webm", ".ogg"],
-    },
-    maxSize: 500 * 1024 * 1024,
-    maxFiles: 1,
-  });
-
-  const clearMedia = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setMediaFile(null);
-    setPreviewUrl(null);
   };
 
-  const resetForm = () => {
-    form.reset();
-    clearMedia();
-    onCancel();
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      handleFileSelected(selectedFile);
+    }
   };
 
-  const folderPath = `families/${familyId}`;
-  const CLOUDINARY_UPLOAD_PRESET = "family_uploads";
-  const CLOUDINARY_CLOUD_NAME = "ddgxymljp";
-
-  const uploadToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append("file", mediaFile);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    formData.append("folder", folderPath);
-
-    const response = await axios.post(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
-      formData
-    );
-    return response.data.secure_url;
-  };
-
-  const onSubmit = async (values) => {
-    if (!userId || !familyId || !mediaFile) {
+  // Process selected file
+  const handleFileSelected = (selectedFile: File) => {
+    // Check file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
+    if (!validTypes.includes(selectedFile.type)) {
       toast({
-        title: "Error",
-        description: "Missing required information. Please try again.",
-        variant: "destructive",
+        title: "Unsupported file type",
+        description: "Please upload a JPG, PNG, GIF, or MP4 file.",
+        variant: "destructive"
       });
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      const cloudinaryUrl = await uploadToCloudinary(mediaFile);
-
-      const isVideo = isVideoFile(mediaFile);
-      const thumbnailUrl = isVideo ? `${cloudinaryUrl}#t=0.1` : null;
-
-      const { error: mediaError } = await supabase.from("media").insert(
-        asMediaInsert({
-          title: values.title,
-          description: values.description || null,
-          url: cloudinaryUrl,
-          user_id: userId,
-          family_id: familyId,
-          thumbnail_url: thumbnailUrl,
-        })
-      );
-
-      if (mediaError) throw new Error(`Database error: ${mediaError.message}`);
-
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-
+    
+    // Check file size (10MB limit)
+    if (selectedFile.size > 10 * 1024 * 1024) {
       toast({
-        title: "Success!",
-        description: "Your moment has been shared with your family.",
-        variant: "default",
+        title: "File too large",
+        description: "File size must be less than 10MB.",
+        variant: "destructive"
       });
+      return;
+    }
+    
+    setFile(selectedFile);
+    
+    // Create preview URL
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      setPreviewUrl(fileReader.result as string);
+    };
+    fileReader.readAsDataURL(selectedFile);
+  };
 
-      form.reset();
-      clearMedia();
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!title) {
+      toast({
+        title: "Title required",
+        description: "Please add a title for your media.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUploading(true);
+    
+    try {
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${familyId}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: publicURL } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+      
+      if (!publicURL) {
+        throw new Error("Failed to get public URL");
+      }
+      
+      // Insert into 'media' table
+      const { error: insertError } = await supabase
+        .from('media')
+        .insert({
+          title: title,
+          description: description || null,
+          file_path: filePath,
+          file_url: publicURL.publicUrl,
+          uploaded_by: userId,
+          family_id: familyId,
+          media_type: file.type.startsWith('image/') ? 'image' : 'video'
+        });
+      
+      if (insertError) {
+        throw insertError;
+      }
+      
+      toast({
+        title: "Upload successful",
+        description: "Your media has been uploaded.",
+      });
+      
       onSuccess();
     } catch (error) {
+      console.error('Error uploading:', error);
       toast({
-        title: "Error sharing moment",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
+        title: "Upload failed",
+        description: "There was an error uploading your media. Please try again.",
+        variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setUploading(false);
     }
   };
 
   return (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Share a Memory</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={resetForm}
-          className="flex items-center gap-2"
-        >
-          <X className="h-4 w-4" />
-          <span>Cancel</span>
-        </Button>
-      </div>
-      <Card>
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="My special moment" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <Card className="w-full mb-6">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">{t('gallery.upload')}</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onCancel}
+            className="rounded-full p-2"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          {!file ? (
+            <div
+              className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${
+                dragging 
+                  ? "border-primary bg-primary/5" 
+                  : "border-gray-300 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-base font-medium mb-1">
+                {t('gallery.drag_drop')}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t('gallery.file_types')}
+              </p>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,video/mp4"
+                className="hidden"
+                onChange={handleFileChange}
               />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Share more about this moment..."
-                        className="resize-none"
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormItem>
-                <FormLabel>Media (Image or Video)</FormLabel>
-                <FormControl>
-                  {!mediaFile ? (
-                    <div
-                      {...getRootProps()}
-                      className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${
-                        isDragActive
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-300 hover:border-primary hover:bg-gray-50"
-                      }`}
-                    >
-                      <input {...getInputProps()} />
-                      <div className="flex flex-col items-center gap-2">
-                        {isDragActive ? (
-                          <ImagePlus className="h-10 w-10 text-primary/70" />
-                        ) : (
-                          <div className="flex gap-3">
-                            <ImagePlus className="h-8 w-8 text-gray-400" />
-                            <FileVideo className="h-8 w-8 text-gray-400" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-medium">
-                            {isDragActive
-                              ? "Drop the file here"
-                              : "Drag and drop or click to select"}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            JPG, PNG, WEBP, MP4, WEBM or OGG (max 50MB)
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {previewUrl && (
+                <div className="relative mb-4 w-full max-h-[300px] overflow-hidden flex justify-center bg-black/5 dark:bg-white/5 rounded-md">
+                  {file.type.startsWith('image/') ? (
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="max-h-[300px] object-contain"
+                    />
                   ) : (
-                    <div className="mt-4 max-w-full overflow-hidden rounded-lg relative">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="absolute top-2 right-2 z-10 rounded-full p-1 w-8 h-8"
-                        onClick={clearMedia}
-                      >
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Remove</span>
-                      </Button>
-                      {isVideoFile(mediaFile) ? (
-                        <video
-                          src={previewUrl || undefined}
-                          controls
-                          className="w-full h-auto max-h-[600px] object-contain"
-                        />
-                      ) : (
-                        <img
-                          src={previewUrl || undefined}
-                          alt="Preview"
-                          className="w-full h-auto max-h-[600px] object-contain"
-                        />
-                      )}
-                    </div>
+                    <video
+                      src={previewUrl}
+                      controls
+                      className="max-h-[300px] w-full"
+                    />
                   )}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting || !mediaFile}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Share with Family
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 flex items-center justify-center"
+                    onClick={() => {
+                      setFile(null);
+                      setPreviewUrl(null);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium mb-1">
+                    Title *
+                  </label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium mb-1">
+                    Description
+                  </label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="flex gap-3 justify-end">
+                  <Button type="button" variant="outline" onClick={onCancel}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button type="submit" disabled={uploading}>
+                    {uploading ? (
+                      <>
+                        <span className="animate-spin mr-2 inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                        {t('common.loading')}
+                      </>
+                    ) : (
+                      t('common.save')
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
-}
+};

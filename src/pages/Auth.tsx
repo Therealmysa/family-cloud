@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -37,6 +38,7 @@ export default function Auth() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<string>("sign-in");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t, locale } = useLanguage();
 
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -73,9 +75,9 @@ export default function Auth() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(`/${locale}/`);
     }
-  }, [user, navigate]);
+  }, [user, navigate, locale]);
 
   const handleSignIn = async (data: SignInFormValues) => {
     setIsSubmitting(true);
@@ -115,26 +117,26 @@ export default function Auth() {
   };
 
   return (
-    <MainLayout title={activeTab === "sign-up" ? "Sign Up" : "Sign In"}>
+    <MainLayout title={activeTab === "sign-up" ? t('auth.sign_up') : t('auth.sign_in')}>
       <div className="flex justify-center items-center min-h-[calc(100vh-16rem)]">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Welcome to FamilyCloud
+              {t('auth.welcome')}
             </CardTitle>
             <CardDescription className="text-center">
               {activeTab === "sign-up" 
-                ? "Create an account to start sharing with your family" 
+                ? t('auth.create_account') 
                 : activeTab === "forgot-password"
-                ? "Enter your email to reset your password"
-                : "Sign in to your account"}
+                ? t('auth.reset_email')
+                : t('auth.sign_in_account')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="sign-in">Sign In</TabsTrigger>
-                <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+                <TabsTrigger value="sign-in">{t('auth.sign_in')}</TabsTrigger>
+                <TabsTrigger value="sign-up">{t('auth.sign_up')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="sign-in">
@@ -145,7 +147,7 @@ export default function Auth() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="name@example.com" 
@@ -164,14 +166,14 @@ export default function Auth() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center justify-between">
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel>{t('auth.password')}</FormLabel>
                             <Button 
                               type="button" 
                               variant="link" 
                               className="p-0 text-xs"
                               onClick={() => setActiveTab("forgot-password")}
                             >
-                              Forgot password?
+                              {t('auth.forgot_password')}
                             </Button>
                           </div>
                           <FormControl>
@@ -194,10 +196,10 @@ export default function Auth() {
                       {isSubmitting ? (
                         <div className="flex items-center">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Signing In
+                          {t('auth.signing_in')}
                         </div>
                       ) : (
-                        "Sign In"
+                        t('auth.sign_in')
                       )}
                     </Button>
                   </form>
@@ -212,7 +214,7 @@ export default function Auth() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>{t('auth.full_name')}</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} />
                           </FormControl>
@@ -226,7 +228,7 @@ export default function Auth() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="name@example.com" 
@@ -244,7 +246,7 @@ export default function Auth() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('auth.password')}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="********" 
@@ -265,10 +267,10 @@ export default function Auth() {
                       {isSubmitting ? (
                         <div className="flex items-center">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Creating Account
+                          {t('auth.creating_account')}
                         </div>
                       ) : (
-                        "Create Account"
+                        t('auth.create_account_button')
                       )}
                     </Button>
                   </form>
@@ -283,7 +285,7 @@ export default function Auth() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="name@example.com" 
@@ -304,10 +306,10 @@ export default function Auth() {
                       {isSubmitting ? (
                         <div className="flex items-center">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Sending Reset Email
+                          {t('auth.sending_reset')}
                         </div>
                       ) : (
-                        "Send Reset Email"
+                        t('auth.reset_email_button')
                       )}
                     </Button>
                     
@@ -317,7 +319,7 @@ export default function Auth() {
                       className="w-full mt-2"
                       onClick={() => setActiveTab("sign-in")}
                     >
-                      Back to Sign In
+                      {t('auth.back_to_sign_in')}
                     </Button>
                   </form>
                 </Form>
@@ -327,9 +329,9 @@ export default function Auth() {
           <CardFooter className="flex justify-center">
             <div className="text-sm text-gray-500 text-center">
               {activeTab === "sign-in" ? (
-                <p>Don't have an account? <Button variant="link" className="p-0" onClick={() => setActiveTab("sign-up")}>Sign up</Button></p>
+                <p>{t('auth.dont_have_account')} <Button variant="link" className="p-0" onClick={() => setActiveTab("sign-up")}>{t('auth.sign_up')}</Button></p>
               ) : (
-                <p>Already have an account? <Button variant="link" className="p-0" onClick={() => setActiveTab("sign-in")}>Sign in</Button></p>
+                <p>{t('auth.already_have_account')} <Button variant="link" className="p-0" onClick={() => setActiveTab("sign-in")}>{t('auth.sign_in')}</Button></p>
               )}
             </div>
           </CardFooter>

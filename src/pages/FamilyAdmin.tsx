@@ -16,6 +16,7 @@ import { MemberActions } from "@/components/family/MemberActions";
 import { Profile } from "@/types/profile";
 import { Search } from "lucide-react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FamilyAdmin() {
   const { user, profile } = useAuth();
@@ -25,6 +26,7 @@ export default function FamilyAdmin() {
   const [familyMembers, setFamilyMembers] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { t, locale } = useLanguage();
 
   // Redirection si l'utilisateur n'est pas connecté ou n'est pas un admin
   useEffect(() => {
@@ -32,11 +34,11 @@ export default function FamilyAdmin() {
     
     if (!profile.is_admin) {
       toast({
-        title: "Access denied",
-        description: "You need to be a family admin to view this page.",
+        title: t('familyAdmin.access_denied'),
+        description: t('familyAdmin.admin_required'),
         variant: "destructive",
       });
-      navigate('/profile');
+      navigate(`/${locale}/profile`);
       return;
     }
 
@@ -44,7 +46,7 @@ export default function FamilyAdmin() {
       fetchFamilyData(profile.family_id);
       fetchFamilyMembers(profile.family_id);
     }
-  }, [profile, navigate]);
+  }, [profile, navigate, locale, t]);
 
   const fetchFamilyData = async (familyId: string) => {
     try {
@@ -77,8 +79,8 @@ export default function FamilyAdmin() {
     } catch (error) {
       console.error("Error fetching family data:", error);
       toast({
-        title: "Error",
-        description: "Failed to load family data. Please try again.",
+        title: t('common.error'),
+        description: t('familyAdmin.loading'),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -122,11 +124,11 @@ export default function FamilyAdmin() {
 
   if (isLoading) {
     return (
-      <MainLayout title="Family Administration" requireAuth={true}>
+      <MainLayout title={t('nav.family_admin')} requireAuth={true}>
         <div className="flex justify-center items-center min-h-[calc(100vh-16rem)]">
           <div className="flex flex-col items-center">
             <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-2" />
-            <p className="text-gray-500">Loading family information...</p>
+            <p className="text-gray-500">{t('familyAdmin.loading')}</p>
           </div>
         </div>
       </MainLayout>
@@ -134,12 +136,12 @@ export default function FamilyAdmin() {
   }
 
   return (
-    <MainLayout title="Family Administration" requireAuth={true}>
+    <MainLayout title={t('nav.family_admin')} requireAuth={true}>
       <div className="w-full px-2 sm:px-4 py-6 sm:max-w-4xl sm:mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold">Family Administration</h1>
-          <Button variant="outline" onClick={() => navigate('/profile')}>
-            Back to Profile
+          <h1 className="text-xl sm:text-2xl font-bold">{t('nav.family_admin')}</h1>
+          <Button variant="outline" onClick={() => navigate(`/${locale}/profile`)}>
+            {t('familyAdmin.back')}
           </Button>
         </div>
 
@@ -155,9 +157,9 @@ export default function FamilyAdmin() {
           {/* Member Management Card */}
           <Card className="overflow-hidden">
             <CardHeader className="px-4 sm:px-6">
-              <CardTitle>Family Members</CardTitle>
+              <CardTitle>{t('family.members')}</CardTitle>
               <CardDescription>
-                Manage your family members and their permissions
+                {t('familyAdmin.manage_members')}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
@@ -165,7 +167,7 @@ export default function FamilyAdmin() {
               <div className="relative mb-4">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search members..."
+                  placeholder={t('family.search')}
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -174,7 +176,7 @@ export default function FamilyAdmin() {
               
               {/* Members list */}
               {filteredMembers.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">No family members found</p>
+                <p className="text-center text-gray-500 py-4">{t('family.no_members')}</p>
               ) : (
                 <div className="space-y-2">
                   {filteredMembers.map((member) => (
@@ -187,14 +189,14 @@ export default function FamilyAdmin() {
                         <div>
                           <p className="font-medium">
                             {member.name}
-                            {member.id === user?.id && <span className="text-sm text-gray-500 ml-2">(You)</span>}
+                            {member.id === user?.id && <span className="text-sm text-gray-500 ml-2">({t('family.you')})</span>}
                           </p>
                           <div className="flex gap-2">
                             {familyData?.owner_id === member.id && (
-                              <span className="text-xs text-yellow-600 font-medium">Owner</span>
+                              <span className="text-xs text-yellow-600 font-medium">{t('family.owner_role')}</span>
                             )}
                             {member.is_admin && (
-                              <span className="text-xs text-purple-600 font-medium">Administrator</span>
+                              <span className="text-xs text-purple-600 font-medium">{t('family.admin_role')}</span>
                             )}
                           </div>
                         </div>
