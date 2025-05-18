@@ -31,7 +31,7 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
     } else {
       document.title = t('app.name');
     }
-  }, [title, t]);
+  }, [title, t, locale]);
 
   if (loading) {
     return (

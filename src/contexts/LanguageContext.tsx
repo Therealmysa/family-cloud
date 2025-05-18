@@ -18,6 +18,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   
   // Function to get translation for a key
   const t = (key: string): string => {
+    if (!translations[locale][key] && !translations[defaultLocale][key]) {
+      console.warn(`Translation key not found: ${key}`);
+    }
     return translations[locale][key] || translations[defaultLocale][key] || key;
   };
   
@@ -33,15 +36,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } else {
       // No language prefix, try to detect user's language
       try {
+        // First attempt to use the browser language
         const browserLang = navigator.language.split('-')[0];
         
         if (browserLang === 'fr') {
           navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
         } else {
+          // Default to English for all other languages
           navigate(`/en${path === '/' ? '' : path}`, { replace: true });
         }
       } catch (error) {
         console.error('Error detecting user language:', error);
+        // Default to French if there's an error
         navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
       }
     }

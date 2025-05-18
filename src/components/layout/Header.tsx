@@ -56,11 +56,16 @@ export default function Header() {
         
         {/* Actions group */}
         <div className="flex items-center gap-2 ml-auto">
-          {/* Language Selector */}
-          <LanguageSelector />
+          {/* Desktop: Language Selector & Theme Toggle */}
+          <div className="hidden md:flex md:items-center md:gap-2">
+            <LanguageSelector />
+            <ThemeToggle />
+          </div>
           
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          {/* Mobile: FamilyCloud text instead of language/theme toggles */}
+          <div className="md:hidden">
+            <span className="font-bold text-primary">FamilyCloud</span>
+          </div>
           
           {/* User Menu or Auth Button */}
           {!loading && (
