@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -47,24 +47,41 @@ const AppContent = () => {
           <Sonner position={isMobile ? "top-center" : "bottom-right"} />
           {/* Cookie Consent Banner */}
           <CookieConsent />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/setup-family" element={<SetupFamily />} />
-              <Route path="/dashboard" element={<FamilyDashboard />} />
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/create-post" element={<CreatePost />} />
-              <Route path="/family-admin" element={<FamilyAdmin />} />
-              <Route path="/family-members" element={<FamilyMembers />} />
-              <Route path="/legal" element={<Legal />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <Routes>
+            {/* Redirect root to language-based routes */}
+            <Route path="/" element={<Navigate to="/fr" replace />} />
+            
+            {/* French Routes */}
+            <Route path="/fr" element={<Index />} />
+            <Route path="/fr/auth" element={<Auth />} />
+            <Route path="/fr/setup-family" element={<SetupFamily />} />
+            <Route path="/fr/dashboard" element={<FamilyDashboard />} />
+            <Route path="/fr/feed" element={<Feed />} />
+            <Route path="/fr/gallery" element={<Gallery />} />
+            <Route path="/fr/messages" element={<Messages />} />
+            <Route path="/fr/profile" element={<Profile />} />
+            <Route path="/fr/create-post" element={<CreatePost />} />
+            <Route path="/fr/family-admin" element={<FamilyAdmin />} />
+            <Route path="/fr/family-members" element={<FamilyMembers />} />
+            <Route path="/fr/legal" element={<Legal />} />
+            
+            {/* English Routes */}
+            <Route path="/en" element={<Index />} />
+            <Route path="/en/auth" element={<Auth />} />
+            <Route path="/en/setup-family" element={<SetupFamily />} />
+            <Route path="/en/dashboard" element={<FamilyDashboard />} />
+            <Route path="/en/feed" element={<Feed />} />
+            <Route path="/en/gallery" element={<Gallery />} />
+            <Route path="/en/messages" element={<Messages />} />
+            <Route path="/en/profile" element={<Profile />} />
+            <Route path="/en/create-post" element={<CreatePost />} />
+            <Route path="/en/family-admin" element={<FamilyAdmin />} />
+            <Route path="/en/family-members" element={<FamilyMembers />} />
+            <Route path="/en/legal" element={<Legal />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </TooltipProvider>
       </LanguageProvider>
     </ThemeProvider>
@@ -75,7 +92,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <HelmetProvider>
-        <AppContent />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
       </HelmetProvider>
     </AuthProvider>
   </QueryClientProvider>

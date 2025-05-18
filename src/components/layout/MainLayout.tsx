@@ -14,16 +14,16 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, requireAuth = false, title }: MainLayoutProps) {
   const { user, loading } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const isMessagesPage = location.pathname === "/messages";
+  const isMessagesPage = location.pathname.endsWith("/messages");
   
   useEffect(() => {
     if (!loading && requireAuth && !user) {
-      navigate("/auth");
+      navigate(`/${locale}/auth`);
     }
-  }, [user, loading, requireAuth, navigate]);
+  }, [user, loading, requireAuth, navigate, locale]);
   
   useEffect(() => {
     if (title) {
@@ -62,7 +62,7 @@ export default function MainLayout({ children, requireAuth = false, title }: Mai
               <a href="https://mysa-tech.fr" className="hover:text-primary transition-colors" target="_blank" rel="noopener noreferrer">MYSA Tech</a> | 
               <ObfuscatedEmail email="contact@mysa-tech.fr" className="hover:text-primary transition-colors ml-1" />
             </address>
-            <Link to="/legal" className="hover:text-primary transition-colors">{t('nav.legal')}</Link>
+            <Link to={`/${locale}/legal`} className="hover:text-primary transition-colors">{t('nav.legal')}</Link>
           </div>
         </div>
       </footer>

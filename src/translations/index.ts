@@ -1,11 +1,9 @@
 
 export type Locale = 'en' | 'fr';
 
-export const defaultLocale: Locale = 'fr'; // Changed default to French
+export const defaultLocale: Locale = 'fr'; // Default language is now French
 
-interface TranslationDictionary {
-  [key: string]: string;
-}
+type TranslationDictionary = Record<string, string>;
 
 type Translations = {
   [key in Locale]: TranslationDictionary;
@@ -34,6 +32,8 @@ export const translations: Translations = {
     'common.or': 'Or',
     'common.and': 'And',
     'common.all_rights_reserved': 'All rights reserved',
+    'light': 'Light',
+    'dark': 'Dark',
 
     // Authentication
     'auth.sign_in': 'Sign In',
@@ -142,6 +142,8 @@ export const translations: Translations = {
     'common.or': 'Ou',
     'common.and': 'Et',
     'common.all_rights_reserved': 'Tous droits réservés',
+    'light': 'Clair',
+    'dark': 'Sombre',
 
     // Authentication
     'auth.sign_in': 'Se connecter',

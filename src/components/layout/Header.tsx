@@ -9,44 +9,44 @@ import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/ui/language-selector";
-import { Menu, Heart } from "lucide-react";
+import { Menu } from "lucide-react";
 
 export default function Header() {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Navigation items based on auth status
   const navigationItems = user
     ? [
-        { name: t('nav.dashboard'), path: "/dashboard" },
-        { name: t('nav.feed'), path: "/feed" },
-        { name: t('nav.gallery'), path: "/gallery" },
-        { name: t('nav.messages'), path: "/messages" },
+        { name: t('nav.dashboard'), path: `/${locale}/dashboard` },
+        { name: t('nav.feed'), path: `/${locale}/feed` },
+        { name: t('nav.gallery'), path: `/${locale}/gallery` },
+        { name: t('nav.messages'), path: `/${locale}/messages` },
       ]
     : [
-        { name: t('nav.home'), path: "/" },
+        { name: t('nav.home'), path: `/${locale}/` },
       ];
   
   // Don't show the header on the auth page
-  if (location.pathname === "/auth") {
+  if (location.pathname === "/auth" || location.pathname === "/en/auth" || location.pathname === "/fr/auth") {
     return null;
   }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <Link to="/" className="flex items-center gap-2 mr-4">
+        {/* Logo Section */}
+        <Link to={`/${locale}/`} className="flex items-center gap-2 mr-4">
           <div className="inline-flex items-center justify-center">
             <img 
                 src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
                 alt="FamilyCloud Logo" 
-                className="h-10 w-10 mr-2"
+                className="h-8 w-8"
               />
           </div>
           <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
-          <span className="font-bold text-xl text-primary sm:hidden">FC</span>
         </Link>
         
         {/* Desktop navigation */}
@@ -55,7 +55,7 @@ export default function Header() {
         </div>
         
         {/* Actions group */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {/* Language Selector */}
           <LanguageSelector />
           
@@ -68,7 +68,7 @@ export default function Header() {
               <UserMenu />
             ) : (
               <Button asChild size="sm" className="ml-2">
-                <Link to="/auth">{t('auth.sign_in')}</Link>
+                <Link to={`/${locale}/auth`}>{t('auth.sign_in')}</Link>
               </Button>
             )
           )}
@@ -80,19 +80,19 @@ export default function Header() {
               size="sm" 
               className="h-8 w-8 px-0" 
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Open menu</span>
             </Button>
           </div>
-          
-          {/* Mobile menu, shown on smaller screens */}
-          <MobileMenu 
-            isOpen={mobileMenuOpen} 
-            onClose={() => setMobileMenuOpen(false)} 
-          />
         </div>
       </div>
+      
+      {/* Mobile menu, shown on smaller screens */}
+      <MobileMenu 
+        isOpen={mobileMenuOpen} 
+        onClose={() => setMobileMenuOpen(false)} 
+      />
     </header>
   );
 }

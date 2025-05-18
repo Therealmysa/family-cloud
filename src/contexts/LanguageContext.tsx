@@ -1,5 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { translations, defaultLocale, Locale } from '@/translations';
 
 interface LanguageContextType {
@@ -12,60 +13,53 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>(defaultLocale);
+  const location = useLocation();
+  const navigate = useNavigate();
   
   // Function to get translation for a key
   const t = (key: string): string => {
     return translations[locale][key] || translations[defaultLocale][key] || key;
   };
   
-  // Try to detect user's language based on browser settings or IP location
+  // Handle language routing
   useEffect(() => {
-    const detectUserLanguage = async () => {
+    // Check if the URL starts with a language prefix
+    const path = location.pathname;
+    
+    if (path.startsWith('/fr')) {
+      setLocale('fr');
+    } else if (path.startsWith('/en')) {
+      setLocale('en');
+    } else {
+      // No language prefix, try to detect user's language
       try {
-        // Try to use navigator.language first (browser setting)
         const browserLang = navigator.language.split('-')[0];
         
         if (browserLang === 'fr') {
-          setLocale('fr');
-          return;
-        }
-        
-        // If browser language is not French, try to use IP-based geolocation
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        if (data.country_code === 'FR') {
-          setLocale('fr');
-          console.log('Setting language to French based on IP location');
+          navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
         } else {
-          setLocale('en');
-          console.log('Setting language to English based on IP location');
+          navigate(`/en${path === '/' ? '' : path}`, { replace: true });
         }
       } catch (error) {
         console.error('Error detecting user language:', error);
-        // Default to French if detection fails
-        setLocale('fr');
+        navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
       }
-    };
-    
-    // Check for saved language preference
-    const savedLanguage = localStorage.getItem('language') as Locale | null;
-    
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'fr')) {
-      setLocale(savedLanguage);
-      console.log(`Using saved language preference: ${savedLanguage}`);
-    } else {
-      detectUserLanguage();
     }
-  }, []);
+  }, [location.pathname]);
   
-  // Save language preference when it changes
-  useEffect(() => {
-    localStorage.setItem('language', locale);
-  }, [locale]);
+  // Handle language change
+  const handleSetLocale = (newLocale: Locale) => {
+    setLocale(newLocale);
+    
+    // Update URL to reflect language change
+    const currentPath = location.pathname;
+    const pathWithoutLang = currentPath.replace(/^\/(fr|en)/, '') || '/';
+    
+    navigate(`/${newLocale}${pathWithoutLang}`, { replace: true });
+  };
   
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t }}>
+    <LanguageContext.Provider value={{ locale, setLocale: handleSetLocale, t }}>
       {children}
     </LanguageContext.Provider>
   );
