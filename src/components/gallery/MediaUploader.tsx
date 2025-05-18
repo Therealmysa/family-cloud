@@ -135,11 +135,11 @@ export const MediaUploader = ({
         .insert({
           title: title,
           description: description || null,
-          file_path: filePath,
-          file_url: publicURL.publicUrl,
-          uploaded_by: userId,
+          url: publicURL.publicUrl,
           family_id: familyId,
-          media_type: file.type.startsWith('image/') ? 'image' : 'video'
+          user_id: userId,
+          media_type: file.type.startsWith('image/') ? 'image' : 'video',
+          date_uploaded: new Date().toISOString()
         });
       
       if (insertError) {
