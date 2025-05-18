@@ -38,12 +38,12 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         {/* Logo Section */}
-        <Link to={`/${locale}/`} className="flex items-center gap-2 mr-4">
+        <Link to={`/${locale}/`} className="flex items-center gap-3 mr-6">
           <div className="inline-flex items-center justify-center">
             <img 
                 src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
                 alt="FamilyCloud Logo" 
-                className="h-8 w-8"
+                className="h-9 w-9"
               />
           </div>
           <span className="font-bold text-xl text-primary hidden sm:inline-block">FamilyCloud</span>
@@ -55,14 +55,14 @@ export default function Header() {
         </div>
         
         {/* Actions group */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-4 ml-auto">
           {/* Desktop: Language Selector & Theme Toggle */}
-          <div className="hidden md:flex md:items-center md:gap-2">
+          <div className="hidden md:flex md:items-center md:gap-3">
             <LanguageSelector />
             <ThemeToggle />
           </div>
           
-          {/* Mobile: FamilyCloud text instead of language/theme toggles */}
+          {/* Mobile: FamilyCloud text */}
           <div className="md:hidden">
             <span className="font-bold text-primary">FamilyCloud</span>
           </div>

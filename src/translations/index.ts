@@ -1,7 +1,7 @@
 
 export type Locale = 'en' | 'fr';
 
-export const defaultLocale: Locale = 'fr'; // Default language is now French
+export const defaultLocale: Locale = 'fr'; // Default language is French
 
 type TranslationDictionary = Record<string, string>;
 
@@ -119,6 +119,24 @@ export const translations: Translations = {
     'language.english': 'English',
     'language.french': 'French',
     'language.select': 'Select Language',
+    
+    // Dashboard
+    'dashboard.welcome': 'Welcome to Your Family Space',
+    'dashboard.welcome_name': 'Welcome, {name}',
+    'dashboard.private_space': 'Your private space to share moments and stay connected with loved ones',
+    'dashboard.recent_activity': 'Recent Family Activity',
+    'dashboard.quick_access': 'Quick Access',
+    'dashboard.messages_desc': 'Chat with family members in private conversations',
+    'dashboard.open_messages': 'Open Messages',
+    'dashboard.gallery_desc': 'Browse all family photos and videos in one place',
+    'dashboard.view_gallery': 'View Gallery',
+    'dashboard.feed_desc': 'See today\'s moments shared by family members',
+    'dashboard.go_feed': 'Go to Feed',
+    'dashboard.family_desc': 'Manage family members and settings',
+    'dashboard.family_admin': 'Family Admin',
+    'dashboard.profile_desc': 'View your profile and settings',
+    'dashboard.my_profile': 'My Profile',
+    'dashboard.share_moment': 'Share Today\'s Moment',
   },
   fr: {
     // Common
@@ -229,5 +247,23 @@ export const translations: Translations = {
     'language.english': 'Anglais',
     'language.french': 'Français',
     'language.select': 'Sélectionner la langue',
+    
+    // Dashboard
+    'dashboard.welcome': 'Bienvenue dans votre espace familial',
+    'dashboard.welcome_name': 'Bienvenue, {name}',
+    'dashboard.private_space': 'Votre espace privé pour partager des moments et rester connecté avec vos proches',
+    'dashboard.recent_activity': 'Activité familiale récente',
+    'dashboard.quick_access': 'Accès rapide',
+    'dashboard.messages_desc': 'Discutez avec les membres de votre famille en privé',
+    'dashboard.open_messages': 'Ouvrir les messages',
+    'dashboard.gallery_desc': 'Parcourez toutes les photos et vidéos de famille en un seul endroit',
+    'dashboard.view_gallery': 'Voir la galerie',
+    'dashboard.feed_desc': 'Consultez les moments partagés aujourd\'hui par les membres de la famille',
+    'dashboard.go_feed': 'Aller au fil d\'actualité',
+    'dashboard.family_desc': 'Gérer les membres et les paramètres de la famille',
+    'dashboard.family_admin': 'Administration familiale',
+    'dashboard.profile_desc': 'Consultez votre profil et vos paramètres',
+    'dashboard.my_profile': 'Mon profil',
+    'dashboard.share_moment': 'Partager un moment',
   }
 };

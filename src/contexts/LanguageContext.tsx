@@ -16,10 +16,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Function to get translation for a key
+  // Enhanced translation function to handle nested keys
   const t = (key: string): string => {
     if (!translations[locale][key] && !translations[defaultLocale][key]) {
       console.warn(`Translation key not found: ${key}`);
+      return key; // Return the key as fallback
     }
     return translations[locale][key] || translations[defaultLocale][key] || key;
   };
@@ -42,8 +43,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         if (browserLang === 'fr') {
           navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
         } else {
-          // Default to English for all other languages
-          navigate(`/en${path === '/' ? '' : path}`, { replace: true });
+          // Default to French for all other languages
+          navigate(`/fr${path === '/' ? '' : path}`, { replace: true });
         }
       } catch (error) {
         console.error('Error detecting user language:', error);
