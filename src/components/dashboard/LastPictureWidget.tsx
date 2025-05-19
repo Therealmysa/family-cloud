@@ -11,14 +11,12 @@ import { Media } from "@/types/media";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export const LastPictureWidget = () => {
   const { profile } = useAuth();
   const [lastPicture, setLastPicture] = useState<Media | null>(null);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
-  const { t, locale } = useLanguage();
 
   useEffect(() => {
     const fetchLastPicture = async () => {
@@ -65,7 +63,7 @@ export const LastPictureWidget = () => {
     const isToday = date.toDateString() === now.toDateString();
     
     if (isToday) {
-      return t('common.today');
+      return "Today";
     }
     
     const yesterday = new Date(now);
@@ -73,10 +71,10 @@ export const LastPictureWidget = () => {
     const isYesterday = date.toDateString() === yesterday.toDateString();
     
     if (isYesterday) {
-      return t('common.yesterday');
+      return "Yesterday";
     }
     
-    return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { month: 'long', day: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
   };
 
   return (
@@ -86,7 +84,7 @@ export const LastPictureWidget = () => {
           <div className="p-2 rounded-full bg-secondary/10">
             <Image className="h-4 w-4 text-secondary" />
           </div>
-          <span>{t('dashboard.last_picture')}</span>
+          <span>Last Picture</span>
         </CardTitle>
       </CardHeader>
       <CardContent className={`pt-4 ${isMobile ? 'px-4' : ''}`}>
@@ -117,7 +115,7 @@ export const LastPictureWidget = () => {
                   </span>
                 </div>
                 <span className="text-sm font-medium text-foreground">
-                  {formatDate(lastPicture.date_uploaded || lastPicture.created_at)}
+                  {formatDate(lastPicture.date_uploaded)}
                 </span>
               </div>
               <Button 
@@ -126,9 +124,9 @@ export const LastPictureWidget = () => {
                 size={isMobile ? "default" : "sm"} 
                 className={`mt-3 ${isMobile ? 'w-full text-base py-5' : 'w-full md:w-auto'}`}
               >
-                <Link to={`/${locale}/gallery`}>
-                  {t('dashboard.view_gallery')}
-                  <svg className="h-4 w-4 ml-2 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <Link to="/gallery">
+                  View gallery
+                  <svg className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
@@ -141,7 +139,7 @@ export const LastPictureWidget = () => {
               <Image className="h-7 w-7 text-muted-foreground" />
             </div>
             <p className="text-base text-muted-foreground">
-              {t('gallery.no_pictures')}
+              No pictures uploaded yet.
             </p>
             <Button 
               asChild 
@@ -149,8 +147,8 @@ export const LastPictureWidget = () => {
               size={isMobile ? "default" : "sm"}
               className={isMobile ? "text-base py-5" : ""}
             >
-              <Link to={`/${locale}/create-post`}>
-                {t('dashboard.share_moment')}
+              <Link to="/create-post">
+                Share a moment
               </Link>
             </Button>
           </div>

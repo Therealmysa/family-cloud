@@ -3,7 +3,6 @@ import { useState, FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SendHorizontal } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 type MessageInputProps = {
   onSendMessage: (content: string) => void;
@@ -12,7 +11,6 @@ type MessageInputProps = {
 export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { t } = useLanguage();
   
   // Handle submit
   const handleSubmit = async (e: FormEvent) => {
@@ -35,7 +33,7 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     <div className="p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-800 border-t border-t-border/30">
       <form className="flex gap-3 max-w-6xl mx-auto">
         <Input
-          placeholder={t('messages.type_message')}
+          placeholder="Type a message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="flex-1 border-border/40 focus-visible:ring-primary/30 text-base md:text-lg py-6 px-4"

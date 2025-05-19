@@ -1,98 +1,71 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Menu } from "lucide-react";
 import NavigationItems from "./NavigationItems";
 import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSelector } from "@/components/ui/language-selector";
-import { Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-  const { t, locale } = useLanguage();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Navigation items based on auth status
-  const navigationItems = user
-    ? [
-        { name: t('nav.dashboard'), path: `/${locale}/dashboard` },
-        { name: t('nav.feed'), path: `/${locale}/feed` },
-        { name: t('nav.gallery'), path: `/${locale}/gallery` },
-        { name: t('nav.messages'), path: `/${locale}/messages` },
-      ]
-    : [
-        { name: t('nav.home'), path: `/${locale}/` },
-      ];
-  
-  // Don't show the header on the auth page
-  if (location.pathname === "/auth" || location.pathname === "/en/auth" || location.pathname === "/fr/auth") {
-    return null;
-  }
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+
+  const navigationItems = user ? [
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Feed", path: "/feed" },
+    { name: "Gallery", path: "/gallery" },
+    { name: "Messages", path: "/messages" },
+  ] : [];
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        {/* Logo Section with FamilyCloud text */}
-        <Link to={`/${locale}/`} className="flex items-center gap-3 mr-6">
-          <div className="inline-flex items-center justify-center">
-            <img 
+    <header className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-md shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <img 
                 src="/lovable-uploads/bee75be3-3697-49b4-8ca0-80505c4798ec.png" 
                 alt="FamilyCloud Logo" 
-                className="h-9 w-9"
+                className="h-10 w-10 mr-2"
               />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                FamilyCloud
+              </h1>
+            </Link>
           </div>
-          <span className="font-bold text-xl text-primary">FamilyCloud</span>
-        </Link>
-        
-        {/* Desktop navigation */}
-        <div className="hidden md:flex md:flex-1">
-          <NavigationItems items={navigationItems} />
-        </div>
-        
-        {/* Actions group */}
-        <div className="flex items-center gap-4 ml-auto">
-          {/* Desktop: Language Selector & Theme Toggle */}
-          <div className="hidden md:flex md:items-center md:gap-3">
-            <LanguageSelector />
+          
+          {/* Desktop navigation */}
+          <nav className="hidden md:flex items-center space-x-4">
+            <NavigationItems items={navigationItems} />
             <ThemeToggle />
-          </div>
+            <UserMenu />
+          </nav>
           
-          {/* User Menu or Auth Button */}
-          {!loading && (
-            user ? (
-              <UserMenu />
-            ) : (
-              <Button asChild size="sm" className="ml-2">
-                <Link to={`/${locale}/auth`}>{t('auth.sign_in')}</Link>
-              </Button>
-            )
-          )}
-          
-          {/* Mobile menu button, shown on smaller screens */}
-          <div className="md:hidden">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 w-8 px-0" 
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+              onClick={toggleMobileMenu}
+              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
-              <Menu className="h-5 w-5" />
+              <span className="sr-only">{mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}</span>
+              <Menu className="block h-6 w-6" aria-hidden="true" />
             </Button>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu, shown on smaller screens */}
-      <MobileMenu 
-        isOpen={mobileMenuOpen} 
-        onClose={() => setMobileMenuOpen(false)} 
-      />
+
+      {/* Mobile menu */}
+      <MobileMenu isOpen={mobileMenuOpen} onClose={toggleMobileMenu} />
     </header>
   );
 }

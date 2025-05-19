@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,6 @@ import MainLayout from "@/components/layout/MainLayout";
 import { MediaDialog } from "@/components/media/MediaDialog";
 import { Media } from "@/types/media";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 // Import our new components
 import { MediaUploader } from "@/components/gallery/MediaUploader";
@@ -20,10 +18,11 @@ const Gallery = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedImage, setSelectedImage] = useState<Media | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">("all");
+  const [viewMode, setViewMode] = useState<"all" | "byDate" | "byMember">(
+    "all"
+  );
   const [showCreatePost, setShowCreatePost] = useState(false);
   const isMobile = useIsMobile();
-  const { t } = useLanguage();
 
   const {
     data: mediaItems,
@@ -118,7 +117,7 @@ const Gallery = () => {
   };
 
   return (
-    <MainLayout title={t('nav.gallery')} requireAuth={true}>
+    <MainLayout title="Gallery" requireAuth={true}>
       <div className="container max-w-6xl mx-auto px-4 py-6">
         {showCreatePost ? (
           <MediaUploader

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,7 +5,6 @@ import { Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Chat } from "@/types/chat";
 import { Message } from "@/types/message";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 type ChatSidebarProps = {
   chats: Chat[];
@@ -29,13 +27,12 @@ export const ChatSidebar = ({
   onSelectChat,
 }: ChatSidebarProps) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [enhancedChats, setEnhancedChats] = useState<ChatWithLastMessage[]>([]);
 
   // Format chat name
   const getChatName = (chat: Chat) => {
-    if (chat.type === "group") return t('messages.family_group_chat');
-    return chat.otherMember?.name || t('messages.private_chat');
+    if (chat.type === "group") return "Family Group Chat";
+    return chat.otherMember?.name || "Private Chat";
   };
 
   // Get avatar for chat
@@ -59,7 +56,7 @@ export const ChatSidebar = ({
     const isYesterday = date.toDateString() === yesterday.toDateString();
     
     if (isYesterday) {
-      return t('common.yesterday');
+      return "Yesterday";
     }
     
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -182,9 +179,7 @@ export const ChatSidebar = ({
                   </p>
                 ) : (
                   <p className="text-xs text-gray-500 truncate">
-                    {chat.type === "group" ? 
-                      t('messages.everyone_in_family') : 
-                      t('messages.start_conversation')}
+                    {chat.type === "group" ? "Everyone in your family" : "Start a conversation"}
                   </p>
                 )}
               </div>
@@ -193,7 +188,7 @@ export const ChatSidebar = ({
         </div>
       ) : (
         <div className="flex items-center justify-center h-full">
-          <p className="text-gray-500">{t('messages.no_messages_yet')}</p>
+          <p className="text-gray-500">No messages yet</p>
         </div>
       )}
     </div>

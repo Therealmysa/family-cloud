@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { MemberProfile } from "@/components/profile/MemberProfile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 type MemberListProps = {
   filteredMembers: Profile[];
@@ -27,7 +26,6 @@ export const MemberList = ({
 }: MemberListProps) => {
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { t } = useLanguage();
 
   const openMemberProfile = (member: Profile) => {
     setSelectedMember(member);
@@ -45,7 +43,7 @@ export const MemberList = ({
   if (filteredMembers.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-4">
-        {searchQuery ? t('messages.no_members_found') : t('messages.no_family_members')}
+        {searchQuery ? "No members found" : "No family members available"}
       </p>
     );
   }
@@ -84,7 +82,7 @@ export const MemberList = ({
               }}
             >
               <MessageSquare className="h-4 w-4" />
-              <span className="sr-only">{t('messages.message')}</span>
+              <span className="sr-only">Message</span>
             </Button>
           </div>
         ))}

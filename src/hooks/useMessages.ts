@@ -5,13 +5,11 @@ import { Message } from "@/types/message";
 import { Profile } from "@/types/profile";
 import { Chat } from "@/types/chat";
 import { toast } from "@/components/ui/use-toast";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useMessages(selectedChat: Chat | null, userId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const { t } = useLanguage();
 
   // Fetch messages for selected chat
   const fetchMessages = async () => {
@@ -28,8 +26,8 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
 
       if (error) {
         toast({
-          title: t('common.error'),
-          description: t('messages.load_error'),
+          title: "Error",
+          description: "Failed to load messages",
           variant: "destructive",
         });
         setMessages([]);
@@ -45,8 +43,8 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     } catch (error) {
       console.error("Error fetching messages:", error);
       toast({
-        title: t('common.error'),
-        description: t('messages.load_error'),
+        title: "Error",
+        description: "Failed to load messages",
         variant: "destructive",
       });
     } finally {
@@ -107,8 +105,8 @@ export function useMessages(selectedChat: Chat | null, userId: string | null) {
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({
-        title: t('common.error'),
-        description: t('messages.send_error'),
+        title: "Error",
+        description: "Failed to send message",
         variant: "destructive",
       });
     }

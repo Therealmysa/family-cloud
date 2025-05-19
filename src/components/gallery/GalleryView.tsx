@@ -1,11 +1,7 @@
-
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, Grid, User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import { Media } from "@/types/media";
-import { GallerySkeleton } from "./GallerySkeleton";
-import { EmptyGallery } from "./EmptyGallery";
 import { MediaItem } from "./MediaItem";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GalleryViewProps {
   isLoading: boolean;
@@ -15,128 +11,149 @@ interface GalleryViewProps {
   onViewModeChange: (mode: "all" | "byDate" | "byMember") => void;
 }
 
-export function GalleryView({
+export const GalleryView = ({
   isLoading,
   filteredMedia,
   onMediaClick,
   viewMode,
   onViewModeChange,
-}: GalleryViewProps) {
-  const { t } = useLanguage();
-
-  // Group media items by date (YYYY-MM-DD)
-  const groupByDate = (media: Media[]) => {
-    const groups = media.reduce((acc, item) => {
-      const date = new Date(item.date_uploaded || item.created_at).toISOString().split('T')[0];
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(item);
-      return acc;
-    }, {} as Record<string, Media[]>);
-    
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
-  };
-
-  // Group media items by member who uploaded
-  const groupByMember = (media: Media[]) => {
-    const groups = media.reduce((acc, item) => {
-      const memberId = item.profile?.id || 'unknown';
-      const memberName = item.profile?.name || 'Unknown';
-      
-      const key = `${memberId}|${memberName}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
-      return acc;
-    }, {} as Record<string, Media[]>);
-    
-    return Object.entries(groups).map(([key, items]) => {
-      const [id, name] = key.split('|');
-      return { id, name, items };
+}: GalleryViewProps) => {
+  // Group images by date
+  const groupByDate = (images: Media[]) => {
+    const grouped: Record<string, Media[]> = {};
+    images.forEach((img) => {
+      const date = img.date_uploaded;
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(img);
     });
+    return Object.entries(grouped).sort(
+      ([dateA], [dateB]) =>
+        new Date(dateB).getTime() - new Date(dateA).getTime()
+    );
   };
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+  // Group images by family member
+  const groupByMember = (images: Media[]) => {
+    const grouped: Record<
+      string,
+      { name: string; avatar: string | null; images: Media[] }
+    > = {};
+    images.forEach((img) => {
+      if (img.profile) {
+        const userId = img.user_id;
+        if (!grouped[userId]) {
+          grouped[userId] = {
+            name: img.profile.name,
+            avatar: img.profile.avatar_url,
+            images: [],
+          };
+        }
+        grouped[userId].images.push(img);
+      }
     });
+    return Object.values(grouped);
   };
 
-  if (isLoading) {
-    return <GallerySkeleton />;
-  }
-
-  if (!filteredMedia.length) {
-    return <EmptyGallery isSearching={false} />;
-  }
+  const groupedByDate = groupByDate(filteredMedia);
+  const groupedByMember = groupByMember(filteredMedia);
 
   return (
-    <div>
-      <div className="mb-6">
-        <Tabs defaultValue="all" value={viewMode} onValueChange={(v) => onViewModeChange(v as any)}>
-          <TabsList className="grid grid-cols-3 w-full sm:w-auto">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              <Grid className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('gallery.all_view')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="byDate" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('gallery.date_view')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="byMember" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('gallery.member_view')}</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+    <Tabs
+      defaultValue="all"
+      value={viewMode}
+      onValueChange={(value) => onViewModeChange(value as any)}
+      className="mb-6"
+    >
+      <TabsList className="mb-4">
+        <TabsTrigger value="all">All Media</TabsTrigger>
+        <TabsTrigger value="byDate">By Date</TabsTrigger>
+        <TabsTrigger value="byMember">By Family Member</TabsTrigger>
+      </TabsList>
 
-      {viewMode === "all" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredMedia.map((item) => (
-            <MediaItem key={item.id} item={item} onClick={() => onMediaClick(item)} />
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div
+              key={i}
+              className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"
+            />
           ))}
         </div>
-      )}
-
-      {viewMode === "byDate" && (
-        <div className="space-y-10">
-          {groupByDate(filteredMedia).map(([date, items]) => (
-            <div key={date}>
-              <h2 className="text-lg font-semibold mb-4 border-b pb-2">{formatDate(date)}</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {items.map((item) => (
-                  <MediaItem key={item.id} item={item} onClick={() => onMediaClick(item)} />
+      ) : (
+        <>
+          <TabsContent value="all" className="mt-0">
+            {filteredMedia.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredMedia.map((item) => (
+                  <MediaItem key={item.id} item={item} onClick={onMediaClick} />
                 ))}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {viewMode === "byMember" && (
-        <div className="space-y-10">
-          {groupByMember(filteredMedia).map((group) => (
-            <div key={group.id}>
-              <h2 className="text-lg font-semibold mb-4 border-b pb-2">
-                {group.name}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {group.items.map((item) => (
-                  <MediaItem key={item.id} item={item} onClick={() => onMediaClick(item)} />
-                ))}
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-gray-500">No media found</p>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="byDate" className="mt-0 space-y-8">
+            {groupedByDate.length > 0 ? (
+              groupedByDate.map(([date, images]) => (
+                <div key={date} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={18} className="text-purple-500" />
+                    <h3 className="font-semibold">
+                      {new Date(date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {images.map((item) => (
+                      <MediaItem
+                        key={item.id}
+                        item={item}
+                        onClick={onMediaClick}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-gray-500">No media found</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="byMember" className="mt-0 space-y-8">
+            {groupedByMember.length > 0 ? (
+              groupedByMember.map((member, index) => (
+                <div key={index} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <User size={18} className="text-purple-500" />
+                    <h3 className="font-semibold">{member.name}</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {member.images.map((item) => (
+                      <MediaItem
+                        key={item.id}
+                        item={item}
+                        onClick={onMediaClick}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-gray-500">No media found</p>
+              </div>
+            )}
+          </TabsContent>
+        </>
       )}
-    </div>
+    </Tabs>
   );
-}
+};

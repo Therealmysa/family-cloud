@@ -1,7 +1,6 @@
 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,7 +19,6 @@ interface UserMenuProps {
 
 export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProps) {
   const { user, profile, signOut } = useAuth();
-  const { t, locale } = useLanguage();
 
   const getInitials = (name: string) => {
     return name
@@ -36,18 +34,18 @@ export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProp
       return (
         <>
           <Link
-            to={`/${locale}/auth`}
+            to="/auth"
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
             onClick={onItemClick}
           >
-            {t('auth.sign_in')}
+            Sign In
           </Link>
           <Link
-            to={`/${locale}/auth?signup=true`}
+            to="/auth?signup=true"
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
             onClick={onItemClick}
           >
-            {t('auth.sign_up')}
+            Sign Up
           </Link>
         </>
       );
@@ -56,10 +54,10 @@ export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProp
     return (
       <div className="flex items-center space-x-2">
         <Button variant="ghost" asChild>
-          <Link to={`/${locale}/auth`}>{t('auth.sign_in')}</Link>
+          <Link to="/auth">Sign In</Link>
         </Button>
         <Button asChild>
-          <Link to={`/${locale}/auth?signup=true`}>{t('auth.sign_up')}</Link>
+          <Link to="/auth?signup=true">Sign Up</Link>
         </Button>
       </div>
     );
@@ -69,19 +67,19 @@ export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProp
     return (
       <>
         <Link
-          to={`/${locale}/profile`}
+          to="/profile"
           className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
           onClick={onItemClick}
         >
-          {t('nav.profile')}
+          Profile
         </Link>
         {profile?.is_admin && (
           <Link
-            to={`/${locale}/family-admin`}
+            to="/family-admin"
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
             onClick={onItemClick}
           >
-            {t('nav.family_admin')}
+            Family Admin
           </Link>
         )}
         <button
@@ -91,7 +89,7 @@ export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProp
           }}
           className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400"
         >
-          {t('auth.sign_out')}
+          Sign out
         </button>
       </>
     );
@@ -114,23 +112,23 @@ export default function UserMenu({ isMobile = false, onItemClick }: UserMenuProp
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link to={`/${locale}/profile`} className="cursor-pointer flex items-center">
+          <Link to="/profile" className="cursor-pointer flex items-center">
             <User className="mr-2 h-4 w-4" />
-            <span>{t('nav.profile')}</span>
+            <span>Profile</span>
           </Link>
         </DropdownMenuItem>
         {profile?.is_admin && (
           <DropdownMenuItem asChild>
-            <Link to={`/${locale}/family-admin`} className="cursor-pointer flex items-center">
+            <Link to="/family-admin" className="cursor-pointer flex items-center">
               <Users className="mr-2 h-4 w-4" />
-              <span>{t('nav.family_admin')}</span>
+              <span>Family Admin</span>
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{t('auth.sign_out')}</span>
+          <span>Sign out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

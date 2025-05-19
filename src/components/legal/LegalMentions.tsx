@@ -1,52 +1,49 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Gavel } from "lucide-react";
 
 export function LegalMentions() {
-  const { t } = useLanguage();
-  
   return (
-    <Card className="shadow-md border-0">
-      <CardHeader className="pb-4 border-b">
-        <CardTitle className="flex items-center gap-2 text-xl text-primary">
-          <Gavel className="h-5 w-5" />
-          {t('legal.notices')}
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>Legal Notices</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-7 pt-6">
+      <CardContent className="space-y-6">
         <section>
-          <h3 className="text-lg font-semibold mb-3 text-primary-700 dark:text-primary-400">{t('legal.publisher')}</h3>
-          <p className="text-muted-foreground">{t('legal.publisher_desc')} :</p>
-          <ul className="list-disc pl-6 mt-3 space-y-1 text-muted-foreground">
-            <li><strong>{t('legal.name')}</strong> : AIT TAYEB Samy</li>
-            <li><strong>{t('legal.email')}</strong> : <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a></li>
-            <li><strong>{t('legal.status')}</strong> : {t('legal.individual')}</li>
-            <li><strong>{t('legal.director')}</strong> : AIT TAYEB Samy</li>
+          <h3 className="text-lg font-semibold mb-2">Website Publisher</h3>
+          <p>This website is published by:</p>
+          <ul className="list-disc pl-6 mt-2">
+            <li><strong>Name</strong>: AIT TAYEB Samy</li>
+            <li><strong>Email address</strong>: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a></li>
+            <li><strong>Status</strong>: Individual (not registered with the Trade and Companies Register)</li>
+            <li><strong>Publication Director</strong>: AIT TAYEB Samy</li>
           </ul>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-3 text-primary-700 dark:text-primary-400">{t('legal.host')}</h3>
-          <p className="text-muted-foreground">{t('legal.host_desc')} :</p>
-          <ul className="list-disc pl-6 mt-3 space-y-1 text-muted-foreground">
+          <h3 className="text-lg font-semibold mb-2">Website Host</h3>
+          <p>The website is hosted by:</p>
+          <ul className="list-disc pl-6 mt-2">
             <li><strong>Lovable.dev</strong></li>
-            <li>{t('legal.web_hosting')} - <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://lovable.dev</a></li>
+            <li>Web hosting - <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://lovable.dev</a></li>
           </ul>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-3 text-primary-700 dark:text-primary-400">{t('legal.intellectual_property')}</h3>
-          <p className="text-muted-foreground">
-            {t('legal.intellectual_property_desc')}
+          <h3 className="text-lg font-semibold mb-2">Intellectual Property</h3>
+          <p>
+            All content (texts, images, graphics, logos, icons, etc.) of the website is protected by current laws on intellectual property. 
+            Any reproduction, representation, modification, or adaptation, in whole or in part, without the express authorization of the publisher is prohibited.
           </p>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-3 text-primary-700 dark:text-primary-400">{t('legal.personal_data')}</h3>
-          <p className="text-muted-foreground">
-            {t('legal.personal_data_desc')}
-            <strong> {t('legal.gdpr')}</strong>, {t('legal.data_rights')} <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a>
+          <h3 className="text-lg font-semibold mb-2">Personal Data</h3>
+          <p>
+            Personal data collected via this website (email address, account information, exchanged messages, etc.) 
+            is used solely for the proper functioning of the service.
+            This data is not sold or transferred to third parties.
+            In accordance with the <strong>General Data Protection Regulation (GDPR)</strong>, you may exercise your rights of access, 
+            rectification, or deletion of data by contacting us at: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a>
           </p>
         </section>
       </CardContent>
