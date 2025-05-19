@@ -32,7 +32,6 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         { name: t('nav.feed'), path: `/${locale}/feed` },
         { name: t('nav.gallery'), path: `/${locale}/gallery` },
         { name: t('nav.messages'), path: `/${locale}/messages` },
-        // Removed the duplicate family admin item here
         { name: t('nav.family_members'), path: `/${locale}/family-members` },
       ]
     : [

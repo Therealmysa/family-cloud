@@ -1,72 +1,74 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function PrivacyPolicy() {
+  const { t } = useLanguage();
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span className="text-primary">🔒</span> Privacy Policy (GDPR)
+          <span className="text-primary">🔒</span> {t('legal.privacy_policy')} (GDPR)
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <section>
-          <h3 className="text-lg font-semibold mb-2">1. Data Controller</h3>
-          <p>The data controller is:</p>
+          <h3 className="text-lg font-semibold mb-2">1. {t('legal.data_controller')}</h3>
+          <p>{t('legal.controller_is')}:</p>
           <p><strong>AIT TAYEB Samy</strong><br />
-          Contact email: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a></p>
+          {t('legal.contact_email')}: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a></p>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">2. Data Collected</h3>
-          <p>When you use this website, we only collect data strictly necessary for the proper functioning of the service, including:</p>
+          <h3 className="text-lg font-semibold mb-2">2. {t('legal.data_collected')}</h3>
+          <p>{t('legal.data_collected_desc')}:</p>
           <ul className="list-disc pl-6 mt-2">
-            <li>Login credentials (email, username)</li>
-            <li>Message data and shared files</li>
-            <li>IP address (for security purposes)</li>
-            <li>Browsing data (via cookies or internal tools)</li>
+            <li>{t('legal.login_credentials')}</li>
+            <li>{t('legal.message_data')}</li>
+            <li>{t('legal.ip_address')}</li>
+            <li>{t('legal.browsing_data')}</li>
           </ul>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">3. Purpose of Processing</h3>
-          <p>This data is used to:</p>
+          <h3 className="text-lg font-semibold mb-2">3. {t('legal.purpose')}</h3>
+          <p>{t('legal.data_used')}:</p>
           <ul className="list-disc pl-6 mt-2">
-            <li>Enable access to and functioning of the platform</li>
-            <li>Facilitate communication between family members</li>
-            <li>Ensure service security</li>
-            <li>Improve user experience</li>
+            <li>{t('legal.enable_access')}</li>
+            <li>{t('legal.facilitate_communication')}</li>
+            <li>{t('legal.ensure_security')}</li>
+            <li>{t('legal.improve_experience')}</li>
           </ul>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">4. Storage and Security</h3>
+          <h3 className="text-lg font-semibold mb-2">4. {t('legal.storage_security')}</h3>
           <p>
-            Data is hosted on <strong>Lovable.dev</strong> servers, in compliance with European standards.
-            Technical measures are in place to ensure their confidentiality, integrity, and availability.
+            {t('legal.storage_desc', { host: 'Lovable.dev' })}
           </p>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">5. Retention Period</h3>
+          <h3 className="text-lg font-semibold mb-2">5. {t('legal.retention')}</h3>
           <ul className="list-disc pl-6 mt-2">
-            <li>Account data: as long as the user has not deleted their account</li>
-            <li>Messages and files: according to service usage (deletable by the user)</li>
-            <li>Cookies: maximum duration of 13 months</li>
+            <li>{t('legal.account_data')}</li>
+            <li>{t('legal.messages_files')}</li>
+            <li>{t('legal.cookies')}</li>
           </ul>
         </section>
 
         <section>
-          <h3 className="text-lg font-semibold mb-2">6. Your Rights</h3>
-          <p>In accordance with GDPR, you have the right to:</p>
+          <h3 className="text-lg font-semibold mb-2">6. {t('legal.your_rights')}</h3>
+          <p>{t('legal.gdpr_rights')}:</p>
           <ul className="list-disc pl-6 mt-2">
-            <li>Access your data</li>
-            <li>Correct or delete your data</li>
-            <li>Object to its processing</li>
-            <li>Request data portability</li>
+            <li>{t('legal.access_data')}</li>
+            <li>{t('legal.correct_delete')}</li>
+            <li>{t('legal.object_processing')}</li>
+            <li>{t('legal.request_portability')}</li>
           </ul>
           <p className="mt-2">
-            To exercise these rights, please contact us at: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a>
+            {t('legal.exercise_rights')}: <a href="mailto:pro@mysa-tech.fr" className="text-primary hover:underline">pro@mysa-tech.fr</a>
           </p>
         </section>
       </CardContent>

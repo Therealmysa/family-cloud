@@ -28,7 +28,7 @@ export default function FamilyAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const { t, locale } = useLanguage();
 
-  // Redirection si l'utilisateur n'est pas connecté ou n'est pas un admin
+  // Redirect if user is not logged in or is not an admin
   useEffect(() => {
     if (!profile) return;
     

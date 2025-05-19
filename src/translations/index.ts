@@ -1,4 +1,3 @@
-
 export type Locale = 'en' | 'fr';
 
 export const defaultLocale: Locale = 'fr'; // Default language is French
@@ -335,7 +334,7 @@ export const translations: Translations = {
     'dashboard.private_space': 'Votre espace privé pour partager des moments et rester connecté avec vos proches',
     'dashboard.recent_activity': 'Activité familiale récente',
     'dashboard.quick_access': 'Accès rapide',
-    'dashboard.messages_desc': 'Discutez avec les membres de votre famille en privé',
+    'dashboard.messages_desc': 'Discutez avec les membres de la famille en privé',
     'dashboard.open_messages': 'Ouvrir les messages',
     'dashboard.gallery_desc': 'Parcourez toutes les photos et vidéos de famille en un seul endroit',
     'dashboard.view_gallery': 'Voir la galerie',
