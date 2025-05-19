@@ -1,3 +1,4 @@
+
 export type Locale = 'en' | 'fr';
 
 export const defaultLocale: Locale = 'fr'; // Default language is French
@@ -483,8 +484,7 @@ export const translations: Translations = {
     'legal.intellectual_property_terms': 'Tous les éléments de notre service (logo, design, texte, logiciel) sont la propriété de FamilyCloud ou de ses partenaires et sont protégés par les lois sur la propriété intellectuelle.',
     'legal.terms_evolution': 'Évolution des Conditions',
     'legal.terms_evolution_desc': 'Ces Conditions peuvent être mises à jour périodiquement. Tout changement important sera notifié aux utilisateurs via le service.',
-  },
-  fr: {
+    
     // Messages
     'messages.your_messages': 'Vos messages',
     'messages.select_conversation': 'Sélectionnez une conversation pour commencer à discuter avec votre famille',
@@ -515,3 +515,4 @@ export const translations: Translations = {
     'messages.rls_policy_error': 'Il pourrait y avoir un problème avec les permissions de la base de données. Veuillez contacter le support.',
   }
 };
+
