@@ -7,7 +7,7 @@ import { TermsOfService } from "@/components/legal/TermsOfService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileText } from "lucide-react";
+import { FileText, Shield, Gavel } from "lucide-react";
 
 const Legal = () => {
   const { t } = useLanguage();
@@ -21,20 +21,44 @@ const Legal = () => {
       </Helmet>
 
       <div className="container mx-auto py-9 px-4">
-        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800/60 rounded-xl shadow-sm p-6 md:p-8">
-          <div className="flex flex-col items-center mb-6">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-3">
-              <FileText className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+        <div className="max-w-4xl mx-auto bg-card dark:bg-gray-800/60 rounded-xl shadow-md p-6 md:p-8">
+          <div className="flex flex-col items-center mb-8">
+            <div className="p-3 bg-primary/10 dark:bg-primary-900/30 rounded-full mb-4">
+              <FileText className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-700 dark:text-purple-400">{t('legal.title')}</h1>
-            <p className="text-muted-foreground text-center mt-2 max-w-lg">{t('legal.subtitle')}</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-center text-primary">{t('legal.title')}</h1>
+            <p className="text-muted-foreground text-center mt-3 max-w-lg">{t('legal.subtitle')}</p>
           </div>
 
           <Tabs defaultValue="legal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 gap-4 mb-7">
-              <TabsTrigger value="legal" className="py-3 text-base">{t('legal.notices')}</TabsTrigger>
-              <TabsTrigger value="privacy" className="py-3 text-base">{t('legal.privacy')}</TabsTrigger>
-              <TabsTrigger value="terms" className="py-3 text-base">{t('legal.terms')}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-8 p-1 bg-muted/40">
+              <TabsTrigger 
+                value="legal" 
+                className="py-3 text-base data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+              >
+                <div className="flex items-center gap-2">
+                  <Gavel className="h-4 w-4" />
+                  <span>{t('legal.notices')}</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="privacy" 
+                className="py-3 text-base data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+              >
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span>{t('legal.privacy')}</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="terms" 
+                className="py-3 text-base data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm rounded-md"
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>{t('legal.terms')}</span>
+                </div>
+              </TabsTrigger>
             </TabsList>
             <Separator className="mb-6" />
             <TabsContent value="legal" className="mt-4">
