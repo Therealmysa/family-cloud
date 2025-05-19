@@ -8,6 +8,7 @@ import { Chat } from "@/types/chat";
 import { Profile } from "@/types/profile";
 import { Message } from "@/types/message";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ChatContainerProps = {
   selectedChat: Chat | null;
@@ -27,6 +28,7 @@ export const ChatContainer = ({
   onBackToList,
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   if (!selectedChat) {
     return <EmptyState />;

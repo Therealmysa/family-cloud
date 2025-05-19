@@ -5,6 +5,7 @@ import { Message } from "@/types/message";
 import { Profile } from "@/types/profile";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type MessageListProps = {
   messages: Message[];
@@ -16,6 +17,7 @@ export const MessageList = ({ messages, profiles, compact = false }: MessageList
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   // Get sender details for message
   const getSender = (senderId: string) => {
@@ -57,7 +59,7 @@ export const MessageList = ({ messages, profiles, compact = false }: MessageList
     <div className={`flex-1 overflow-y-auto ${compact ? 'p-2 sm:p-3' : 'p-4 sm:p-6 md:p-8'} space-y-5 bg-gray-50/60 dark:bg-gray-900/60`}>
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-gray-500">No messages yet. Start the conversation!</p>
+          <p className="text-gray-500">{t('messages.no_messages')}</p>
         </div>
       ) : (
         messages.map((message, index) => {

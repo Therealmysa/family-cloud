@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +11,11 @@ import { useChats } from "@/hooks/useChats";
 import { useMessages } from "@/hooks/useMessages";
 import { Chat } from "@/types/chat";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Messages = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { 
     chats, 
     selectedChat, 
@@ -120,8 +123,8 @@ const Messages = () => {
         if (error) {
           console.error("RLS policy check failed:", error);
           toast({
-            title: "Error",
-            description: "There might be an issue with database permissions. Please contact support.",
+            title: t('common.error'),
+            description: t('messages.rls_policy_error'),
             variant: "destructive",
           });
         }
@@ -133,16 +136,16 @@ const Messages = () => {
     if (user) {
       checkRlsPolicies();
     }
-  }, [user]);
+  }, [user, t]);
 
   return (
-    <MainLayout title="Messages" requireAuth={true}>
+    <MainLayout title={t('nav.messages')} requireAuth={true}>
       <div className="flex flex-col sm:flex-row h-[calc(100vh-140px)] overflow-hidden rounded-md shadow-lg border border-border/30 mx-0 my-0">
         {/* Chats sidebar - show only when showChatList is true on mobile */}
         {(!isMobile || showChatList) && (
           <div className="w-full sm:w-[350px] lg:w-[400px] border-r border-r-border/30 bg-white dark:bg-gray-800/60 flex flex-col h-full">
             <div className="p-4 border-b border-b-border/30 flex justify-between items-center bg-muted/20">
-              <h2 className="text-lg font-medium">Messages</h2>
+              <h2 className="text-lg font-medium">{t('nav.messages')}</h2>
               <CreateConversation onChatCreated={handleChatCreated} />
             </div>
             

@@ -17,6 +17,7 @@ import { useConversationMembers } from "@/hooks/useConversationMembers";
 import { SearchMembers } from "./SearchMembers";
 import { MemberList } from "./MemberList";
 import { createNewChat } from "@/utils/chatUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type CreateConversationProps = {
   onChatCreated: (chat: Chat) => void;
@@ -24,6 +25,7 @@ type CreateConversationProps = {
 
 export const CreateConversation = ({ onChatCreated }: CreateConversationProps) => {
   const { user, profile, session } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -52,11 +54,11 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
           console.log("Session token starts with:", session.access_token.substring(0, 10) + "...");
         } else {
           console.error("No session object found in CreateConversation!");
-          setAuthError("Session not available. Please refresh the page and try again.");
+          setAuthError(t('messages.session_error'));
         }
       } else {
         console.error("No authenticated user found in CreateConversation!");
-        setAuthError("No authenticated user found. Please sign in again.");
+        setAuthError(t('messages.auth_error'));
       }
     } else {
       // Clear any errors when closing
@@ -67,8 +69,8 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
   const handleCreateChat = async () => {
     if (!user || selectedMembers.length === 0 || !profile?.family_id) {
       toast({
-        title: "Error",
-        description: "Please select at least one family member",
+        title: t('common.error'),
+        description: t('messages.select_member_error'),
         variant: "destructive",
       });
       return;
@@ -94,14 +96,14 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
       <DialogTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
           <MessageSquarePlus className="h-4 w-4" />
-          <span>New Chat</span>
+          <span>{t('messages.new_chat')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New Conversation</DialogTitle>
+          <DialogTitle>{t('messages.new_conversation')}</DialogTitle>
           <DialogDescription>
-            Select family members to start a conversation with.
+            {t('messages.select_family_members')}
           </DialogDescription>
         </DialogHeader>
         
@@ -133,10 +135,10 @@ export const CreateConversation = ({ onChatCreated }: CreateConversationProps) =
               {isCreating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {t('messages.creating')}
                 </>
               ) : (
-                "Start Conversation"
+                t('messages.start_conversation_button')
               )}
             </Button>
           </div>
