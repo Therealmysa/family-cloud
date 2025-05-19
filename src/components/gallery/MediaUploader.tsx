@@ -8,6 +8,8 @@ import { Upload, X } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { isImageFile, isVideoFile } from "@/utils/supabaseHelpers";
+import axios from "axios";
 
 interface MediaUploaderProps {
   userId: string;
@@ -52,21 +54,20 @@ export const MediaUploader = ({
   // Process selected file
   const handleFileSelected = (selectedFile: File) => {
     // Check file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
-    if (!validTypes.includes(selectedFile.type)) {
+    if (!isImageFile(selectedFile) && !isVideoFile(selectedFile)) {
       toast({
         title: "Unsupported file type",
-        description: "Please upload a JPG, PNG, GIF, or MP4 file.",
+        description: "Please upload an image or video file.",
         variant: "destructive"
       });
       return;
     }
     
-    // Check file size (10MB limit)
-    if (selectedFile.size > 10 * 1024 * 1024) {
+    // Check file size (100MB limit)
+    if (selectedFile.size > 100 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "File size must be less than 10MB.",
+        description: "File size must be less than 100MB.",
         variant: "destructive"
       });
       return;
@@ -107,26 +108,38 @@ export const MediaUploader = ({
     setUploading(true);
     
     try {
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `${familyId}/${fileName}`;
+      // Get the session for authentication
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.access_token) {
+        throw new Error("Authentication required");
+      }
+
+      // Create form data for upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", `families/${familyId}`);
       
-      const { error: uploadError } = await supabase.storage
-        .from('media')
-        .upload(filePath, file);
+      // Upload to Cloudinary through our edge function
+      const response = await fetch(
+        `${window.location.origin}/functions/v1/cloudinary-upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: formData,
+        }
+      );
       
-      if (uploadError) {
-        throw uploadError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload failed");
       }
       
-      // Get the public URL
-      const { data: publicURL } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath);
+      const cloudinaryData = await response.json();
       
-      if (!publicURL) {
-        throw new Error("Failed to get public URL");
+      if (!cloudinaryData.url) {
+        throw new Error("Failed to get upload URL");
       }
       
       // Insert into 'media' table
@@ -135,10 +148,10 @@ export const MediaUploader = ({
         .insert({
           title: title,
           description: description || null,
-          url: publicURL.publicUrl,
+          url: cloudinaryData.url,
           family_id: familyId,
           user_id: userId,
-          media_type: file.type.startsWith('image/') ? 'image' : 'video',
+          media_type: isImageFile(file) ? 'image' : 'video',
           date_uploaded: new Date().toISOString()
         });
       
@@ -156,7 +169,7 @@ export const MediaUploader = ({
       console.error('Error uploading:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your media. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error uploading your media. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -205,7 +218,7 @@ export const MediaUploader = ({
               <input
                 id="file-upload"
                 type="file"
-                accept="image/jpeg,image/png,image/gif,video/mp4"
+                accept="image/jpeg,image/png,image/gif,video/mp4,video/webm,video/ogg"
                 className="hidden"
                 onChange={handleFileChange}
               />
@@ -214,7 +227,7 @@ export const MediaUploader = ({
             <div className="space-y-4">
               {previewUrl && (
                 <div className="relative mb-4 w-full max-h-[300px] overflow-hidden flex justify-center bg-black/5 dark:bg-white/5 rounded-md">
-                  {file.type.startsWith('image/') ? (
+                  {isImageFile(file) ? (
                     <img
                       src={previewUrl}
                       alt="Preview"

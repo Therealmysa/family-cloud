@@ -168,6 +168,6 @@ const Gallery = () => {
       </div>
     </MainLayout>
   );
-}
+};
 
 export default Gallery;
