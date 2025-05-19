@@ -16,7 +16,8 @@ export function TermsOfService() {
         <section>
           <h3 className="text-lg font-semibold mb-2">1. {t('legal.purpose_title')}</h3>
           <p>
-            {t('legal.purpose_desc', { siteName: 'FamilyCloud', siteUrl: 'https://family-cloud.mysa-tech.fr' })}
+            {/* Fix: Replace object parameter with string interpolation */}
+            {`${t('legal.purpose_desc')} - FamilyCloud (https://family-cloud.mysa-tech.fr)`}
           </p>
         </section>
 

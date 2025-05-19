@@ -45,7 +45,8 @@ export function PrivacyPolicy() {
         <section>
           <h3 className="text-lg font-semibold mb-2">4. {t('legal.storage_security')}</h3>
           <p>
-            {t('legal.storage_desc', { host: 'Lovable.dev' })}
+            {/* Fix: Replace object parameter with string interpolation */}
+            {`${t('legal.storage_desc')} (Lovable.dev)`}
           </p>
         </section>
 
